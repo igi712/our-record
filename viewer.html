@@ -67,10 +67,50 @@
             <label for="motionSelect">Motion</label>
             <select id="motionSelect"></select>
 
-            <label for="expressionSelect">Expression</label>
+            <label for="expressionSelect">Face</label>
             <select id="expressionSelect"></select>
 
-            <button id="snapshotBtn" type="button">Snapshot (transparent PNG)</button>
+            <button id="snapshotBtn" type="button">Capture</button>
+
+            <hr style="margin:10px 0;border:0;border-top:1px solid rgba(255,255,255,0.06);">
+
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                <div style="margin-right:auto">Cheek</div>
+                <div style="display:flex;gap:6px;">
+                    <label><input type="radio" name="cheek" id="cheek0" value="0" checked>0</label>
+                    <label><input type="radio" name="cheek" id="cheek1" value="1">1</label>
+                    <label><input type="radio" name="cheek" id="cheek2" value="2">2</label>
+                </div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:6px;">
+                    <label style="font-size:12px;">Lock</label>
+                    <input id="cheekLock" type="checkbox">
+                </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                <label style="display:flex;align-items:center;gap:6px;"><input id="eyeClosed" type="checkbox">Eye Close</label>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:6px;">
+                    <label style="font-size:12px;">Lock</label>
+                    <input id="eyeLock" type="checkbox">
+                </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                <label for="mouthRange">Mouth</label>
+                <input id="mouthRange" type="range" min="0" max="1" step="0.01" value="0" style="flex:1;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <label style="font-size:12px;">Lock</label>
+                    <input id="mouthLock" type="checkbox">
+                </div>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
+                <button id="micToggle" type="button">Start Mic Lipsync</button>
+                <div style="display:flex;align-items:center;gap:8px;margin-left:12px;">
+                    <label for="micSensitivity" style="font-size:12px;">Mic Sens</label>
+                    <input id="micSensitivity" type="range" min="0.25" max="2" step="0.05" value="1" style="width:110px;">
+                </div>
+            </div>
         </div>
     </div>
 

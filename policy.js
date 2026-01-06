@@ -107,6 +107,11 @@ function applyMagirecoIdlePolicy(model, modelJson) {
                 const coreModel = internalModel.coreModel;
                 if (!coreModel) return;
 
+                // If a manual eye override is active, prefer that value and skip blink math.
+                if (internalModel.__magirecoEyeManualActive) {
+                    v = Number(internalModel.__magirecoEyeManualValue) ?? v;
+                }
+
                 if (typeof coreModel.setParamFloat === 'function') {
                     const leftIdx = Number(internalModel.leftParam ?? internalModel.eyeBlink?.leftParam);
                     const rightIdx = Number(internalModel.rightParam ?? internalModel.eyeBlink?.rightParam);
@@ -120,6 +125,42 @@ function applyMagirecoIdlePolicy(model, modelJson) {
                     coreModel.setParameterValueById('ParamEyeROpen', v, 1);
                 }
             };
+
+            const applyManualOverrides = () => {
+                try {
+                    const coreModel = internalModel.coreModel;
+                    if (!coreModel) return;
+
+                    // Cheek: apply when either manually active or locked.
+                    if (internalModel.__magirecoCheekLocked || internalModel.__magirecoCheekManualActive) {
+                        const v = Number(internalModel.__magirecoCheekValue) || 0;
+                        if (typeof coreModel.setParameterValueById === 'function') {
+                            coreModel.setParameterValueById('ParamCheek', v, 1);
+                        } else if (typeof coreModel.setParamFloat === 'function') {
+                            const idx = Number(internalModel.cheekParamIndex) ?? -1;
+                            if (Number.isFinite(idx) && idx >= 0) coreModel.setParamFloat(idx, v);
+                        }
+                    }
+
+                    // Mouth: apply when manual active or locked. Set multiple mouth-related params to increase coverage.
+                    if (internalModel.__magirecoMouthLocked || internalModel.__magirecoMouthManualActive || internalModel.__magirecoMicActive) {
+                        const v = Number(internalModel.__magirecoMouthValue) || 0;
+                        if (typeof coreModel.setParameterValueById === 'function') {
+                            // Only control mouth open amount here to avoid overwriting model mouth "form" (smile/frown) expressions.
+                            coreModel.setParameterValueById('ParamMouthOpenY', v, 1);
+                        } else if (typeof coreModel.setParamFloat === 'function') {
+                            const idx = Number(internalModel.mouthOpenParamIndex) ?? -1;
+                            if (Number.isFinite(idx) && idx >= 0) coreModel.setParamFloat(idx, v);
+                        }
+                    }
+                } catch {}
+            };
+
+            // also reapply when the model completes a general update pass (cover cases where other systems write params)
+            try {
+                internalModel.on('afterUpdate', () => { try { applyManualOverrides(); } catch {} });
+            } catch {}
+
 
             const updateBlink = (deltaMs) => {
                 switch (blink.state) {
@@ -169,6 +210,7 @@ function applyMagirecoIdlePolicy(model, modelJson) {
             internalModel.on('afterMotionUpdate', () => {
                 const dt = Number(model?.deltaTime);
                 if (Number.isFinite(dt) && dt > 0) updateBlink(dt);
+                try { applyManualOverrides(); } catch {}
             });
 
             internalModel.__magirecoBlinkInstalled = true;

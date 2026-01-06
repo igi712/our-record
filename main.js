@@ -341,3 +341,254 @@ loadModel(currentModelId).catch((e) => console.error(e));
         };
     }
 }
+
+// --- Manual parameter controls (cheek, eyes, mouth) and optional mic lipsync ---
+{
+    const cheek0 = document.getElementById('cheek0');
+    const cheek1 = document.getElementById('cheek1');
+    const cheek2 = document.getElementById('cheek2');
+    const cheekLock = document.getElementById('cheekLock');
+    const eyeClosed = document.getElementById('eyeClosed');
+    const eyeLock = document.getElementById('eyeLock');
+    const mouthRange = document.getElementById('mouthRange');
+    const mouthLock = document.getElementById('mouthLock');
+    const micToggle = document.getElementById('micToggle');
+
+    function setParameterById(model, id, value) {
+        const im = model?.internalModel;
+        const core = im?.coreModel;
+        if (!core) return false;
+        const v = Number(value) || 0;
+        try {
+            if (typeof core.setParameterValueById === 'function') {
+                core.setParameterValueById(id, v, 1);
+                return true;
+            }
+        } catch {}
+        try {
+            if (typeof core.setParamFloat === 'function') {
+                const idx = Number(im?.[id + 'ParamIndex']) ?? -1;
+                if (Number.isFinite(idx) && idx >= 0) {
+                    core.setParamFloat(idx, v);
+                    return true;
+                }
+            }
+        } catch {}
+        return false;
+    }
+
+    function applyCheek(value, lock) {
+        if (!currentModel) return;
+        const im = currentModel.internalModel;
+        im.__magirecoCheekValue = Number(value) || 0;
+        im.__magirecoCheekManualActive = true;
+        im.__magirecoCheekLocked = !!lock;
+        setParameterById(currentModel, 'ParamCheek', im.__magirecoCheekValue);
+    }
+
+    function applyEyeClosed(isClosed, lock) {
+        if (!currentModel) return;
+        const im = currentModel.internalModel;
+        im.__magirecoEyeManualActive = !!isClosed;
+        im.__magirecoEyeManualValue = isClosed ? 0 : 1;
+        im.__magirecoEyeManualLocked = !!lock;
+        // Immediately set params
+        setParameterById(currentModel, 'ParamEyeLOpen', im.__magirecoEyeManualValue);
+        setParameterById(currentModel, 'ParamEyeROpen', im.__magirecoEyeManualValue);
+    }
+
+    function applyMouth(value, lock) {
+        if (!currentModel) return;
+        const im = currentModel.internalModel;
+        im.__magirecoMouthValue = Number(value) || 0;
+        im.__magirecoMouthManualActive = true;
+        im.__magirecoMouthLocked = !!lock;
+        // Only control mouth open amount to avoid clobbering model mouth form (smile/frown).
+        setParameterById(currentModel, 'ParamMouthOpenY', im.__magirecoMouthValue);
+    }
+
+    // Radio wiring
+    [cheek0, cheek1, cheek2].forEach(el => {
+        if (!el) return;
+        el.onchange = (e) => applyCheek(e.target.value, cheekLock?.checked);
+    });
+    if (cheekLock) cheekLock.onchange = (e) => {
+        const v = document.querySelector('input[name="cheek"]:checked')?.value ?? 0;
+        applyCheek(v, e.target.checked);
+    };
+
+    if (eyeClosed) eyeClosed.onchange = (e) => applyEyeClosed(e.target.checked, eyeLock?.checked);
+    if (eyeLock) eyeLock.onchange = (e) => applyEyeClosed(!!eyeClosed?.checked, e.target.checked);
+
+    if (mouthRange) mouthRange.oninput = (e) => {
+        // no-op while mic lipsync is active
+        if (currentModel?.internalModel?.__magirecoMicActive) return;
+        applyMouth(e.target.value, mouthLock?.checked);
+    };
+    if (mouthLock) mouthLock.onchange = (e) => {
+        if (currentModel?.internalModel?.__magirecoMicActive) return;
+        applyMouth(mouthRange?.value ?? 0, e.target.checked);
+    };
+
+    // mic lipsync
+    let micStream = null;
+    let micAnalyzer = null;
+    let micCtx = null;
+    let micRAF = null;
+
+    async function startMic() {
+        if (micStream) return;
+        try {
+            micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            micCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const src = micCtx.createMediaStreamSource(micStream);
+            micAnalyzer = micCtx.createAnalyser();
+            micAnalyzer.fftSize = 1024;
+            src.connect(micAnalyzer);
+
+            const buf = new Uint8Array(micAnalyzer.frequencyBinCount);
+
+            // Disable mouth controls while mic is active to avoid conflicts
+            if (mouthRange) {
+                mouthRange.disabled = true;
+                mouthRange.style.pointerEvents = 'none';
+                mouthRange.style.opacity = '0.5';
+            }
+            if (mouthLock) {
+                mouthLock.disabled = true;
+                mouthLock.style.pointerEvents = 'none';
+                mouthLock.style.opacity = '0.5';
+            }
+
+            function frame() {
+                // Use frequency-domain data like magireco_viewer for consistent sensitivity
+                micAnalyzer.getByteFrequencyData(buf);
+                const step = 100;
+                const maxIndex = Math.min(700, buf.length - 1);
+                const samples = [];
+                for (let i = 0; i <= maxIndex; i += step) samples.push(buf[i]);
+                const sum = samples.reduce((s, v) => s + v, 0);
+                const avg = samples.length ? (sum / samples.length) : 0;
+
+                const micSensitivityInput = document.getElementById('micSensitivity');
+                const sensitivity = micSensitivityInput ? Number(micSensitivityInput.value) || 1 : 1;
+
+                const mouthValBase = (avg - 20) / 60;
+                const mouthValue = Math.min(1, Math.max(0, mouthValBase * sensitivity));
+
+                if (currentModel) {
+                    const im = currentModel.internalModel;
+                    im.__magirecoMouthValue = mouthValue;
+                    im.__magirecoMouthManualActive = true;
+                    im.__magirecoMicActive = true;
+                    if (mouthLock?.checked) im.__magirecoMouthLocked = true;
+                    setParameterById(currentModel, 'ParamMouthOpenY', mouthValue);
+                }
+                micRAF = requestAnimationFrame(frame);
+            }
+            micRAF = requestAnimationFrame(frame);
+            if (micToggle) micToggle.textContent = 'Stop Mic Lipsync';
+            // enable mic sensitivity while mic is running
+            const micSensitivityInput = document.getElementById('micSensitivity');
+            if (micSensitivityInput) {
+                micSensitivityInput.disabled = false;
+                micSensitivityInput.style.pointerEvents = '';
+                micSensitivityInput.style.opacity = '';
+            }
+        } catch (e) {
+            console.error('Mic start failed', e);
+            stopMic();
+        }
+    }
+
+    function stopMic() {
+        if (micRAF) cancelAnimationFrame(micRAF);
+        micRAF = null;
+        if (micCtx) try { micCtx.close(); } catch {}
+        micCtx = null;
+        if (micStream) {
+            try { micStream.getTracks().forEach(t => t.stop()); } catch {}
+        }
+        micStream = null;
+        micAnalyzer = null;
+        if (currentModel && currentModel.internalModel) {
+            currentModel.internalModel.__magirecoMicActive = false;
+            // if mouth was only mic-driven and not locked, clear manual active so other systems resume
+            if (!mouthLock?.checked) currentModel.internalModel.__magirecoMouthManualActive = false;
+        }
+        // Re-enable mouth UI
+        if (mouthRange) {
+            mouthRange.disabled = false;
+            mouthRange.style.pointerEvents = '';
+            mouthRange.style.opacity = '';
+        }
+        if (mouthLock) {
+            mouthLock.disabled = false;
+            mouthLock.style.pointerEvents = '';
+            mouthLock.style.opacity = '';
+        }
+        // disable mic sensitivity when mic is stopped
+        const micSensitivityInput = document.getElementById('micSensitivity');
+        if (micSensitivityInput) {
+            micSensitivityInput.disabled = true;
+            micSensitivityInput.style.pointerEvents = 'none';
+            micSensitivityInput.style.opacity = '0.5';
+        }
+        if (micToggle) micToggle.textContent = 'Start Mic Lipsync';
+    }
+
+    if (micToggle) micToggle.onclick = () => {
+        if (micStream) stopMic(); else startMic();
+    };
+
+    // initialize UI values when a model loads (best-effort without calling inner helpers)
+    const initControlsForModel = () => {
+        try {
+            if (!currentModel) return;
+            const im = currentModel.internalModel;
+            if (!im) return;
+
+            // default: cheek 0
+            if (cheek0) cheek0.checked = true;
+            if (cheekLock) cheekLock.checked = false;
+            im.__magirecoCheekValue = 0; im.__magirecoCheekManualActive = false; im.__magirecoCheekLocked = false;
+            setParameterById(currentModel, 'ParamCheek', 0);
+
+            // eyes default
+            if (eyeClosed) eyeClosed.checked = false;
+            if (eyeLock) eyeLock.checked = false;
+            im.__magirecoEyeManualActive = false; im.__magirecoEyeManualValue = 1; im.__magirecoEyeManualLocked = false;
+            setParameterById(currentModel, 'ParamEyeLOpen', 1);
+            setParameterById(currentModel, 'ParamEyeROpen', 1);
+
+            // mouth default
+            if (mouthRange) mouthRange.value = 0;
+            if (mouthLock) mouthLock.checked = false;
+            im.__magirecoMouthValue = 0; im.__magirecoMouthManualActive = false; im.__magirecoMouthLocked = false; im.__magirecoMicActive = false;
+            setParameterById(currentModel, 'ParamMouthOpenY', 0);
+
+            // mic sensitivity default: disabled until mic starts
+            const micSensitivityInput = document.getElementById('micSensitivity');
+            if (micSensitivityInput) {
+                micSensitivityInput.value = 1;
+                micSensitivityInput.disabled = true;
+                micSensitivityInput.style.pointerEvents = 'none';
+                micSensitivityInput.style.opacity = '0.5';
+            }
+
+            // stop mic if running
+            try { if (typeof stopMic === 'function') stopMic(); } catch {}
+        } catch (e) { console.warn('initControlsForModel failed', e); }
+    };
+
+    // attach to model load path by watching currentModel changes (poll-ish)
+    let lastModelWatch = null;
+    function watchModelForInit() {
+        if (currentModel !== lastModelWatch) {
+            lastModelWatch = currentModel;
+            initControlsForModel();
+        }
+        requestAnimationFrame(watchModelForInit);
+    }
+    watchModelForInit();
+}
