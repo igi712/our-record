@@ -1,17 +1,22 @@
 // Pixi / viewer setup
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.LINEAR;
 
-// Keep a 1:1 pixel backbuffer (avoid HiDPI differences).
-const FORCE_DPR_1 = true;
+// Use an integer DPR (ceil) but clamp to avoid extremely large backing buffers on some mobile devices.
+const MAX_DPR = 2; // clamp to prevent huge memory/scrolling issues on mobile
+function getAppliedDPR() { return Math.max(1, Math.min(MAX_DPR, Math.ceil(window.devicePixelRatio || 1))); }
 
 const app = new PIXI.Application({
     backgroundColor: 0x000000,
     autoStart: true,
     view: document.getElementById('canvas'),
     antialias: true,
-    autoDensity: !FORCE_DPR_1,
-    resolution: FORCE_DPR_1 ? 1 : (window.devicePixelRatio || 1)
+    autoDensity: true,
+    resolution: getAppliedDPR()
 });
+// Hint to the browser/canvas to use smooth scaling
+if (app.renderer && app.renderer.view && app.renderer.view.style) app.renderer.view.style.imageRendering = 'auto';
+// Ensure the page doesn't scroll due to canvas backing size on some mobile browsers
+try { document.body.style.overflow = 'hidden'; } catch (e) {}
 
 function colorToCssHex(rgb) {
     const n = Number(rgb) >>> 0;
@@ -61,6 +66,20 @@ let currentViewH = HOME_H;
 function updateViewport() {
     const w = Math.max(1, window.innerWidth || 1);
     const h = Math.max(1, window.innerHeight || 1);
+
+    // Update renderer resolution if DPR changed (helps when user zooms or rotates device)
+    const dprNow = getAppliedDPR();
+    if (app.renderer.resolution !== dprNow) {
+        app.renderer.resolution = dprNow;
+        console.log('DPR changed -> applied renderer resolution:', window.devicePixelRatio, '->', dprNow);
+    }
+
+    // Ensure CSS canvas size matches viewport to avoid scroll and fractional scaling artifacts
+    try {
+        app.view.style.width = w + 'px';
+        app.view.style.height = h + 'px';
+    } catch (e) {}
+
     app.renderer.resize(w, h);
 
     viewerBgSprite.width = w;
@@ -97,8 +116,7 @@ window.addEventListener('resize', updateViewport);
     const canvas = app.view;
     const rect = canvas.getBoundingClientRect();
     console.log('Viewer sizing', {
-        FORCE_DPR_1,
-        devicePixelRatio: window.devicePixelRatio,
+        devicePixelRatio: DPR,
         canvasCssPx: { w: rect.width, h: rect.height },
         rendererScreen: { w: app.screen.width, h: app.screen.height },
         rendererResolution: app.renderer.resolution

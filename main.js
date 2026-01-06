@@ -436,8 +436,41 @@ loadModel(currentModelId).catch((e) => console.error(e));
     let micCtx = null;
     let micRAF = null;
 
+    function showToast(msg, ms = 3000) {
+        try {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            t.textContent = String(msg);
+            t.style.display = 'block';
+            t.style.opacity = '1';
+            clearTimeout(t.__toastTimer);
+            t.__toastTimer = setTimeout(() => { t.style.display = 'none'; }, ms);
+        } catch {}
+    }
+
     async function startMic() {
         if (micStream) return;
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showToast('Microphone not available in this browser/context');
+            return;
+        }
+        if (!window.isSecureContext) {
+            showToast('Microphone requires a secure context (HTTPS).');
+            // we still try, but browsers often block it
+        }
+        // try reading permission status for nicer messaging
+        try {
+            if (navigator.permissions && navigator.permissions.query) {
+                try {
+                    const p = await navigator.permissions.query({ name: 'microphone' });
+                    if (p.state === 'denied') {
+                        showToast('Microphone permission denied. Please enable it in browser settings.');
+                        return;
+                    }
+                } catch {}
+            }
+        } catch {}
+
         try {
             micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             micCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -497,6 +530,14 @@ loadModel(currentModelId).catch((e) => console.error(e));
             }
         } catch (e) {
             console.error('Mic start failed', e);
+            // friendly messages for common cases
+            if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) {
+                showToast('Microphone access was blocked. Check browser permissions or try Fullscreen first.');
+            } else if (e && e.name === 'NotFoundError') {
+                showToast('No microphone device found.');
+            } else {
+                showToast('Microphone start failed: ' + (e && e.message ? e.message : String(e)));
+            }
             stopMic();
         }
     }
@@ -591,4 +632,90 @@ loadModel(currentModelId).catch((e) => console.error(e));
         requestAnimationFrame(watchModelForInit);
     }
     watchModelForInit();
+
+    // --- UI: menu toggle and fullscreen ---
+    try {
+        const menuToggle = document.getElementById('menuToggle');
+        const controls = document.getElementById('controls');
+        if (menuToggle && controls) {
+            menuToggle.onclick = () => {
+                const collapsed = controls.classList.toggle('collapsed');
+                menuToggle.textContent = collapsed ? '☰' : '✕';
+                menuToggle.setAttribute('aria-expanded', String(!collapsed));
+            };
+        }
+
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const updateFullscreenUI = () => {
+            if (!fullscreenBtn) return;
+            fullscreenBtn.textContent = document.fullscreenElement ? 'Exit Fullscreen' : 'Fullscreen';
+        };
+        if (fullscreenBtn) {
+            fullscreenBtn.onclick = async () => {
+                if (!document.fullscreenElement) {
+                    try {
+                        // try to request fullscreen and hide navigation UI when supported
+                        if (document.documentElement.requestFullscreen.length === 0) {
+                            await document.documentElement.requestFullscreen();
+                        } else {
+                            try { await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch { await document.documentElement.requestFullscreen(); }
+                        }
+                        // attempt to lock orientation to landscape when entering fullscreen (may fail silently)
+                        try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (e) {}
+                    } catch (e) { console.warn('requestFullscreen failed', e); }
+                } else {
+                    try {
+                        await document.exitFullscreen();
+                        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
+                    } catch (e) { console.warn('exitFullscreen failed', e); }
+                }
+            };
+            updateFullscreenUI();
+            document.addEventListener('fullscreenchange', () => {
+                updateFullscreenUI();
+                try { updateRotateHint(); } catch {}
+                try { applyFullscreenStyles(!!document.fullscreenElement); } catch {}
+            });
+        }
+
+        // show rotate hint when in portrait on narrow devices
+        function updateRotateHint() {
+            try {
+                const el = document.getElementById('rotateHint');
+                if (!el) return;
+                const isPortrait = window.innerHeight > window.innerWidth;
+                // only show on narrow screens (mobile)
+                if (isPortrait && Math.min(window.innerWidth, window.innerHeight) < 720) el.style.display = 'flex'; else el.style.display = 'none';
+            } catch {}
+        }
+        window.addEventListener('resize', updateRotateHint);
+        window.addEventListener('orientationchange', updateRotateHint);
+        updateRotateHint();
+    } catch (e) { console.warn('Menu/Fullscreen init failed', e); }
+
+    function applyFullscreenStyles(isFull) {
+        try {
+            const canvas = app?.view;
+            if (!canvas) return;
+            if (isFull) {
+                canvas.style.position = 'fixed';
+                canvas.style.left = '0';
+                canvas.style.top = '0';
+                canvas.style.width = '100vw';
+                canvas.style.height = '100vh';
+                canvas.style.objectFit = 'cover';
+                try { document.documentElement.style.backgroundColor = '#000'; } catch {}
+            } else {
+                canvas.style.position = '';
+                canvas.style.left = '';
+                canvas.style.top = '';
+                canvas.style.width = '';
+                canvas.style.height = '';
+                canvas.style.objectFit = '';
+                try { document.documentElement.style.backgroundColor = ''; } catch {}
+                // force a layout refresh
+                updateViewport();
+            }
+        } catch (e) { console.warn('applyFullscreenStyles failed', e); }
+    }
 }
