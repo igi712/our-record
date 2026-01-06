@@ -218,29 +218,18 @@ function applyMagirecoIdlePolicy(model, modelJson) {
     } catch {}
 
     const motionsObj = modelJson?.FileReferences?.Motions ?? {};
-    const allEntries = [];
-    for (const [group, arr] of Object.entries(motionsObj)) {
-        if (!Array.isArray(arr)) continue;
-        for (let i = 0; i < arr.length; i++) allEntries.push({ group, index: i, def: arr[i] ?? {} });
-    }
+    const motionGroups = Object.keys(motionsObj);
+    const preferredIdleGroup =
+        motionGroups.find(g => /idle/i.test(g)) ??
+        mm?.groups?.idle ??
+        motionGroups[0];
 
-    const getMotionKey = (def, fallback) => {
-        const raw = String(def?.Name ?? def?.File ?? fallback ?? '');
-        return raw.split('/').pop();
-    };
-    const isMotion0xxKey = (k) => /^motion_0\d\d\b/i.test(k) || /^motion_0\d\d\./i.test(k);
-    const isMotion000Key = (k) => /^motion_000\b/i.test(k) || /^motion_000\./i.test(k);
-    const isMotion0xx = (def, fallback) => isMotion0xxKey(getMotionKey(def, fallback));
-    const isMotion000 = (def, fallback) => isMotion000Key(getMotionKey(def, fallback));
+    const idleGroup = motionGroups.includes(preferredIdleGroup)
+        ? preferredIdleGroup
+        : (motionGroups.find(g => /idle/i.test(g)) ?? motionGroups[0]);
 
-    const idleEntry =
-        allEntries.find(e => isMotion000(e.def, e.index)) ??
-        allEntries.find(e => isMotion0xx(e.def, e.index)) ??
-        allEntries[0];
-
-    if (!idleEntry) return;
-    const idleGroup = idleEntry.group;
-    const idleIndex = idleEntry.index;
+    const idleIndex = 0;
+    if (!idleGroup) return;
 
     const startIdle = (priority) => {
         try {
@@ -263,13 +252,11 @@ function applyMagirecoIdlePolicy(model, modelJson) {
             const originalCreateMotion = mm.createMotion;
             mm.createMotion = function (motionJson, group, motionDef) {
                 const motion = originalCreateMotion.call(this, motionJson, group, motionDef);
-                if (isMotion0xx(motionDef, 0)) {
+                if (group === idleGroup) {
                     try {
                         motion.setIsLoop(true);
                         motion.setIsLoopFadeIn(true);
                     } catch {}
-                } else {
-                    try { motion.setIsLoop(false); } catch {}
                 }
                 return motion;
             };
@@ -279,4 +266,27 @@ function applyMagirecoIdlePolicy(model, modelJson) {
 
     const ok = startIdle(1);
     if (!ok) console.warn('Could not start fixed idle motion', { idleGroup, idleIndex, priority: 1 });
+    // Resume idle after any non-looping motion finishes.
+    try {
+        if (typeof mm.on === 'function' && !mm.__magirecoPatchedFinishListener) {
+            mm.on('motionFinish', () => {
+                // Defer so a user-triggered motion started in the same call stack
+                // isn't immediately overwritten by fixed idle.
+                Promise.resolve().then(() => {
+                    const state = mm.state;
+                    // Only restart idle when nothing is currently playing/reserved.
+                    if (
+                        !state ||
+                        (state.currentGroup === void 0 &&
+                            state.reservedGroup === void 0 &&
+                            state.reservedIdleGroup === void 0)
+                    ) {
+                        // Smooth return to idle (no stopAllMotions, no FORCE).
+                        startFixedIdle(1);
+                    }
+                });
+            });
+            mm.__magirecoPatchedFinishListener = true;
+        }
+    } catch {}
 }

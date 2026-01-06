@@ -1,8 +1,0 @@
-{
-  "name": "Our Record app",
-  "short_name": "OurRecord",
-  "start_url": "/viewer.html",
-  "display": "standalone", 
-  "background_color": "#000000",
-  "theme_color": "#000000"
-}

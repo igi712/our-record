@@ -386,15 +386,95 @@ loadModel(currentModelId).catch((e) => console.error(e));
         setParameterById(currentModel, 'ParamCheek', im.__magirecoCheekValue);
     }
 
+    let eyeAnimRaf = null;
+    let eyeAnimToken = 0;
+
+    function getEyeOpenValueNow() {
+        const model = currentModel;
+        const im = model?.internalModel;
+        const core = im?.coreModel;
+
+        // Prefer the actual current value if we can read it.
+        try {
+            if (core && typeof core.getParameterValueById === 'function') {
+                const v = Number(core.getParameterValueById('ParamEyeLOpen'));
+                if (Number.isFinite(v)) return v;
+            }
+        } catch {}
+
+        // Otherwise fall back to our last-written manual value.
+        const v2 = Number(im?.__magirecoEyeManualValue);
+        if (Number.isFinite(v2)) return v2;
+
+        // Last resort: assume open.
+        return 1;
+    }
+
+    function setEyesOpenValue(v) {
+        if (!currentModel) return;
+        const im = currentModel.internalModel;
+        const vv = Math.min(1, Math.max(0, Number(v) || 0));
+        im.__magirecoEyeManualValue = vv;
+        setParameterById(currentModel, 'ParamEyeLOpen', vv);
+        setParameterById(currentModel, 'ParamEyeROpen', vv);
+    }
+
+    function animateEyesTo(targetValue, durationMs = 180, opts = null) {
+        if (!currentModel) return;
+
+        const im = currentModel.internalModel;
+        const from = getEyeOpenValueNow();
+        const to = Math.min(1, Math.max(0, Number(targetValue) || 0));
+
+        if (Math.abs(from - to) < 0.001) {
+            setEyesOpenValue(to);
+            return;
+        }
+
+        // Keep override active while animating so blink/motions don't fight the tween.
+        im.__magirecoEyeManualActive = true;
+
+        if (eyeAnimRaf) {
+            cancelAnimationFrame(eyeAnimRaf);
+            eyeAnimRaf = null;
+        }
+        const myToken = ++eyeAnimToken;
+        const start = performance.now();
+
+        const ease = (t) => t * t * (3 - 2 * t); // smoothstep
+
+        const step = (now) => {
+            if (myToken !== eyeAnimToken) return;
+            const t = Math.min(1, Math.max(0, (now - start) / durationMs));
+            const v = from + (to - from) * ease(t);
+            setEyesOpenValue(v);
+            if (t < 1) {
+                eyeAnimRaf = requestAnimationFrame(step);
+                return;
+            }
+
+            eyeAnimRaf = null;
+            setEyesOpenValue(to);
+
+            // If we're animating back to fully open, let natural blinking resume.
+            try {
+                if (to >= 0.999 && opts?.releaseToBlinkOnOpen && !eyeClosed?.checked) {
+                    currentModel.internalModel.__magirecoEyeManualActive = false;
+                }
+            } catch {}
+        };
+
+        eyeAnimRaf = requestAnimationFrame(step);
+    }
+
     function applyEyeClosed(isClosed, lock) {
         if (!currentModel) return;
         const im = currentModel.internalModel;
-        im.__magirecoEyeManualActive = !!isClosed;
-        im.__magirecoEyeManualValue = isClosed ? 0 : 1;
+        im.__magirecoEyeManualActive = true;
         im.__magirecoEyeManualLocked = !!lock;
-        // Immediately set params
-        setParameterById(currentModel, 'ParamEyeLOpen', im.__magirecoEyeManualValue);
-        setParameterById(currentModel, 'ParamEyeROpen', im.__magirecoEyeManualValue);
+
+        // Animate to target instead of snapping.
+        animateEyesTo(isClosed ? 0 : 1, 180, { releaseToBlinkOnOpen: !isClosed });
     }
 
     function applyMouth(value, lock) {
@@ -653,21 +733,9 @@ loadModel(currentModelId).catch((e) => console.error(e));
         if (fullscreenBtn) {
             fullscreenBtn.onclick = async () => {
                 if (!document.fullscreenElement) {
-                    try {
-                        // try to request fullscreen and hide navigation UI when supported
-                        if (document.documentElement.requestFullscreen.length === 0) {
-                            await document.documentElement.requestFullscreen();
-                        } else {
-                            try { await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch { await document.documentElement.requestFullscreen(); }
-                        }
-                        // attempt to lock orientation to landscape when entering fullscreen (may fail silently)
-                        try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (e) {}
-                    } catch (e) { console.warn('requestFullscreen failed', e); }
+                    try { await document.documentElement.requestFullscreen(); } catch (e) { console.warn('requestFullscreen failed', e); }
                 } else {
-                    try {
-                        await document.exitFullscreen();
-                        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
-                    } catch (e) { console.warn('exitFullscreen failed', e); }
+                    try { await document.exitFullscreen(); } catch (e) { console.warn('exitFullscreen failed', e); }
                 }
             };
             updateFullscreenUI();
@@ -677,14 +745,7 @@ loadModel(currentModelId).catch((e) => console.error(e));
                 try { applyFullscreenStyles(!!document.fullscreenElement); } catch {}
 
                 // If we are fullscreen but the visual viewport is still smaller than the screen (nav bar present), inform the user
-                try {
-                    if (document.fullscreenElement) {
-                        const gap = (screen.height || window.screen?.height || 0) - (window.innerHeight || 0);
-                        if (gap > 90) {
-                            showToast('Navigation bar remains visible on this browser. For true fullscreen on mobile, consider adding to Home Screen (Install app).');
-                        }
-                    }
-                } catch (e) {}
+
             });
         }
 
@@ -694,8 +755,7 @@ loadModel(currentModelId).catch((e) => console.error(e));
                 const el = document.getElementById('rotateHint');
                 if (!el) return;
 
-                // respect explicit dismiss for this session
-                if (sessionStorage.getItem('rotateHintDismissed') === '1') { el.style.display = 'none'; el.setAttribute('aria-hidden', 'true'); return; }
+
 
                 const isPortrait = window.innerHeight > window.innerWidth;
                 // only show on narrow screens (mobile) and not when fullscreen
@@ -707,14 +767,7 @@ loadModel(currentModelId).catch((e) => console.error(e));
         window.addEventListener('resize', updateRotateHint);
         window.addEventListener('orientationchange', updateRotateHint);
 
-        // rotate hint CTA wiring
-        try {
-            const rFull = document.getElementById('rotateFullscreenBtn');
-            const rDismiss = document.getElementById('rotateDismissBtn');
-            const el = document.getElementById('rotateHint');
-            if (rFull) rFull.onclick = () => { const fb = document.getElementById('fullscreenBtn'); if (fb) fb.click(); };
-            if (rDismiss) rDismiss.onclick = () => { sessionStorage.setItem('rotateHintDismissed', '1'); if (el) { el.style.display = 'none'; el.setAttribute('aria-hidden', 'true'); } };
-        } catch {}
+
 
         updateRotateHint();
     } catch (e) { console.warn('Menu/Fullscreen init failed', e); }
