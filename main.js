@@ -675,6 +675,16 @@ loadModel(currentModelId).catch((e) => console.error(e));
                 updateFullscreenUI();
                 try { updateRotateHint(); } catch {}
                 try { applyFullscreenStyles(!!document.fullscreenElement); } catch {}
+
+                // If we are fullscreen but the visual viewport is still smaller than the screen (nav bar present), inform the user
+                try {
+                    if (document.fullscreenElement) {
+                        const gap = (screen.height || window.screen?.height || 0) - (window.innerHeight || 0);
+                        if (gap > 90) {
+                            showToast('Navigation bar remains visible on this browser. For true fullscreen on mobile, consider adding to Home Screen (Install app).');
+                        }
+                    }
+                } catch (e) {}
             });
         }
 
@@ -683,13 +693,29 @@ loadModel(currentModelId).catch((e) => console.error(e));
             try {
                 const el = document.getElementById('rotateHint');
                 if (!el) return;
+
+                // respect explicit dismiss for this session
+                if (sessionStorage.getItem('rotateHintDismissed') === '1') { el.style.display = 'none'; el.setAttribute('aria-hidden', 'true'); return; }
+
                 const isPortrait = window.innerHeight > window.innerWidth;
-                // only show on narrow screens (mobile)
-                if (isPortrait && Math.min(window.innerWidth, window.innerHeight) < 720) el.style.display = 'flex'; else el.style.display = 'none';
+                // only show on narrow screens (mobile) and not when fullscreen
+                if (isPortrait && Math.min(window.innerWidth, window.innerHeight) < 720 && !document.fullscreenElement) {
+                    el.style.display = 'flex'; el.setAttribute('aria-hidden', 'false');
+                } else { el.style.display = 'none'; el.setAttribute('aria-hidden', 'true'); }
             } catch {}
         }
         window.addEventListener('resize', updateRotateHint);
         window.addEventListener('orientationchange', updateRotateHint);
+
+        // rotate hint CTA wiring
+        try {
+            const rFull = document.getElementById('rotateFullscreenBtn');
+            const rDismiss = document.getElementById('rotateDismissBtn');
+            const el = document.getElementById('rotateHint');
+            if (rFull) rFull.onclick = () => { const fb = document.getElementById('fullscreenBtn'); if (fb) fb.click(); };
+            if (rDismiss) rDismiss.onclick = () => { sessionStorage.setItem('rotateHintDismissed', '1'); if (el) { el.style.display = 'none'; el.setAttribute('aria-hidden', 'true'); } };
+        } catch {}
+
         updateRotateHint();
     } catch (e) { console.warn('Menu/Fullscreen init failed', e); }
 
