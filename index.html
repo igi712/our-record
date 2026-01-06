@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Record</title>
+    <style>
+        body {
+            margin: 0;
+            background: #0b0b0b;
+            color: #e6e6e6;
+            font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        }
+
+        .wrap {
+            max-width: 920px;
+            padding: 24px;
+            margin: 0 auto;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .card {
+            display: block;
+            padding: 14px 16px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            text-decoration: none;
+            margin: 12px 0;
+        }
+
+        .card:hover {
+            background: rgba(255, 255, 255, 0.09);
+        }
+
+        .card-title {
+            font-weight: 600;
+        }
+
+        .muted {
+            color: rgba(230, 230, 230, 0.75);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>Our Record</h1>
+        <div class="muted">Tools and experiments.</div>
+
+        <a class="card" href="viewer.html">
+            <div class="card-title">Live2D Model Viewer</div>
+            <div class="muted">View a model, play motions/expressions, export transparent PNG snapshots.</div>
+        </a>
+
+        <a class="card" href="homescreen.html">
+            <div class="card-title">Home Screen (WIP)</div>
+            <div class="muted">Goal: simulate in-game background/compositing (cocos2d-like).</div>
+        </a>
+    </div>
+</body>
+</html>
