@@ -36,13 +36,48 @@ function createVerticalGradientTexture(topRgb, bottomRgb, height = 256) {
     return PIXI.Texture.from(canvas);
 }
 
-// World is 1024x768 (4:3), but we always view the 16:9 home region (1024x576)
-// centered inside it.
+// World is 1024x768 (4:3).
+// Historically we viewed the 16:9 home region (1024x576) centered inside it.
+// v2 viewer now defaults to full 4:3, but keeps the 16:9 numbers for future use.
 const WORLD_W = 1024;
 const WORLD_H = 768;
-const HOME_W = 1024;
-const HOME_H = 576;
-const HOME_TOP = (WORLD_H - HOME_H) / 2;
+
+// 16:9 home region inside the 4:3 world (preserved for future use)
+const HOME16_W = 1024;
+const HOME16_H = 576;
+const HOME16_LEFT = 0;
+const HOME16_TOP = (WORLD_H - HOME16_H) / 2;
+
+// Full 4:3 view
+const VIEW43_W = WORLD_W;
+const VIEW43_H = WORLD_H;
+const VIEW43_LEFT = 0;
+const VIEW43_TOP = 0;
+
+// Portrait view: keep full height, crop width to 3:4 (shows more vertical content)
+const PORTRAIT_W = Math.round((WORLD_H * 3) / 4); // 576 for 768h
+const PORTRAIT_H = WORLD_H;
+const PORTRAIT_LEFT = Math.round((WORLD_W - PORTRAIT_W) / 2); // 224
+const PORTRAIT_TOP = 0;
+
+function getInitialViewOverride() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const v = String(params.get('view') || '').toLowerCase();
+        if (!v) return null;
+        if (v === 'home16' || v === '16:9' || v === '16x9') return 'home16';
+        if (v === 'full43' || v === '4:3' || v === '4x3') return 'full43';
+        if (v === 'portrait') return 'portrait';
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+function detectAutoViewMode() {
+    // Portrait if the browser viewport is portrait.
+    return (window.innerHeight || 0) > (window.innerWidth || 0) ? 'portrait' : 'full43';
+}
 
 const viewerBgSprite = new PIXI.Sprite(createVerticalGradientTexture(0x000000, 0x333333));
 viewerBgSprite.position.set(0, 0);
@@ -61,7 +96,11 @@ const cameraMask = new PIXI.Graphics();
 cameraContainer.addChild(cameraMask);
 cameraContainer.mask = cameraMask;
 
-let currentViewH = HOME_H;
+let currentViewW = VIEW43_W;
+let currentViewH = VIEW43_H;
+let currentViewLeft = VIEW43_LEFT;
+let currentViewTop = VIEW43_TOP;
+let currentViewMode = 'full43';
 
 function updateViewport() {
     const w = Math.max(1, window.innerWidth || 1);
@@ -85,27 +124,69 @@ function updateViewport() {
     viewerBgSprite.width = w;
     viewerBgSprite.height = h;
 
-    const viewH = HOME_H;
-    currentViewH = viewH;
-    const cameraTop = HOME_TOP;
+    const overrideMode = getInitialViewOverride();
+    const mode = overrideMode || detectAutoViewMode();
 
+    let viewW = VIEW43_W;
+    let viewH = VIEW43_H;
+    let cameraLeft = VIEW43_LEFT;
+    let cameraTop = VIEW43_TOP;
+
+    if (mode === 'home16') {
+        viewW = HOME16_W;
+        viewH = HOME16_H;
+        cameraLeft = HOME16_LEFT;
+        cameraTop = HOME16_TOP;
+    } else if (mode === 'portrait') {
+        viewW = PORTRAIT_W;
+        viewH = PORTRAIT_H;
+        cameraLeft = PORTRAIT_LEFT;
+        cameraTop = PORTRAIT_TOP;
+    }
+
+    currentViewMode = mode;
+    currentViewW = viewW;
+    currentViewH = viewH;
+    currentViewLeft = cameraLeft;
+    currentViewTop = cameraTop;
+
+    // Shift the world so the view window's top-left becomes (0,0) under the camera container.
+    worldContainer.x = -cameraLeft;
     worldContainer.y = -cameraTop;
 
     cameraMask.clear();
     cameraMask.beginFill(0xffffff);
-    cameraMask.drawRect(0, 0, WORLD_W, viewH);
+    cameraMask.drawRect(0, 0, viewW, viewH);
     cameraMask.endFill();
 
     gameBg.clear();
     gameBg.beginFill(0x999999);
-    gameBg.drawRect(0, 0, WORLD_W, viewH);
+    gameBg.drawRect(0, 0, viewW, viewH);
     gameBg.endFill();
 
-    const scale = Math.min(w / WORLD_W, h / viewH);
+    // Scale: normally fit; in portrait, fill height to avoid letterboxing and allow horizontal cropping.
+    let scale;
+    if (mode === 'portrait') {
+        scale = h / viewH; // fill height, crop sides if needed
+    } else {
+        scale = Math.min(w / viewW, h / viewH);
+    }
     cameraContainer.scale.set(scale);
-    const vx = Math.floor((w - WORLD_W * scale) / 2);
+    const vx = Math.floor((w - viewW * scale) / 2);
     const vy = Math.floor((h - viewH * scale) / 2);
     cameraContainer.position.set(vx, vy);
+
+    // Expose active viewport metrics for placement code.
+    window.VIEWPORT = {
+        mode: currentViewMode,
+        worldW: WORLD_W,
+        worldH: WORLD_H,
+        viewW: currentViewW,
+        viewH: currentViewH,
+        viewLeft: currentViewLeft,
+        viewTop: currentViewTop,
+        scaleMode: mode === 'portrait' ? 'fill-height' : 'fit'
+    };
 }
 
 updateViewport();
@@ -116,7 +197,7 @@ window.addEventListener('resize', updateViewport);
     const canvas = app.view;
     const rect = canvas.getBoundingClientRect();
     console.log('Viewer sizing', {
-        devicePixelRatio: DPR,
+        devicePixelRatio: 1,
         canvasCssPx: { w: rect.width, h: rect.height },
         rendererScreen: { w: app.screen.width, h: app.screen.height },
         rendererResolution: app.renderer.resolution
@@ -124,3 +205,8 @@ window.addEventListener('resize', updateViewport);
 }
 
 PIXI.live2d.Live2DModel.registerTicker(PIXI.Ticker);
+
+window.app = app;
+window.cameraContainer = cameraContainer;
+window.worldContainer = worldContainer;
+window.viewerBgSprite = viewerBgSprite;

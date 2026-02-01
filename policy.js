@@ -231,6 +231,12 @@ function applyMagirecoIdlePolicy(model, modelJson) {
     const idleIndex = 0;
     if (!idleGroup) return;
 
+    const isIdleMotionDef = (motionDef, fallback) => {
+        const raw = String(motionDef?.Name ?? motionDef?.File ?? fallback ?? '');
+        const k = raw.split('/').pop();
+        return /^motion_0\d\d\b/i.test(k) || /^motion_0\d\d\./i.test(k);
+    };
+
     const startIdle = (priority) => {
         try {
             if (typeof mm.startMotion === 'function') return mm.startMotion(idleGroup, idleIndex, priority);
@@ -252,10 +258,16 @@ function applyMagirecoIdlePolicy(model, modelJson) {
             const originalCreateMotion = mm.createMotion;
             mm.createMotion = function (motionJson, group, motionDef) {
                 const motion = originalCreateMotion.call(this, motionJson, group, motionDef);
-                if (group === idleGroup) {
+                const shouldLoop = (group === idleGroup) && isIdleMotionDef(motionDef, 0);
+                try {
+                    motion.setIsLoop(!!shouldLoop);
+                    motion.setIsLoopFadeIn(!!shouldLoop);
+                } catch {}
+
+                // For non-idle motions: avoid fading back out (helps "hold" the last pose).
+                if (!shouldLoop) {
                     try {
-                        motion.setIsLoop(true);
-                        motion.setIsLoopFadeIn(true);
+                        if (typeof motion.setFadeOutTime === 'function') motion.setFadeOutTime(0);
                     } catch {}
                 }
                 return motion;
@@ -266,27 +278,4 @@ function applyMagirecoIdlePolicy(model, modelJson) {
 
     const ok = startIdle(1);
     if (!ok) console.warn('Could not start fixed idle motion', { idleGroup, idleIndex, priority: 1 });
-    // Resume idle after any non-looping motion finishes.
-    try {
-        if (typeof mm.on === 'function' && !mm.__magirecoPatchedFinishListener) {
-            mm.on('motionFinish', () => {
-                // Defer so a user-triggered motion started in the same call stack
-                // isn't immediately overwritten by fixed idle.
-                Promise.resolve().then(() => {
-                    const state = mm.state;
-                    // Only restart idle when nothing is currently playing/reserved.
-                    if (
-                        !state ||
-                        (state.currentGroup === void 0 &&
-                            state.reservedGroup === void 0 &&
-                            state.reservedIdleGroup === void 0)
-                    ) {
-                        // Smooth return to idle (no stopAllMotions, no FORCE).
-                        startFixedIdle(1);
-                    }
-                });
-            });
-            mm.__magirecoPatchedFinishListener = true;
-        }
-    } catch {}
 }
