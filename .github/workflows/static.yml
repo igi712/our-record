@@ -31,6 +31,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # keep submodules enabled so small ones like totentanz are available
+          submodules: true
+      - name: Remove large assets
+        run: |
+          echo "Removing ma-re-data to keep artifact size small"
+          # Only remove the heavy ma-re-data submodule to keep repo small while preserving other submodules (e.g., totentanz)
+          rm -rf assets/ma-re-data || true
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

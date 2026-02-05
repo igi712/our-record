@@ -12,6 +12,115 @@ let currentController = null;
 let currentModelId = '100100'; // Default: Iroha Tamaki - Magical Girl
 let desiredFollowState = false; // current follow state (true while pressed)
 
+// Asset base URL detection + overrides.
+// Behavior:
+//  1) If a local override is saved in localStorage (key: 'mrAssetsBase') or window.MR_ASSETS_BASE or query param 'assetsBase', use it.
+//  2) Otherwise, try to detect a local checkout by probing a known small model JSON under
+//     'assets/ma-re-data/resource/image_native/live2d_v4/100100/model.model3.json'. If it exists, prefer local path.
+//  3) Fallback to a remote raw.githubusercontent.com URL (configurable via query param 'assetsRemote' or window.MR_ASSETS_REMOTE).
+
+let __mrResolvedAssetsBase = null;
+
+function getAssetsOverride() {
+    try {
+        // 1) explicit programmatic override
+        if (window.MR_ASSETS_BASE) return String(window.MR_ASSETS_BASE).replace(/\/$/, '');
+
+        // 2) saved override in localStorage
+        try {
+            const v = localStorage.getItem('mrAssetsBase');
+            if (v) return String(v).replace(/\/$/, '');
+        } catch (e) {}
+
+        // 3) query param override
+        try {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('assetsBase')) return params.get('assetsBase').replace(/\/$/, '');
+        } catch (e) {}
+
+        return null;
+    } catch (e) { return null; }
+}
+
+async function resolveMaReAssetsBase() {
+    if (__mrResolvedAssetsBase) {
+        try { console.info('[MR] assets base (cached):', __mrResolvedAssetsBase, 'source:', __mrResolvedAssetsBaseSource); } catch (e) {}
+        return __mrResolvedAssetsBase;
+    }
+
+    let source = 'unknown';
+    const override = getAssetsOverride();
+    if (override) {
+        __mrResolvedAssetsBase = override;
+        // detect override origin
+        try {
+            if (window.MR_ASSETS_BASE) source = 'window.MR_ASSETS_BASE';
+            else {
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('assetsBase')) source = 'query param assetsBase';
+                else if (typeof localStorage !== 'undefined' && localStorage.getItem('mrAssetsBase')) source = 'localStorage mrAssetsBase';
+            }
+        } catch (e) {}
+        __mrResolvedAssetsBaseSource = source;
+        try { console.info('[MR] assets base resolved (override):', __mrResolvedAssetsBase, 'source:', source); } catch (e) {}
+        return __mrResolvedAssetsBase;
+    }
+
+    const localBase = 'assets/ma-re-data/resource/image_native/live2d_v4';
+    // Try probing a small known model JSON. Use a short timeout so detection is fast.
+    try {
+        const probeUrl = `${localBase}/100100/model.model3.json`;
+        try { console.debug('[MR] probing local assets at', probeUrl); } catch (e) {}
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        let timer;
+        if (controller) timer = setTimeout(() => controller.abort(), 2000);
+        const resp = await fetch(probeUrl, { method: 'GET', cache: 'no-store', signal: controller ? controller.signal : undefined });
+        if (timer) clearTimeout(timer);
+        if (resp && resp.ok) {
+            __mrResolvedAssetsBase = localBase;
+            __mrResolvedAssetsBaseSource = 'local (probe)';
+            try { console.info('[MR] assets base resolved (local probe):', __mrResolvedAssetsBase); } catch (e) {}
+            return __mrResolvedAssetsBase;
+        } else {
+            try { console.debug('[MR] local probe HTTP result', resp && resp.status); } catch (e) {}
+        }
+    } catch (e) {
+        try { console.debug('[MR] local probe failed:', e && (e.message || e.name) ? (e.message || e.name) : e); } catch (e2) {}
+        // ignore - probe failed (not found or network error or CORS)
+    }
+
+    // No local copy detected — choose remote base.
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const remoteParam = params.get('assetsRemote');
+        const programmaticRemote = window.MR_ASSETS_REMOTE || remoteParam || null;
+        if (programmaticRemote) {
+            __mrResolvedAssetsBase = String(programmaticRemote).replace(/\/$/, '');
+            source = window.MR_ASSETS_REMOTE ? 'window.MR_ASSETS_REMOTE' : 'query param assetsRemote';
+            __mrResolvedAssetsBaseSource = source;
+            try { console.info('[MR] assets base resolved (override remote):', __mrResolvedAssetsBase, 'source:', source); } catch (e) {}
+            return __mrResolvedAssetsBase;
+        }
+    } catch (e) {}
+
+    // Default remote (can be overridden via assetsRemote param or window.MR_ASSETS_REMOTE)
+    __mrResolvedAssetsBase = 'https://raw.githubusercontent.com/igi712/ma-re-data/main/resource/image_native/live2d_v4';
+    __mrResolvedAssetsBaseSource = 'default remote';
+    try { console.info('[MR] assets base resolved (default remote):', __mrResolvedAssetsBase); } catch (e) {}
+    return __mrResolvedAssetsBase;
+}
+
+function persistAssetsBaseOverride(val) {
+    try {
+        if (!val) { localStorage.removeItem('mrAssetsBase'); }
+        else localStorage.setItem('mrAssetsBase', String(val).replace(/\/$/, ''));
+        // clear cached resolved value so next resolve honors change
+        __mrResolvedAssetsBase = null;
+    } catch (e) { console.warn('persistAssetsBaseOverride failed', e); }
+}
+
+function clearAssetsBaseOverride() { persistAssetsBaseOverride(null); }
+
 // Centralized follow setter used by model press handlers and global release handlers
 function setFollowEnabledGlobal(enabled, initialEvent, targetModel) {
     desiredFollowState = !!enabled;
@@ -528,8 +637,9 @@ async function loadModel(modelId) {
     // We'll simply center at WORLD_W/2 and avoid changing scale in portrait.
     // (Old regression constants removed in favor of simple centering.)
 
-    const modelPath = `assets/ma-re-data/resource/image_native/live2d_v4/${modelId}/model.model3.json`;
-    const paramsPath = modelPath.replace(/\/model\.model3\.json$/, '/params.json');
+    const ASSETS_BASE = await resolveMaReAssetsBase();
+    const modelPath = `${ASSETS_BASE}/${modelId}/model.model3.json`;
+    const paramsPath = `${ASSETS_BASE}/${modelId}/params.json`;
 
     const modelJson = await (await fetch(modelPath)).json();
 
@@ -1004,6 +1114,61 @@ async function initializeApp() {
 
         // Setup search functionality
         setupCharacterSearch();
+
+        // Setup assets base UI (override / test)
+        try {
+            const assetsInput = document.getElementById('assetsBaseInput');
+            const testBtn = document.getElementById('assetsBaseTestBtn');
+            const saveBtn = document.getElementById('assetsBaseSaveBtn');
+            const clearBtn = document.getElementById('assetsBaseClearBtn');
+
+            async function refreshAssetsInput() {
+                try {
+                    if (!assetsInput) return; // UI removed or hidden - nothing to do
+                    const override = (typeof localStorage !== 'undefined') ? localStorage.getItem('mrAssetsBase') : null;
+                    if (override) { assetsInput.value = override; return; }
+                    // show resolved base (probe may take a moment)
+                    assetsInput.value = await resolveMaReAssetsBase();
+                } catch (e) {}
+            }
+
+            if (assetsInput) {
+                assetsInput.onkeydown = (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); testBtn?.click(); } };
+            }
+
+            if (testBtn) testBtn.onclick = async () => {
+                try {
+                    const val = assetsInput ? assetsInput.value.trim() : '';
+                    const url = val ? (String(val).replace(/\/$/, '')) : (await resolveMaReAssetsBase());
+                    // Probe one well-known file under the base
+                    const probe = `${url}/100100/model.model3.json`;
+                    const r = await fetch(probe, { method: 'GET', cache: 'no-store' });
+                    if (r && r.ok) {
+                        alert('Probe OK: assets reachable at ' + url);
+                    } else {
+                        alert('Probe failed (HTTP ' + (r ? r.status : 'no response') + ') for ' + probe);
+                    }
+                    // reflect resolved value in input after probe
+                    assetsInput.value = url;
+                } catch (e) {
+                    alert('Probe error: ' + (e && e.message ? e.message : String(e)));
+                }
+            };
+
+            if (saveBtn) saveBtn.onclick = () => {
+                try {
+                    const val = assetsInput ? assetsInput.value.trim() : '';
+                    if (!val) { clearAssetsBaseOverride(); alert('Override cleared'); }
+                    else { persistAssetsBaseOverride(val); alert('Override saved'); }
+                } catch (e) { alert('Save failed: ' + (e && e.message ? e.message : String(e))); }
+            };
+
+            if (clearBtn) clearBtn.onclick = () => { try { clearAssetsBaseOverride(); assetsInput.value = ''; alert('Override cleared'); } catch (e) { alert('Clear failed'); } };
+
+            // initial fill
+            (async () => { try { await refreshAssetsInput(); } catch (e) {} })();
+        } catch (e) {}
+
 
         // Setup event handlers
         const characterSelect = document.getElementById('characterSelect');
