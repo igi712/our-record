@@ -1,25 +1,15 @@
 // Our Record v2: keep positioning logic, swap Live2D handling to a magireco_viewer-inspired controller.
 
-// Models live under `assets/<id>/`.
+// Models live under `assets/ma-re-data/resource/image_native/live2d_v4/<id>/`.
 
-const MODEL_OPTIONS = [
-    { id: '100100', label: '100100 (Iroha)' },
-    { id: '100200', label: '100200 (Yachiyo)' },
-    { id: '100300', label: '100300 (Tsuruno)' },
-    { id: '100400', label: '100400 (Sana)' },
-    { id: '100500', label: '100500 (Felicia)' },
-    { id: '300301', label: '300301 (Hinano (Uniform))' },
-    { id: '301900', label: '301900 (Ayaka)' },
-    { id: '303050', label: '303050 (Konomi (Winter))' }
-];
-
-function getModelOption(modelId) {
-    return MODEL_OPTIONS.find(o => o.id === modelId) ?? null;
-}
+let charaListData = [];
+let live2dListData = [];
+let currentCharacterId = 1001; // Default to Iroha
+let currentLive2dId = '00'; // Default to Magical Girl outfit
 
 let currentModel = null;
 let currentController = null;
-let currentModelId = MODEL_OPTIONS[0]?.id ?? '100100';
+let currentModelId = '100100'; // Default: Iroha Tamaki - Magical Girl
 let desiredFollowState = false; // current follow state (true while pressed)
 
 // Centralized follow setter used by model press handlers and global release handlers
@@ -280,8 +270,25 @@ async function downloadModelSnapshot() {
         const cropped = cropCanvasToAlpha(canvas, 1);
         const outCanvas = cropped.canvas;
 
-        const fileBase = String(currentModelId || 'model');
-        const fileName = `${fileBase}_${outCanvas.width}x${outCanvas.height}_${Date.now()}.png`;
+        const sanitizeForFilename = (s) => {
+            try {
+                if (!s) return '';
+                return String(s).normalize('NFKD').replace(/[<>:"\/\\|?*]/g, '').replace(/[^\w\s.\-]/g, '').trim().replace(/\s+/g, '_');
+            } catch (e) { return String(s).replace(/\s+/g,'_'); }
+        };
+
+        const meta = (typeof getModelOption === 'function') ? getModelOption(currentModelId) : null;
+        const charName = meta?.character?.name ?? null;
+        const outfitName = meta?.outfit?.description ?? meta?.live2dId ?? null;
+
+        let fileBase = String(currentModelId || 'model');
+        if (charName || outfitName) {
+            const a = sanitizeForFilename(charName ?? 'model');
+            const b = sanitizeForFilename(outfitName ?? '');
+            fileBase = b ? `${a}_${b}` : a;
+        }
+
+        const fileName = `${fileBase}_${Date.now()}.png`;
 
         const blob = await new Promise((resolve) => outCanvas.toBlob(resolve, 'image/png'));
         if (!blob) {
@@ -521,7 +528,7 @@ async function loadModel(modelId) {
     // We'll simply center at WORLD_W/2 and avoid changing scale in portrait.
     // (Old regression constants removed in favor of simple centering.)
 
-    const modelPath = `assets/${modelId}/model.model3.json`;
+    const modelPath = `assets/ma-re-data/resource/image_native/live2d_v4/${modelId}/model.model3.json`;
     const paramsPath = modelPath.replace(/\/model\.model3\.json$/, '/params.json');
 
     const modelJson = await (await fetch(modelPath)).json();
@@ -580,7 +587,7 @@ async function loadModel(modelId) {
         }
     }
 
-    yGame = Number.isFinite(modelOpt?.homeYOverride) ? modelOpt.homeYOverride : yGameFromHeight;
+    yGame = yGameFromHeight;
 
     model.x = xGame;
     model.y = (vp.viewTop || 0) + ((vp.viewH || WORLD_H) - yGame);
@@ -854,20 +861,200 @@ async function loadModel(modelId) {
     currentModel = model;
 }
 
-// Bootstrap
-{
-    const modelSelect = document.getElementById('modelSelect');
-    if (modelSelect) {
-        fillSelect(modelSelect, MODEL_OPTIONS.map(m => ({ value: m.id, label: m.label })));
-        setSelectValue(modelSelect, currentModelId);
-        modelSelect.onchange = () => {
-            if (!modelSelect.value) return;
-            loadModel(modelSelect.value).catch((e) => console.error(e));
-        };
+// Helper functions for character/outfit management
+function getOutfitsForCharacter(charaId) {
+    return live2dListData.filter(outfit => outfit.charaId === charaId)
+        .sort((a, b) => a.live2dId.localeCompare(b.live2dId));
+}
+
+function buildModelId(charaId, live2dId) {
+    return String(charaId).padStart(4, '0') + String(live2dId).padStart(2, '0');
+}
+
+function getModelOption(modelId) {
+    if (!modelId) return null;
+    const s = String(modelId);
+    const charaId = Number(s.slice(0, 4));
+    const live2dId = String(s.slice(4)).padStart(2, '0');
+
+    const character = charaListData.find(c => c.id === charaId) ?? null;
+    const outfit = live2dListData.find(o => o.charaId === charaId && String(o.live2dId).padStart(2, '0') === live2dId) ?? null;
+
+    const charLabel = character ? (character.title ? `${character.name} (${character.title})` : character.name) : null;
+
+    return {
+        id: modelId,
+        charaId,
+        live2dId,
+        character,
+        outfit,
+        label: charLabel ? `${charLabel} (${outfit?.description ?? live2dId})` : modelId
+    };
+}
+
+function populateCharacterDropdown() {
+    const characterSelect = document.getElementById('characterSelect');
+    if (!characterSelect) return;
+
+    // Clear existing options
+    characterSelect.innerHTML = '';
+
+    // Add all characters
+    charaListData.forEach(chara => {
+        const option = document.createElement('option');
+        option.value = chara.id;
+        // Include optional title (e.g., "Momoko Togame (Sister)")
+        option.textContent = chara.title ? `${chara.name} (${chara.title})` : chara.name;
+        if (chara.id === currentCharacterId) {
+            option.selected = true;
+        }
+        characterSelect.appendChild(option);
+    });
+}
+
+function populateOutfitDropdown(charaId) {
+    const outfitSelect = document.getElementById('outfitSelect');
+    if (!outfitSelect) return;
+
+    // Clear existing options
+    outfitSelect.innerHTML = '';
+
+    // Get outfits for the selected character
+    const outfits = getOutfitsForCharacter(charaId);
+
+    outfits.forEach(outfit => {
+        const option = document.createElement('option');
+        option.value = outfit.live2dId;
+        option.textContent = outfit.description;
+        if (outfit.live2dId === currentLive2dId) {
+            option.selected = true;
+        }
+        outfitSelect.appendChild(option);
+    });
+}
+
+function setupCharacterSearch() {
+    const characterSelect = document.getElementById('characterSelect');
+    if (!characterSelect) return;
+
+    // Make the select searchable by adding a datalist approach
+    // Since native select doesn't support searching well, we'll use a workaround
+    // by allowing keyboard input to filter
+    let searchBuffer = '';
+    let searchTimeout = null;
+
+    characterSelect.addEventListener('keydown', (e) => {
+        // Allow normal navigation keys
+        if (['ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'].includes(e.key)) {
+            return;
+        }
+
+        // Build search buffer
+        if (e.key.length === 1) {
+            searchBuffer += e.key.toLowerCase();
+            
+            // Clear buffer after 1 second of no input
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                searchBuffer = '';
+            }, 1000);
+
+            // Find matching character
+            const options = Array.from(characterSelect.options);
+            const match = options.find(opt => 
+                opt.textContent.toLowerCase().includes(searchBuffer)
+            );
+
+            if (match) {
+                characterSelect.value = match.value;
+                // Trigger change to update outfit dropdown
+                const event = new Event('change', { bubbles: true });
+                characterSelect.dispatchEvent(event);
+            }
+        }
+    });
+}
+
+// Bootstrap: Load JSON data and initialize dropdowns
+async function initializeApp() {
+    try {
+        // Load character and outfit data
+        const [charaResponse, live2dResponse] = await Promise.all([
+            fetch('assets/totentanz/en-data/charaList.json'),
+            fetch('assets/totentanz/en-data/live2dList.json')
+        ]);
+
+        charaListData = await charaResponse.json();
+        live2dListData = await live2dResponse.json();
+
+        // Populate character dropdown
+        populateCharacterDropdown();
+
+        // Determine the initial outfit (lowest live2dId) for the default character
+        const initialOutfits = getOutfitsForCharacter(currentCharacterId);
+        if (initialOutfits.length > 0) {
+            currentLive2dId = initialOutfits[0].live2dId;
+        }
+
+        // Populate outfit dropdown for default character
+        populateOutfitDropdown(currentCharacterId);
+
+        // Ensure currentModelId matches selected character + outfit
+        currentModelId = buildModelId(currentCharacterId, currentLive2dId);
+
+        // Setup search functionality
+        setupCharacterSearch();
+
+        // Setup event handlers
+        const characterSelect = document.getElementById('characterSelect');
+        const outfitSelect = document.getElementById('outfitSelect');
+
+        if (characterSelect) {
+            characterSelect.onchange = () => {
+                const charaId = parseInt(characterSelect.value);
+                if (!charaId) return;
+
+                currentCharacterId = charaId;
+
+                // Get the lowest live2dId for this character
+                const outfits = getOutfitsForCharacter(charaId);
+                if (outfits.length > 0) {
+                    currentLive2dId = outfits[0].live2dId;
+                }
+
+                // Update outfit dropdown
+                populateOutfitDropdown(charaId);
+
+                // Load the model
+                const modelId = buildModelId(charaId, currentLive2dId);
+                loadModel(modelId).catch((e) => console.error(e));
+            };
+        }
+
+        if (outfitSelect) {
+            outfitSelect.onchange = () => {
+                const live2dId = outfitSelect.value;
+                if (!live2dId) return;
+
+                currentLive2dId = live2dId;
+
+                // Load the model
+                const modelId = buildModelId(currentCharacterId, live2dId);
+                loadModel(modelId).catch((e) => console.error(e));
+            };
+        }
+
+        // Load the default model
+        loadModel(currentModelId).catch((e) => console.error(e));
+    } catch (error) {
+        console.error('Failed to initialize app:', error);
+        // Fallback: try to load default model anyway
+        loadModel(currentModelId).catch((e) => console.error(e));
     }
 }
 
-loadModel(currentModelId).catch((e) => console.error(e));
+// Start the app
+initializeApp();
 
 // Hotkeys: S = stop, C = capture (ignore when typing in inputs)
 (function setupHotkeys(){
