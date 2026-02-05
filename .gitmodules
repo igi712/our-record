@@ -1,3 +1,3 @@
 [submodule "ma-re-data"]
-	path = ma-re-data
+	path = assets/ma-re-data
 	url = https://github.com/thefrozenfishy/ma-re-data
