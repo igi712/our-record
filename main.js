@@ -810,6 +810,16 @@ async function loadModel(modelId, opts = {}) {
     // v2 controller (magireco_viewer-inspired)
     currentController = window.createMagirecoStyleControllerV2(model, modelJson);
 
+    // Track the most recent motion start so we can wait before fading in.
+    let lastMotionStart = null;
+    const startMotionTracked = (group, index) => {
+        try {
+            lastMotionStart = currentController.startMotion(group, index);
+        } catch (e) {
+            lastMotionStart = null;
+        }
+    };
+
     // Apply initial cheek based on current UI selection.
     // (Expressions can rewrite params; we keep a manual override active.)
     try {
@@ -819,7 +829,7 @@ async function loadModel(modelId, opts = {}) {
 
     // Default: start motion 0 in the primary group if possible.
     try { 
-        currentController.startMotion(currentController.defaultMotionGroup, 0); 
+        startMotionTracked(currentController.defaultMotionGroup, 0);
         // FIX #1: Force an internal update tick to start the motion immediately
         model.update(10);
         // FIX #3: Force a Transform update on the Pixi object so the world matrix is valid
@@ -977,7 +987,7 @@ async function loadModel(modelId, opts = {}) {
                         ms.value = preservedState.motionValue;
                         try {
                             const mv = JSON.parse(preservedState.motionValue);
-                            if (mv && typeof mv.group !== 'undefined' && typeof mv.index === 'number') currentController.startMotion(mv.group, mv.index);
+                            if (mv && typeof mv.group !== 'undefined' && typeof mv.index === 'number') startMotionTracked(mv.group, mv.index);
                         } catch (e) {}
                     }
                 } catch (e) {}
@@ -1223,8 +1233,24 @@ async function loadModel(modelId, opts = {}) {
         } catch {}
     } catch {}
 
+    // Wait for the chosen motion to finish loading/starting before fading in.
+    try {
+        if (lastMotionStart && typeof lastMotionStart.then === 'function') {
+            await lastMotionStart;
+        }
+    } catch {}
+
+    // Give the model a frame or two to apply the first motion update.
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    try { model.update(10); } catch {}
+    try { model.updateTransform(); } catch {}
+
+    // If the user switched models mid-load, bail out before showing this one.
+    if (currentModelId !== modelId) return;
+
     // --- TRANSITION LOGIC: CROSSFADE IF NEEDED ---
-    // If we have an old model waiting (because it was an outfit change), 
+    // If we have an old model waiting (because it was an outfit change),
     // now is the time to fade it out, creating the crossfade effect.
     if (oldModel && preserveState) {
         performFadeOut(oldModel, oldController);

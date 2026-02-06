@@ -441,8 +441,8 @@
 
             try {
                 // Priority 3 (FORCE) ensures immediate start + smooth transition
-                model.motion(group, index, 3);
-                return true;
+                const result = model.motion(group, index, 3);
+                return typeof result === 'undefined' ? true : result;
             } catch (e) {
                 console.warn('startMotion failed', { group, index, e });
                 return false;
