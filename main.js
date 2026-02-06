@@ -584,24 +584,8 @@ function setupControlsForModel(model, modelJson) {
 }
 
 async function loadModel(modelId, opts = {}) {
-    const preserveState = !!opts.preserveState;
+    // Always reset UI/controller state on model change (preserved-state feature removed)
 
-    // Capture UI/controller state if we need to preserve it across outfit swaps.
-    const preservedState = preserveState ? (() => {
-        try {
-            const motionSelectEl = document.getElementById('motionSelect');
-            const expressionSelectEl = document.getElementById('expressionSelect');
-            return {
-                motionValue: motionSelectEl?.value ?? null,
-                faceName: expressionSelectEl?.value ?? null,
-                cheek: getSelectedCheekValue(),
-                eyeClose: !!document.getElementById('eyeClose')?.checked,
-                mouthOpen: !!document.getElementById('mouthOpen')?.checked,
-                tear: !!document.getElementById('tear')?.checked,
-                soulGem: !!document.getElementById('soulGem')?.checked
-            };
-        } catch (e) { return null; }
-    })() : null;
 
     currentModelId = modelId;
 
@@ -758,39 +742,35 @@ async function loadModel(modelId, opts = {}) {
 
     setupControlsForModel(model, modelJson);
 
-    // Prioritize face expression: prefer the lowest mtn_ex_01x (i.e., mtn_ex_010..mtn_ex_019) when the loader
-    // did not request preservation of the previous face. This ensures the model defaults to the "01x" series
-    // (starting with 010) when available.
+    // Prioritize face expression: prefer the lowest mtn_ex_01x (i.e., mtn_ex_010..mtn_ex_019).
     try {
-        if (!(preservedState && preservedState.faceName)) {
-            try {
-                const expressionsArr = modelJson?.FileReferences?.Expressions ?? [];
-                if (Array.isArray(expressionsArr) && expressionsArr.length > 0) {
-                    let best = null;
-                    for (const e of expressionsArr) {
-                        const name = String(e?.Name ?? '');
-                        const m = name.match(/^mtn_ex_(\d{3})\.exp3\.json$/i);
-                        if (!m) continue;
-                        const num = Number(m[1]); // e.g. '010' -> 10
-                        if (!Number.isFinite(num)) continue;
-                        // Only consider the 01x group (numeric 10..19)
-                        if (num >= 10 && num < 20) {
-                            if (!best || num < best.num) best = { num, name };
-                        }
-                    }
-                    if (best) {
-                        try {
-                            const es = document.getElementById('expressionSelect');
-                            if (es) { setSelectValue(es, best.name); es.value = best.name; }
-                            if (currentController && typeof currentController.setExpressionByName === 'function') {
-                                const ok = currentController.setExpressionByName(best.name);
-                                if (!ok) console.warn('[v2 expr] prioritized expression set failed', best.name);
-                            }
-                        } catch (e) { }
+        try {
+            const expressionsArr = modelJson?.FileReferences?.Expressions ?? [];
+            if (Array.isArray(expressionsArr) && expressionsArr.length > 0) {
+                let best = null;
+                for (const e of expressionsArr) {
+                    const name = String(e?.Name ?? '');
+                    const m = name.match(/^mtn_ex_(\d{3})\.exp3\.json$/i);
+                    if (!m) continue;
+                    const num = Number(m[1]); // e.g. '010' -> 10
+                    if (!Number.isFinite(num)) continue;
+                    // Only consider the 01x group (numeric 10..19)
+                    if (num >= 10 && num < 20) {
+                        if (!best || num < best.num) best = { num, name };
                     }
                 }
-            } catch (e) { }
-        }
+                if (best) {
+                    try {
+                        const es = document.getElementById('expressionSelect');
+                        if (es) { setSelectValue(es, best.name); es.value = best.name; }
+                        if (currentController && typeof currentController.setExpressionByName === 'function') {
+                            const ok = currentController.setExpressionByName(best.name);
+                            if (!ok) console.warn('[v2 expr] prioritized expression set failed', best.name);
+                        }
+                    } catch (e) { }
+                }
+            }
+        } catch (e) { }
     } catch (e) { }
 
     // Reflect model's default parameter values (soulGem, eyeClose, mouthOpen, tear, cheek) in the UI and controller (if present).
@@ -910,55 +890,7 @@ async function loadModel(modelId, opts = {}) {
             if (eyeEl) { eyeEl.checked = false; applyEyeClose(false); }
         } catch (e) {}
 
-        // If the caller requested preservation of state (e.g., switching outfit for same character),
-        // re-apply preserved UI/controller state and prefer it over model defaults.
-        try {
-            if (preservedState) {
-                // Motion: try to set previous motion if available
-                try {
-                    const ms = document.getElementById('motionSelect');
-                    if (ms && preservedState.motionValue) {
-                        setSelectValue(ms, preservedState.motionValue);
-                        ms.value = preservedState.motionValue;
-                        try {
-                            const mv = JSON.parse(preservedState.motionValue);
-                            if (mv && typeof mv.group !== 'undefined' && typeof mv.index === 'number') currentController.startMotion(mv.group, mv.index);
-                        } catch (e) {}
-                    }
-                } catch (e) {}
 
-                // Expression/Face
-                try {
-                    const es = document.getElementById('expressionSelect');
-                    if (es && preservedState.faceName) {
-                        setSelectValue(es, preservedState.faceName);
-                        es.value = preservedState.faceName;
-                        try { currentController.setExpressionByName(preservedState.faceName); } catch (e) {}
-                    }
-                } catch (e) {}
-
-                // Cheek
-                try {
-                    if (preservedState.cheek != null) {
-                        applyCheek(preservedState.cheek);
-                        const r = document.querySelectorAll('input[name="cheek"]');
-                        for (const el of r) { el.checked = (String(el.value) === String(preservedState.cheek)); }
-                    }
-                } catch (e) {}
-
-                // Eye Close
-                try { const eyeEl = document.getElementById('eyeClose'); if (eyeEl) { eyeEl.checked = !!preservedState.eyeClose; applyEyeClose(!!preservedState.eyeClose); } } catch (e) {}
-
-                // Mouth
-                try { const mouthEl = document.getElementById('mouthOpen'); if (mouthEl) { mouthEl.checked = !!preservedState.mouthOpen; applyMouthOpen(!!preservedState.mouthOpen); } } catch (e) {}
-
-                // Tear
-                try { const tearEl = document.getElementById('tear'); if (tearEl) { tearEl.checked = !!preservedState.tear; applyTear(!!preservedState.tear); } } catch (e) {}
-
-                // Soul Gem
-                try { const soulEl = document.getElementById('soulGem'); if (soulEl) { soulEl.checked = !!preservedState.soulGem; applySoulGem(!!preservedState.soulGem); } } catch (e) {}
-            }
-        } catch (e) {}
 
     } catch (e) {}
 
@@ -1431,9 +1363,9 @@ async function initializeApp() {
                 // Update outfit dropdown
                 populateOutfitDropdown(charaId);
 
-                // Load the model (character change: do NOT preserve UI state)
+                // Load the model (character change: reset UI/controller state)
                 const modelId = buildModelId(charaId, currentLive2dId);
-                loadModel(modelId, { preserveState: false }).catch((e) => console.error(e));
+                loadModel(modelId).catch((e) => console.error(e));
             };
         }
 
@@ -1444,9 +1376,9 @@ async function initializeApp() {
 
                 currentLive2dId = live2dId;
 
-                // Load the model (outfit change: preserve UI/controller state)
+                // Load the model (outfit change: reset UI/controller state)
                 const modelId = buildModelId(currentCharacterId, live2dId);
-                loadModel(modelId, { preserveState: true }).catch((e) => console.error(e));
+                loadModel(modelId).catch((e) => console.error(e));
             };
         }
 
