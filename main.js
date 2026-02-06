@@ -744,7 +744,8 @@ async function loadModel(modelId, opts = {}) {
 
     const params = await (await fetch(paramsPath)).json();
     const heightParam = Number(params.height ?? 0);
-    const modelScaleParam = Number(params.modelScale ?? 1);
+    let modelScaleParam = Number(params.modelScale ?? 1);
+    if (String(modelId) === '160100') modelScaleParam = 1.3;
 
     const model = await PIXI.live2d.Live2DModel.from(modelPath, { autoInteract: false });
     
