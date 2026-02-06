@@ -544,7 +544,6 @@
 
             // Mostly-off extras to avoid looking too noisy.
             const tear = Math.random() < 0.15 ? 1 : 0;
-            const soulGem = Math.random() < 0.2 ? 1 : 0;
 
             const choice = {
                 motionGroup: defaultMotionGroup,
@@ -557,7 +556,6 @@
                 mouthOpen,
                 mouth,
                 tear,
-                soulGem,
                 timeMs: 4200
             };
 
@@ -591,11 +589,7 @@
                 setParameterById(model, 'ParamTear', clamp01(choice.tear));
             } catch (e) {}
 
-            try {
-                state.soulGemManualActive = true;
-                state.soulGemValue = clamp01(choice.soulGem);
-                setParameterById(model, 'ParamSoulgem', clamp01(choice.soulGem));
-            } catch (e) {}
+            // Soul gem: intentionally not modified by random choice.
 
             startMotion(defaultMotionGroup, chosen);
         }

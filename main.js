@@ -569,14 +569,8 @@ function setupControlsForModel(model, modelJson) {
                         const tearEl = document.getElementById('tear');
                         if (tearEl) tearEl.checked = !!d.tear;
                     } catch {}
-                    // Soul Gem: update controller and checkbox
-                    try {
-                        if (currentController && typeof currentController.setSoulGem === 'function') {
-                            currentController.setSoulGem(d.soulGem ? 1 : 0, false);
-                        }
-                        const soulEl = document.getElementById('soulGem');
-                        if (soulEl) soulEl.checked = !!d.soulGem;
-                    } catch {}
+                    // Soul Gem: intentionally ignore random choice for soul gem to avoid toggling it when Random is pressed.
+                    // Do not change controller/UI for soul gem on random events.
                 } catch (e) {}
             });
         } catch (e) {}
@@ -1610,12 +1604,7 @@ initializeApp();
                     applyTear(enabled);
                 } catch {}
 
-                // Soul Gem
-                try {
-                    const enabled = !!d.soulGem;
-                    if (soulGem) soulGem.checked = enabled;
-                    applySoulGem(enabled);
-                } catch {}
+                // Soul Gem: intentionally ignore random changes; Random should not alter the soul gem checkbox or state.
             } catch {}
         });
     } catch {}
