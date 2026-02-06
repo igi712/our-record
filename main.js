@@ -1132,10 +1132,49 @@ async function loadModel(modelId, opts = {}) {
 
         } catch {}
     } catch {}
-
     // FIX #1: Make visible only after motion setup is complete.
+    // model.visible = true; // <--- REMOVE THIS LINE
+    // currentModel = model; // <--- REMOVE THIS LINE
+
+    // --- FADE IN LOGIC ---
+    // We use AlphaFilter because standard container.alpha often breaks with Live2D's 
+    // internal depth testing/culling, causing the binary visibility issue you observed.
+    const alphaFilter = new PIXI.filters.AlphaFilter(0);
+
+    // FIX: Set resolution to match the renderer to prevent blurriness during the fade
+    alphaFilter.resolution = app.renderer.resolution; 
+    
+    model.filters = [alphaFilter];
     model.visible = true;
+    
     currentModel = model;
+
+    const fadeDuration = 200;
+    const fadeStartTime = performance.now();
+
+    function animateFade() {
+        // If the user switched models mid-fade, stop updating this old one
+        if (currentModel !== model) return;
+
+        const now = performance.now();
+        const elapsed = now - fadeStartTime;
+        const progress = Math.min(1, elapsed / fadeDuration);
+
+        if (alphaFilter) {
+            alphaFilter.alpha = progress;
+        }
+
+        if (progress < 1) {
+            requestAnimationFrame(animateFade);
+        } else {
+            // Performance optimization: Remove the filter once fully visible
+            // so Pixi doesn't have to render to an offscreen buffer every frame.
+            model.filters = null;
+        }
+    }
+    
+    requestAnimationFrame(animateFade);
+    // --- END FADE IN LOGIC ---
 }
 
 // Helper functions for character/outfit management
