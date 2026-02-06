@@ -583,7 +583,26 @@ function setupControlsForModel(model, modelJson) {
     }
 }
 
-async function loadModel(modelId) {
+async function loadModel(modelId, opts = {}) {
+    const preserveState = !!opts.preserveState;
+
+    // Capture UI/controller state if we need to preserve it across outfit swaps.
+    const preservedState = preserveState ? (() => {
+        try {
+            const motionSelectEl = document.getElementById('motionSelect');
+            const expressionSelectEl = document.getElementById('expressionSelect');
+            return {
+                motionValue: motionSelectEl?.value ?? null,
+                faceName: expressionSelectEl?.value ?? null,
+                cheek: getSelectedCheekValue(),
+                eyeClose: !!document.getElementById('eyeClose')?.checked,
+                mouthOpen: !!document.getElementById('mouthOpen')?.checked,
+                tear: !!document.getElementById('tear')?.checked,
+                soulGem: !!document.getElementById('soulGem')?.checked
+            };
+        } catch (e) { return null; }
+    })() : null;
+
     currentModelId = modelId;
 
     const modelOpt = getModelOption(modelId);
@@ -739,25 +758,173 @@ async function loadModel(modelId) {
 
     setupControlsForModel(model, modelJson);
 
-    // Reflect model's default ParamSoulgem value in the UI and controller (if present).
+    // Reflect model's default parameter values (soulGem, eyeClose, mouthOpen, tear, cheek) in the UI and controller (if present).
     try {
         const core = model?.internalModel?.coreModel;
-        let soulVal = null;
+
+        const readParam = (names) => {
+            try {
+                if (!core) return null;
+                for (const name of names) {
+                    try {
+                        if (typeof core.getParameterValueById === 'function') {
+                            const v = core.getParameterValueById(name);
+                            if (typeof v !== 'undefined' && v !== null) return v;
+                        }
+                        if (typeof core.getParameterValue === 'function') {
+                            const v = core.getParameterValue(name);
+                            if (typeof v !== 'undefined' && v !== null) return v;
+                        }
+                    } catch (e) {}
+                }
+
+                if (Array.isArray(core.parameters)) {
+                    for (const p of core.parameters) {
+                        const id = String(p.id || p.parameterId || p.name || '');
+                        for (const name of names) {
+                            if (id === name) {
+                                if (typeof p.value !== 'undefined') return p.value;
+                            }
+                        }
+                    }
+                }
+
+                if (model.internalModel && typeof model.internalModel.getParameterValue === 'function') {
+                    for (const name of names) {
+                        try {
+                            const v = model.internalModel.getParameterValue(name);
+                            if (typeof v !== 'undefined' && v !== null) return v;
+                        } catch (e) {}
+                    }
+                }
+
+                return null;
+            } catch (e) { return null; }
+        };
+
+        // Soul gem
         try {
-            if (core) {
-                if (typeof core.getParameterValueById === 'function') soulVal = core.getParameterValueById('ParamSoulgem');
-                else if (typeof core.getParameterValue === 'function') soulVal = core.getParameterValue('ParamSoulgem');
-                else if (Array.isArray(core.parameters)) {
-                    const p = core.parameters.find(p => String(p.id || p.parameterId || p.name) === 'ParamSoulgem' || String(p.id || p.parameterId || p.name) === 'ParamSoulGem');
-                    if (p && typeof p.value !== 'undefined') soulVal = p.value;
-                } else if (model.internalModel && typeof model.internalModel.getParameterValue === 'function') soulVal = model.internalModel.getParameterValue('ParamSoulgem');
+            const soulVal = readParam(['ParamSoulgem', 'ParamSoulGem']);
+            const enabled = !!(soulVal && Number(soulVal) > 0.5);
+            const soulEl = document.getElementById('soulGem');
+            if (soulEl) soulEl.checked = enabled;
+            if (currentController && typeof currentController.setSoulGem === 'function') currentController.setSoulGem(enabled ? 1 : 0, false);
+        } catch (e) {}
+
+        // Eye (use ParamEyeOpen if present, otherwise average left/right)
+        try {
+            let eyeVal = readParam(['ParamEyeOpen']);
+            if (eyeVal == null) {
+                const l = readParam(['ParamEyeLOpen']);
+                const r = readParam(['ParamEyeROpen']);
+                if (typeof l === 'number' && typeof r === 'number') eyeVal = (l + r) / 2;
+                else if (typeof l === 'number') eyeVal = l;
+                else if (typeof r === 'number') eyeVal = r;
+            }
+            if (typeof eyeVal === 'number') {
+                const closed = !!(Number(eyeVal) < 0.5);
+                const eyeEl = document.getElementById('eyeClose');
+                if (eyeEl) eyeEl.checked = closed;
+                applyEyeClose(closed);
             }
         } catch (e) {}
 
-        const enabled = !!(soulVal && Number(soulVal) > 0.5);
-        const soulEl = document.getElementById('soulGem');
-        if (soulEl) soulEl.checked = enabled;
-        if (currentController && typeof currentController.setSoulGem === 'function') currentController.setSoulGem(enabled ? 1 : 0, false);
+        // Mouth
+        try {
+            const mouthVal = readParam(['ParamMouthOpen', 'ParamMouth']);
+            if (typeof mouthVal === 'number') {
+                const open = !!(Number(mouthVal) > 0.5);
+                const mouthEl = document.getElementById('mouthOpen');
+                if (mouthEl) mouthEl.checked = open;
+                applyMouthOpen(open);
+            }
+        } catch (e) {}
+
+        // Tear
+        try {
+            const tearVal = readParam(['ParamTear']);
+            if (typeof tearVal === 'number') {
+                const enabled = !!(Number(tearVal) > 0.5);
+                const tearEl = document.getElementById('tear');
+                if (tearEl) tearEl.checked = enabled;
+                applyTear(enabled);
+            }
+        } catch (e) {}
+
+        // Cheek (some models may expose a ParamCheek)
+        try {
+            const cheekVal = readParam(['ParamCheek']);
+            if (typeof cheekVal === 'number') {
+                const v = String(cheekVal);
+                try {
+                    const r = document.querySelectorAll('input[name="cheek"]');
+                    for (const el of r) {
+                        if (String(el.value) === v) {
+                            el.checked = true;
+                            applyCheek(el.value);
+                            break;
+                        }
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {}
+
+        // Force eyes open by default on model load (user preference override)
+        try {
+            const eyeEl = document.getElementById('eyeClose');
+            if (eyeEl) { eyeEl.checked = false; applyEyeClose(false); }
+        } catch (e) {}
+
+        // If the caller requested preservation of state (e.g., switching outfit for same character),
+        // re-apply preserved UI/controller state and prefer it over model defaults.
+        try {
+            if (preservedState) {
+                // Motion: try to set previous motion if available
+                try {
+                    const ms = document.getElementById('motionSelect');
+                    if (ms && preservedState.motionValue) {
+                        setSelectValue(ms, preservedState.motionValue);
+                        ms.value = preservedState.motionValue;
+                        try {
+                            const mv = JSON.parse(preservedState.motionValue);
+                            if (mv && typeof mv.group !== 'undefined' && typeof mv.index === 'number') currentController.startMotion(mv.group, mv.index);
+                        } catch (e) {}
+                    }
+                } catch (e) {}
+
+                // Expression/Face
+                try {
+                    const es = document.getElementById('expressionSelect');
+                    if (es && preservedState.faceName) {
+                        setSelectValue(es, preservedState.faceName);
+                        es.value = preservedState.faceName;
+                        try { currentController.setExpressionByName(preservedState.faceName); } catch (e) {}
+                    }
+                } catch (e) {}
+
+                // Cheek
+                try {
+                    if (preservedState.cheek != null) {
+                        applyCheek(preservedState.cheek);
+                        const r = document.querySelectorAll('input[name="cheek"]');
+                        for (const el of r) { el.checked = (String(el.value) === String(preservedState.cheek)); }
+                    }
+                } catch (e) {}
+
+                // Eye Close
+                try { const eyeEl = document.getElementById('eyeClose'); if (eyeEl) { eyeEl.checked = !!preservedState.eyeClose; applyEyeClose(!!preservedState.eyeClose); } } catch (e) {}
+
+                // Mouth
+                try { const mouthEl = document.getElementById('mouthOpen'); if (mouthEl) { mouthEl.checked = !!preservedState.mouthOpen; applyMouthOpen(!!preservedState.mouthOpen); } } catch (e) {}
+
+                // Tear
+                try { const tearEl = document.getElementById('tear'); if (tearEl) { tearEl.checked = !!preservedState.tear; applyTear(!!preservedState.tear); } } catch (e) {}
+
+                // Soul Gem
+                try { const soulEl = document.getElementById('soulGem'); if (soulEl) { soulEl.checked = !!preservedState.soulGem; applySoulGem(!!preservedState.soulGem); } } catch (e) {}
+            }
+        } catch (e) {}
+
     } catch (e) {}
 
     // Ensure autoInteract is explicitly disabled by default; we'll enable it only while user presses the model.
@@ -1190,9 +1357,9 @@ async function initializeApp() {
                 // Update outfit dropdown
                 populateOutfitDropdown(charaId);
 
-                // Load the model
+                // Load the model (character change: do NOT preserve UI state)
                 const modelId = buildModelId(charaId, currentLive2dId);
-                loadModel(modelId).catch((e) => console.error(e));
+                loadModel(modelId, { preserveState: false }).catch((e) => console.error(e));
             };
         }
 
@@ -1203,9 +1370,9 @@ async function initializeApp() {
 
                 currentLive2dId = live2dId;
 
-                // Load the model
+                // Load the model (outfit change: preserve UI/controller state)
                 const modelId = buildModelId(currentCharacterId, live2dId);
-                loadModel(modelId).catch((e) => console.error(e));
+                loadModel(modelId, { preserveState: true }).catch((e) => console.error(e));
             };
         }
 
