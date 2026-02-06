@@ -584,44 +584,104 @@ function setupControlsForModel(model, modelJson) {
 }
 
 async function loadModel(modelId, opts = {}) {
-    // Always reset UI/controller state on model change (preserved-state feature removed)
+    const preserveState = !!opts.preserveState;
 
+    // Capture UI/controller state if we need to preserve it across outfit swaps.
+    const preservedState = preserveState ? (() => {
+        try {
+            const motionSelectEl = document.getElementById('motionSelect');
+            const expressionSelectEl = document.getElementById('expressionSelect');
+            return {
+                motionValue: motionSelectEl?.value ?? null,
+                faceName: expressionSelectEl?.value ?? null,
+                cheek: getSelectedCheekValue(),
+                eyeClose: !!document.getElementById('eyeClose')?.checked,
+                mouthOpen: !!document.getElementById('mouthOpen')?.checked,
+                tear: !!document.getElementById('tear')?.checked,
+                soulGem: !!document.getElementById('soulGem')?.checked
+            };
+        } catch (e) { return null; }
+    })() : null;
 
     currentModelId = modelId;
 
     const modelOpt = getModelOption(modelId);
 
-    // Clean up per-model follow handlers from the previous model (if any)
+    // --- TRANSITION LOGIC START ---
+    
+    // Capture the model currently on stage before we start loading the new one.
+    const oldModel = currentModel;
+    
+    // Cleanup per-model follow handlers from the OLD model immediately
     try {
-        const prev = currentModel;
-        // remove per-model press handler
-        try {
-            if (prev && prev.__mrPressHandler) {
-                try { prev.off('pointerdown', prev.__mrPressHandler); } catch {}
-                try { delete prev.__mrPressHandler; } catch {}
-            }
-        } catch {}
+        if (oldModel) {
+            // Disable interaction on the dying model
+            oldModel.interactive = false;
+            try { oldModel._autoInteract = false; } catch {}
 
-        // remove per-model move handler
-        try {
-            if (prev && prev.__mrMoveHandler) {
-                try { window.removeEventListener('pointermove', prev.__mrMoveHandler, true); } catch {}
-                try { window.removeEventListener('touchmove', prev.__mrMoveHandler, true); } catch {}
-                try { delete prev.__mrMoveHandler; } catch {}
+            // Remove specific handlers
+            if (oldModel.__mrPressHandler) {
+                try { oldModel.off('pointerdown', oldModel.__mrPressHandler); } catch {}
+                try { delete oldModel.__mrPressHandler; } catch {}
             }
-        } catch {}
+            if (oldModel.__mrMoveHandler) {
+                try { window.removeEventListener('pointermove', oldModel.__mrMoveHandler, true); } catch {}
+                try { window.removeEventListener('touchmove', oldModel.__mrMoveHandler, true); } catch {}
+                try { delete oldModel.__mrMoveHandler; } catch {}
+            }
+        }
     } catch {}
 
+    // Stop the old controller immediately
     if (currentController) {
         try { currentController.stopSequence?.(); } catch {}
         currentController = null;
     }
+    
+    // Clear global reference so other scripts don't target the dying model
+    currentModel = null;
 
-    if (currentModel) {
-        try { worldContainer.removeChild(currentModel); } catch {}
-        try { currentModel.destroy?.({ children: true }); } catch {}
-        currentModel = null;
+    // Define the Fade Out function
+    const performFadeOut = (target) => {
+        if (!target) return;
+        
+        // Setup AlphaFilter for smooth fade out
+        const filter = new PIXI.filters.AlphaFilter(1);
+        filter.resolution = app.renderer.resolution; // Fix blurriness
+        target.filters = [filter];
+
+        const duration = 200;
+        const start = performance.now();
+
+        function tick() {
+            const now = performance.now();
+            const progress = Math.min(1, (now - start) / duration);
+            
+            if (target.filters && target.filters[0]) {
+                target.filters[0].alpha = 1 - progress;
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(tick);
+            } else {
+                // Done. Remove from world and destroy.
+                try { 
+                    if (target.parent) target.parent.removeChild(target); 
+                    target.destroy({ children: true });
+                } catch (e) {}
+            }
+        }
+        requestAnimationFrame(tick);
+    };
+
+    // If this is NOT an outfit change (e.g. changing character), fade out the old one immediately.
+    // If it IS an outfit change, we keep the old model visible in the background and fade it out later
+    // to create a crossfade effect.
+    if (oldModel && !preserveState) {
+        performFadeOut(oldModel);
     }
+    
+    // --- TRANSITION LOGIC END (Setup part) ---
 
     // Placement profiles.
     // Keep the original 16:9 home placement math intact for future use.
@@ -742,37 +802,6 @@ async function loadModel(modelId, opts = {}) {
 
     setupControlsForModel(model, modelJson);
 
-    // Prioritize face expression: prefer the lowest mtn_ex_01x (i.e., mtn_ex_010..mtn_ex_019).
-    try {
-        try {
-            const expressionsArr = modelJson?.FileReferences?.Expressions ?? [];
-            if (Array.isArray(expressionsArr) && expressionsArr.length > 0) {
-                let best = null;
-                for (const e of expressionsArr) {
-                    const name = String(e?.Name ?? '');
-                    const m = name.match(/^mtn_ex_(\d{3})\.exp3\.json$/i);
-                    if (!m) continue;
-                    const num = Number(m[1]); // e.g. '010' -> 10
-                    if (!Number.isFinite(num)) continue;
-                    // Only consider the 01x group (numeric 10..19)
-                    if (num >= 10 && num < 20) {
-                        if (!best || num < best.num) best = { num, name };
-                    }
-                }
-                if (best) {
-                    try {
-                        const es = document.getElementById('expressionSelect');
-                        if (es) { setSelectValue(es, best.name); es.value = best.name; }
-                        if (currentController && typeof currentController.setExpressionByName === 'function') {
-                            const ok = currentController.setExpressionByName(best.name);
-                            if (!ok) console.warn('[v2 expr] prioritized expression set failed', best.name);
-                        }
-                    } catch (e) { }
-                }
-            }
-        } catch (e) { }
-    } catch (e) { }
-
     // Reflect model's default parameter values (soulGem, eyeClose, mouthOpen, tear, cheek) in the UI and controller (if present).
     try {
         const core = model?.internalModel?.coreModel;
@@ -890,7 +919,55 @@ async function loadModel(modelId, opts = {}) {
             if (eyeEl) { eyeEl.checked = false; applyEyeClose(false); }
         } catch (e) {}
 
+        // If the caller requested preservation of state (e.g., switching outfit for same character),
+        // re-apply preserved UI/controller state and prefer it over model defaults.
+        try {
+            if (preservedState) {
+                // Motion: try to set previous motion if available
+                try {
+                    const ms = document.getElementById('motionSelect');
+                    if (ms && preservedState.motionValue) {
+                        setSelectValue(ms, preservedState.motionValue);
+                        ms.value = preservedState.motionValue;
+                        try {
+                            const mv = JSON.parse(preservedState.motionValue);
+                            if (mv && typeof mv.group !== 'undefined' && typeof mv.index === 'number') currentController.startMotion(mv.group, mv.index);
+                        } catch (e) {}
+                    }
+                } catch (e) {}
 
+                // Expression/Face
+                try {
+                    const es = document.getElementById('expressionSelect');
+                    if (es && preservedState.faceName) {
+                        setSelectValue(es, preservedState.faceName);
+                        es.value = preservedState.faceName;
+                        try { currentController.setExpressionByName(preservedState.faceName); } catch (e) {}
+                    }
+                } catch (e) {}
+
+                // Cheek
+                try {
+                    if (preservedState.cheek != null) {
+                        applyCheek(preservedState.cheek);
+                        const r = document.querySelectorAll('input[name="cheek"]');
+                        for (const el of r) { el.checked = (String(el.value) === String(preservedState.cheek)); }
+                    }
+                } catch (e) {}
+
+                // Eye Close
+                try { const eyeEl = document.getElementById('eyeClose'); if (eyeEl) { eyeEl.checked = !!preservedState.eyeClose; applyEyeClose(!!preservedState.eyeClose); } } catch (e) {}
+
+                // Mouth
+                try { const mouthEl = document.getElementById('mouthOpen'); if (mouthEl) { mouthEl.checked = !!preservedState.mouthOpen; applyMouthOpen(!!preservedState.mouthOpen); } } catch (e) {}
+
+                // Tear
+                try { const tearEl = document.getElementById('tear'); if (tearEl) { tearEl.checked = !!preservedState.tear; applyTear(!!preservedState.tear); } } catch (e) {}
+
+                // Soul Gem
+                try { const soulEl = document.getElementById('soulGem'); if (soulEl) { soulEl.checked = !!preservedState.soulGem; applySoulGem(!!preservedState.soulGem); } } catch (e) {}
+            }
+        } catch (e) {}
 
     } catch (e) {}
 
@@ -1099,18 +1176,23 @@ async function loadModel(modelId, opts = {}) {
 
         } catch {}
     } catch {}
-    // FIX #1: Make visible only after motion setup is complete.
-    // model.visible = true; // <--- REMOVE THIS LINE
-    // currentModel = model; // <--- REMOVE THIS LINE
+
+    // --- TRANSITION LOGIC: CROSSFADE IF NEEDED ---
+    // If we have an old model waiting (because it was an outfit change), 
+    // now is the time to fade it out, creating the crossfade effect.
+    if (oldModel && preserveState) {
+        performFadeOut(oldModel);
+    }
+    // --- END TRANSITION LOGIC ---
 
     // --- FADE IN LOGIC ---
     // We use AlphaFilter because standard container.alpha often breaks with Live2D's 
-    // internal depth testing/culling, causing the binary visibility issue you observed.
+    // internal depth testing/culling.
     const alphaFilter = new PIXI.filters.AlphaFilter(0);
-
+    
     // FIX: Set resolution to match the renderer to prevent blurriness during the fade
     alphaFilter.resolution = app.renderer.resolution; 
-
+    
     model.filters = [alphaFilter];
     model.visible = true;
     
