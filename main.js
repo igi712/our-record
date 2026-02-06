@@ -445,11 +445,13 @@ function findBestMtnExExpression(expressions) {
     // Find all expressions that match mtn_ex_01X pattern
     const mtnExMatches = [];
     for (const expr of expressions) {
-        const name = String(expr.Name ?? expr.name ?? '');
+        const fullName = String(expr.Name ?? expr.name ?? '');
+        // Strip common extensions from the name for pattern matching
+        const name = fullName.replace(/\.exp3\.json$/, '').replace(/\.json$/, '');
         const match = name.match(/^mtn_ex_01(\d+)$/);
         if (match) {
             const number = Number(match[1]);
-            mtnExMatches.push({ name, number });
+            mtnExMatches.push({ originalName: fullName, name, number });
         }
     }
     
@@ -458,7 +460,7 @@ function findBestMtnExExpression(expressions) {
     
     // Sort by number and return the lowest
     mtnExMatches.sort((a, b) => a.number - b.number);
-    return mtnExMatches[0].name;
+    return mtnExMatches[0].originalName;
 }
 
 function setupControlsForModel(model, modelJson) {
