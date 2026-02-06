@@ -758,6 +758,41 @@ async function loadModel(modelId, opts = {}) {
 
     setupControlsForModel(model, modelJson);
 
+    // Prioritize face expression: prefer the lowest mtn_ex_01x (i.e., mtn_ex_010..mtn_ex_019) when the loader
+    // did not request preservation of the previous face. This ensures the model defaults to the "01x" series
+    // (starting with 010) when available.
+    try {
+        if (!(preservedState && preservedState.faceName)) {
+            try {
+                const expressionsArr = modelJson?.FileReferences?.Expressions ?? [];
+                if (Array.isArray(expressionsArr) && expressionsArr.length > 0) {
+                    let best = null;
+                    for (const e of expressionsArr) {
+                        const name = String(e?.Name ?? '');
+                        const m = name.match(/^mtn_ex_(\d{3})\.exp3\.json$/i);
+                        if (!m) continue;
+                        const num = Number(m[1]); // e.g. '010' -> 10
+                        if (!Number.isFinite(num)) continue;
+                        // Only consider the 01x group (numeric 10..19)
+                        if (num >= 10 && num < 20) {
+                            if (!best || num < best.num) best = { num, name };
+                        }
+                    }
+                    if (best) {
+                        try {
+                            const es = document.getElementById('expressionSelect');
+                            if (es) { setSelectValue(es, best.name); es.value = best.name; }
+                            if (currentController && typeof currentController.setExpressionByName === 'function') {
+                                const ok = currentController.setExpressionByName(best.name);
+                                if (!ok) console.warn('[v2 expr] prioritized expression set failed', best.name);
+                            }
+                        } catch (e) { }
+                    }
+                }
+            } catch (e) { }
+        }
+    } catch (e) { }
+
     // Reflect model's default parameter values (soulGem, eyeClose, mouthOpen, tear, cheek) in the UI and controller (if present).
     try {
         const core = model?.internalModel?.coreModel;
@@ -1143,7 +1178,7 @@ async function loadModel(modelId, opts = {}) {
 
     // FIX: Set resolution to match the renderer to prevent blurriness during the fade
     alphaFilter.resolution = app.renderer.resolution; 
-    
+
     model.filters = [alphaFilter];
     model.visible = true;
     
