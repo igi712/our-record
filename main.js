@@ -439,6 +439,28 @@ async function downloadModelSnapshot() {
     }
 }
 
+function findBestMtnExExpression(expressions) {
+    if (!Array.isArray(expressions)) return null;
+    
+    // Find all expressions that match mtn_ex_01X pattern
+    const mtnExMatches = [];
+    for (const expr of expressions) {
+        const name = String(expr.Name ?? expr.name ?? '');
+        const match = name.match(/^mtn_ex_01(\d+)$/);
+        if (match) {
+            const number = Number(match[1]);
+            mtnExMatches.push({ name, number });
+        }
+    }
+    
+    // If no mtn_ex_01X expressions found, return null
+    if (mtnExMatches.length === 0) return null;
+    
+    // Sort by number and return the lowest
+    mtnExMatches.sort((a, b) => a.number - b.number);
+    return mtnExMatches[0].name;
+}
+
 function setupControlsForModel(model, modelJson) {
     const motionSelect = document.getElementById('motionSelect');
     const expressionSelect = document.getElementById('expressionSelect');
@@ -497,7 +519,18 @@ function setupControlsForModel(model, modelJson) {
         }
 
         fillSelect(expressionSelect, expressionOptions);
-        if (expressionOptions.length > 0) expressionSelect.value = expressionOptions[0].value;
+        
+        // Attempt to set the best mtn_ex_01X expression, fallback to first option
+        let selectedExpression = null;
+        if (expressionOptions.length > 0) {
+            const bestMtnEx = findBestMtnExExpression(expressions);
+            if (bestMtnEx) {
+                selectedExpression = bestMtnEx;
+            } else {
+                selectedExpression = expressionOptions[0].value;
+            }
+            expressionSelect.value = selectedExpression;
+        }
 
         expressionSelect.onchange = () => {
             if (!currentController) return;
@@ -602,14 +635,15 @@ async function loadModel(modelId, opts = {}) {
     const modelOpt = getModelOption(modelId);
 
     // --- TRANSITION LOGIC START ---
-    
-    // Capture the model currently on stage before we start loading the new one.
+
+    // Capture the model/controller currently on stage before we start loading the new one.
     const oldModel = currentModel;
-    
+    const oldController = currentController;
+
     // Cleanup per-model follow handlers from the OLD model immediately
     try {
         if (oldModel) {
-            // Disable interaction on the dying model
+            // Disable interaction on the dying model so user can't click it while it fades
             oldModel.interactive = false;
             try { oldModel._autoInteract = false; } catch {}
 
@@ -626,22 +660,22 @@ async function loadModel(modelId, opts = {}) {
         }
     } catch {}
 
-    // Stop the old controller immediately
-    if (currentController) {
-        try { currentController.stopSequence?.(); } catch {}
-        currentController = null;
-    }
+    // Detach global controller reference so UI doesn't control the dying model.
+    // IMPORTANT: We do NOT call stopSequence() here. We want the old model to keep animating
+    // during the fade-out. We will stop it in performFadeOut() after the visual fade is done.
+    currentController = null;
     
     // Clear global reference so other scripts don't target the dying model
     currentModel = null;
 
     // Define the Fade Out function
-    const performFadeOut = (target) => {
+    const performFadeOut = (target, controller) => {
         if (!target) return;
         
         // Setup AlphaFilter for smooth fade out
         const filter = new PIXI.filters.AlphaFilter(1);
-        filter.resolution = app.renderer.resolution; // Fix blurriness
+        // Ensure resolution matches renderer to prevent blurriness
+        try { filter.resolution = app.renderer.resolution; } catch(e) {}
         target.filters = [filter];
 
         const duration = 200;
@@ -658,7 +692,13 @@ async function loadModel(modelId, opts = {}) {
             if (progress < 1) {
                 requestAnimationFrame(tick);
             } else {
-                // Done. Remove from world and destroy.
+                // Done. Now we safe to stop animations and destroy.
+                try { 
+                    if (controller && typeof controller.stopSequence === 'function') {
+                        controller.stopSequence();
+                    }
+                } catch(e) {}
+
                 try { 
                     if (target.parent) target.parent.removeChild(target); 
                     target.destroy({ children: true });
@@ -668,11 +708,11 @@ async function loadModel(modelId, opts = {}) {
         requestAnimationFrame(tick);
     };
 
-    // If this is NOT an outfit change (e.g. changing character), fade out the old one immediately.
-    // If it IS an outfit change, we keep the old model visible in the background and fade it out later
-    // to create a crossfade effect.
+    // LOGIC: 
+    // If it's a Character change (!preserveState): Fade out OLD immediately. The stage will be empty briefly while NEW loads.
+    // If it's an Outfit change (preserveState): Keep OLD visible. We will fade it out ONLY when NEW is ready (Crossfade).
     if (oldModel && !preserveState) {
-        performFadeOut(oldModel);
+        performFadeOut(oldModel, oldController);
     }
     
     // --- TRANSITION LOGIC END (Setup part) ---
@@ -706,7 +746,7 @@ async function loadModel(modelId, opts = {}) {
 
     const model = await PIXI.live2d.Live2DModel.from(modelPath, { autoInteract: false });
     
-    // FIX: Hide initially to prevent "flash" of default motion
+    // Hide initially so we can fade in
     model.visible = false;
 
     worldContainer.addChild(model);
@@ -795,6 +835,16 @@ async function loadModel(modelId, opts = {}) {
     } catch {}
 
     setupControlsForModel(model, modelJson);
+
+    // Apply the selected expression from setupControlsForModel
+    try {
+        const expressionSelect = document.getElementById('expressionSelect');
+        if (expressionSelect && expressionSelect.value && currentController) {
+            currentController.setExpressionByName(expressionSelect.value);
+        }
+    } catch (e) {
+        console.warn('Could not apply initial expression', e);
+    }
 
     // Reflect model's default parameter values (soulGem, eyeClose, mouthOpen, tear, cheek) in the UI and controller (if present).
     try {
@@ -1175,7 +1225,7 @@ async function loadModel(modelId, opts = {}) {
     // If we have an old model waiting (because it was an outfit change), 
     // now is the time to fade it out, creating the crossfade effect.
     if (oldModel && preserveState) {
-        performFadeOut(oldModel);
+        performFadeOut(oldModel, oldController);
     }
     // --- END TRANSITION LOGIC ---
 
