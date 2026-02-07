@@ -7,6 +7,10 @@
 (function () {
     'use strict';
 
+    function safeWarn() {
+        try { console.warn.apply(console, arguments); } catch {}
+    }
+
     // Patch: Fallback for missing textures so models render even when some texture files 404.
     // Installs a safe replacement for PIXI.Texture.fromURL and `PIXI.Texture.from`.
     (function installPixiTextureFallback() {
@@ -36,7 +40,7 @@
                         try {
                             return await origFromURL(url, options);
                         } catch (e) {
-                            try { console.warn('Missing texture, using placeholder:', url); } catch {}
+                            safeWarn('Missing texture, using placeholder:', url);
                             return makePlaceholder();
                         }
                     };
@@ -51,7 +55,7 @@
                         try {
                             return origFrom(resource, options);
                         } catch (e) {
-                            try { console.warn('Texture.from failed, using placeholder:', resource); } catch {}
+                            safeWarn('Texture.from failed, using placeholder:', resource);
                             return makePlaceholder();
                         }
                     };
@@ -74,7 +78,7 @@
                 try {
                     const r = ev && ev.reason ? String(ev.reason) : '';
                     if (r.includes('Texture loading error')) {
-                        try { console.warn('Suppressed unhandled rejection:', r); } catch {}
+                        safeWarn('Suppressed unhandled rejection:', r);
                         ev.preventDefault();
                     }
                 } catch (e) {}
@@ -83,7 +87,7 @@
                 try {
                     const m = ev && ev.message ? String(ev.message) : '';
                     if (m.includes('Texture loading error')) {
-                        try { console.warn('Suppressed error event:', m); } catch {}
+                        safeWarn('Suppressed error event:', m);
                         ev.preventDefault();
                     }
                 } catch (e) {}
@@ -252,7 +256,7 @@
                             };
                         }
                     } catch (e) {
-                        console.warn('Motion policy patch failed', e);
+                        safeWarn('Motion policy patch failed', e);
                     }
                     return motion;
                 };
@@ -444,7 +448,7 @@
                 const result = model.motion(group, index, 3);
                 return typeof result === 'undefined' ? true : result;
             } catch (e) {
-                console.warn('startMotion failed', { group, index, e });
+                safeWarn('startMotion failed', { group, index, e });
                 return false;
             }
         }
@@ -660,7 +664,7 @@
         try {
             im.on('afterMotionUpdate', afterMotionUpdate);
         } catch (e) {
-            console.warn('Failed to attach afterMotionUpdate handler', e);
+            safeWarn('Failed to attach afterMotionUpdate handler', e);
         }
 
         function beforeModelUpdate() {
