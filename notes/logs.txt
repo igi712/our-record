@@ -1,4 +1,5 @@
 iroha yachiyo
+landscape 4:3
 02-07 17:40:41.156  4209  4255 I MagiaHook: Scene layer changed to: StorySceneLayer
 02-07 17:40:41.341  4209  4255 I MagiaHook: [Live2D] LAppViewCustom 0x7c4463839850 createDrawNode(model=0x7c43352d42b4)
 02-07 17:40:41.349  4209  4255 I MagiaHook: [Live2D] LAppViewCustom 0x7c4463839850 createDrawNode -> node=0x7c44a37e2ff0
@@ -19,7 +20,30 @@ iroha yachiyo
 02-07 17:40:41.420  4209  4255 I MagiaHook: [Live2D] LAppViewCustom 0x7c44a37f60a0 draw Mat4: tx=216.00 ty=384.00 sx=1.0000 sy=1.0000 flags=3
 02-07 17:40:41.421  4209  4255 I MagiaHook: [Live2D] CubismModelMatrix 0x7c43b3bf85b0 SetWidth: 1.300000
 02-07 17:40:41.421  4209  4255 I MagiaHook: [Live2D] CubismRenderer 0x7c4433803a90 SetMvpMatrix(m=0x7c43352d47e0): tx=0.0547 ty=-0.2795 sx=1.300000 sy=1.733333
+portrait 16:9
+02-07 19:15:33.479  2594  2747 I MagiaHook: Scene layer changed to: StorySceneLayer
+02-07 19:15:33.667  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269bb04a770 createDrawNode(model=0x72688ec014b4)
+02-07 19:15:33.675  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269bb04a770 createDrawNode -> node=0x7269faff8cc0
+02-07 19:15:33.675  2594  2747 I MagiaHook: [Live2D] LAppModelCustom 0x7269bb04a770 LoadOtherParams: resource/image_native/live2d_v4/130100/params.json
+02-07 19:15:33.675  2594  2747 I MagiaHook: [Live2D] LAppModelCustom 0x7269bb04a770 after params: height=-125.0000 scale=1.3000
+02-07 19:15:33.675  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269faff8cc0 onEnter
+02-07 19:15:33.675  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269faff8cc0 LoadHeight(fromJson=1)
+02-07 19:15:33.694  2594  2747 I MagiaHook: [Live2D] StoryCharaLive2DSprite 0x72696b12b4f0 setOffset: x=0.00 y=0.00
+02-07 19:15:33.694  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269faff8cc0 draw Mat4: tx=512.00 ty=144.00 sx=1.0000 sy=1.0000 flags=3
+02-07 19:15:33.695  2594  2747 I MagiaHook: [Live2D] CubismModelMatrix 0x72690b3a5b50 SetWidth: 0.850000
+02-07 19:15:33.695  2594  2747 I MagiaHook: [Live2D] CubismRenderer 0x72698b006710 SetMvpMatrix(m=0x72688ec017e0): tx=0.3125 ty=0.0000 sx=0.000000 sy=0.000000
+02-07 19:15:33.742  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269bb050aa0 createDrawNode(model=0x72688ec012b4)
+02-07 19:15:33.748  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269bb050aa0 createDrawNode -> node=0x7269fafdee60
+02-07 19:15:33.748  2594  2747 I MagiaHook: [Live2D] LAppModelCustom 0x7269bb050aa0 LoadOtherParams: resource/image_native/live2d_v4/130102/params.json
+02-07 19:15:33.748  2594  2747 I MagiaHook: [Live2D] LAppModelCustom 0x7269bb050aa0 after params: height=-101.5625 scale=1.3000
+02-07 19:15:33.749  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269fafdee60 onEnter
+02-07 19:15:33.749  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269fafdee60 LoadHeight(fromJson=1)
+02-07 19:15:33.749  2594  2747 I MagiaHook: [Live2D] StoryCharaLive2DSprite 0x72696b269550 setOffset: x=0.00 y=0.00
+02-07 19:15:33.749  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269fafdee60 draw Mat4: tx=512.00 ty=432.00 sx=1.0000 sy=1.0000 flags=3
+02-07 19:15:33.750  2594  2747 I MagiaHook: [Live2D] CubismModelMatrix 0x72690b369130 SetWidth: 0.850000
+02-07 19:15:33.750  2594  2747 I MagiaHook: [Live2D] CubismRenderer 0x72698afe2910 SetMvpMatrix(m=0x72688ec017e0): tx=0.2083 ty=0.0000 sx=0.000000 sy=0.000000
 amane sisters
+landscape 4:3
 02-07 17:41:29.098  4209  4255 I MagiaHook: Scene layer changed to: StorySceneLayer
 02-07 17:41:29.277  4209  4255 I MagiaHook: [Live2D] LAppViewCustom 0x7c4463827310 createDrawNode(model=0x7c43352d42b4)
 02-07 17:41:29.281  4209  4255 I MagiaHook: [Live2D] LAppViewCustom 0x7c4463827310 createDrawNode -> node=0x7c44a37e9da0
@@ -40,7 +64,30 @@ amane sisters
 02-07 17:41:29.333  4209  4255 I MagiaHook: [Live2D] StoryCharaLive2DSprite 0x7c44138ab6b0 setOffset: x=28.00 y=-1.00
 02-07 17:41:29.335  4209  4255 I MagiaHook: [Live2D] CubismModelMatrix 0x7c43b3ad1710 SetWidth: 1.300000
 02-07 17:41:29.335  4209  4255 I MagiaHook: [Live2D] CubismRenderer 0x7c44337d9710 SetMvpMatrix(m=0x7c43352d47e0): tx=0.0547 ty=-0.2448 sx=1.300000 sy=1.733333
+portrait 16:9
+02-07 19:01:52.928  2594  2747 I MagiaHook: Scene layer changed to: StorySceneLayer
+02-07 19:01:53.082  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269bb04fdb0 createDrawNode(model=0x72688ec014b4)
+02-07 19:01:53.090  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269bb04fdb0 createDrawNode -> node=0x7269fafe8cd0
+02-07 19:01:53.090  2594  2747 I MagiaHook: [Live2D] LAppModelCustom 0x7269bb04fdb0 LoadOtherParams: resource/image_native/live2d_v4/111802/params.json
+02-07 19:01:53.090  2594  2747 I MagiaHook: [Live2D] LAppModelCustom 0x7269bb04fdb0 after params: height=-109.3750 scale=1.3000
+02-07 19:01:53.091  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269fafe8cd0 onEnter
+02-07 19:01:53.091  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269fafe8cd0 LoadHeight(fromJson=1)
+02-07 19:01:53.120  2594  2747 I MagiaHook: [Live2D] StoryCharaLive2DSprite 0x72696b0c0930 setOffset: x=0.00 y=0.00
+02-07 19:01:53.120  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269fafe8cd0 draw Mat4: tx=512.00 ty=432.00 sx=1.0000 sy=1.0000 flags=3
+02-07 19:01:53.121  2594  2747 I MagiaHook: [Live2D] CubismModelMatrix 0x72690b2dbe90 SetWidth: 0.850000
+02-07 19:01:53.121  2594  2747 I MagiaHook: [Live2D] CubismRenderer 0x72698b000350 SetMvpMatrix(m=0x72688ec017e0): tx=0.2431 ty=0.0000 sx=0.000000 sy=0.000000
+02-07 19:01:53.167  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269bb051be0 createDrawNode(model=0x72688ec012b4)
+02-07 19:01:53.174  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269bb051be0 createDrawNode -> node=0x7269faff12e0
+02-07 19:01:53.175  2594  2747 I MagiaHook: [Live2D] LAppModelCustom 0x7269bb051be0 LoadOtherParams: resource/image_native/live2d_v4/111800/params.json
+02-07 19:01:53.175  2594  2747 I MagiaHook: [Live2D] LAppModelCustom 0x7269bb051be0 after params: height=-109.3750 scale=1.3000
+02-07 19:01:53.175  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269faff12e0 onEnter
+02-07 19:01:53.175  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269faff12e0 LoadHeight(fromJson=1)
+02-07 19:01:53.175  2594  2747 I MagiaHook: [Live2D] StoryCharaLive2DSprite 0x72696aff9970 setOffset: x=0.00 y=0.00
+02-07 19:01:53.176  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269faff12e0 draw Mat4: tx=512.00 ty=144.00 sx=1.0000 sy=1.0000 flags=3
+02-07 19:01:53.176  2594  2747 I MagiaHook: [Live2D] CubismModelMatrix 0x72690b34a890 SetWidth: 0.850000
+02-07 19:01:53.176  2594  2747 I MagiaHook: [Live2D] CubismRenderer 0x72698affa4d0 SetMvpMatrix(m=0x72688ec017e0): tx=0.2431 ty=0.0000 sx=0.000000 sy=0.000000
 karin alina
+landscape 4:3
 02-07 17:42:01.423  4209  4255 I MagiaHook: Scene layer changed to: StorySceneLayer
 02-07 17:42:01.656  4209  4255 I MagiaHook: [Live2D] LAppViewCustom 0x7c4463849270 createDrawNode(model=0x7c43352d44b4)
 02-07 17:42:01.663  4209  4255 I MagiaHook: [Live2D] LAppViewCustom 0x7c4463849270 createDrawNode -> node=0x7c44a37f60a0
@@ -62,3 +109,24 @@ karin alina
 02-07 17:42:01.771  4209  4255 I MagiaHook: [Live2D] LAppViewCustom 0x7c44a37fc220 draw Mat4: tx=452.00 ty=384.00 sx=1.0000 sy=1.0000 flags=3
 02-07 17:42:01.771  4209  4255 I MagiaHook: [Live2D] CubismModelMatrix 0x7c43b3ad3750 SetWidth: 1.300000
 02-07 17:42:01.771  4209  4255 I MagiaHook: [Live2D] CubismRenderer 0x7c44338054d0 SetMvpMatrix(m=0x7c43352d47e0): tx=0.0547 ty=-0.2622 sx=1.300000 sy=1.733333
+portrait 16:9
+02-07 19:00:19.550  2594  2747 I MagiaHook: Scene layer changed to: StorySceneLayer
+02-07 19:00:19.794  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269bb024760 createDrawNode(model=0x72688ec014b4)
+02-07 19:00:19.799  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269bb024760 createDrawNode -> node=0x7269fafda540
+02-07 19:00:19.799  2594  2747 I MagiaHook: [Live2D] LAppModelCustom 0x7269bb024760 LoadOtherParams: resource/image_native/live2d_v4/111202/params.json
+02-07 19:00:19.800  2594  2747 I MagiaHook: [Live2D] LAppModelCustom 0x7269bb024760 after params: height=-117.1875 scale=1.3000
+02-07 19:00:19.801  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269fafda540 onEnter
+02-07 19:00:19.801  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269fafda540 LoadHeight(fromJson=1)
+02-07 19:00:19.831  2594  2747 I MagiaHook: [Live2D] StoryCharaLive2DSprite 0x72696afc84d0 setOffset: x=0.00 y=0.00
+02-07 19:00:19.832  2594  2747 I MagiaHook: [Live2D] CubismModelMatrix 0x72690b193450 SetWidth: 0.850000
+02-07 19:00:19.832  2594  2747 I MagiaHook: [Live2D] CubismRenderer 0x72698afce010 SetMvpMatrix(m=0x72688ec017e0): tx=0.2778 ty=0.0000 sx=0.000000 sy=0.000000
+02-07 19:00:19.885  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269bb024bb0 createDrawNode(model=0x72688ec012b4)
+02-07 19:00:19.893  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269bb024bb0 createDrawNode -> node=0x7269fafe06c0
+02-07 19:00:19.894  2594  2747 I MagiaHook: [Live2D] LAppModelCustom 0x7269bb024bb0 LoadOtherParams: resource/image_native/live2d_v4/111200/params.json
+02-07 19:00:19.894  2594  2747 I MagiaHook: [Live2D] LAppModelCustom 0x7269bb024bb0 after params: height=-62.5000 scale=1.3000
+02-07 19:00:19.897  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269fafe06c0 onEnter
+02-07 19:00:19.897  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269fafe06c0 LoadHeight(fromJson=1)
+02-07 19:00:19.897  2594  2747 I MagiaHook: [Live2D] StoryCharaLive2DSprite 0x72696afc9010 setOffset: x=0.00 y=0.00
+02-07 19:00:19.898  2594  2747 I MagiaHook: [Live2D] LAppViewCustom 0x7269fafe06c0 draw Mat4: tx=512.00 ty=144.00 sx=1.0000 sy=1.0000 flags=3
+02-07 19:00:19.900  2594  2747 I MagiaHook: [Live2D] CubismModelMatrix 0x72690b33bdd0 SetWidth: 0.850000
+02-07 19:00:19.900  2594  2747 I MagiaHook: [Live2D] CubismRenderer 0x72698b002110 SetMvpMatrix(m=0x72688ec017e0): tx=0.0347 ty=0.0000 sx=0.000000 sy=0.000000

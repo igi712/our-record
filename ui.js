@@ -31,7 +31,8 @@ function populateCharacterDropdown() {
         const option = document.createElement('option');
         option.value = chara.id;
         // Include optional title (e.g., "Momoko Togame (Sister)")
-        option.textContent = chara.title ? `${chara.name} (${chara.title})` : chara.name;
+        const label = chara.title ? `${chara.name} (${chara.title})` : chara.name;
+        option.textContent = `${chara.id} - ${label}`;
         if (chara.id === state.currentCharacterId) {
             option.selected = true;
         }
@@ -52,7 +53,8 @@ function populateOutfitDropdown(charaId) {
     outfits.forEach(outfit => {
         const option = document.createElement('option');
         option.value = outfit.live2dId;
-        option.textContent = outfit.description;
+        const live2dId = String(outfit.live2dId).padStart(2, '0');
+        option.textContent = `${live2dId} - ${outfit.description || live2dId}`;
         if (outfit.live2dId === state.currentLive2dId) {
             option.selected = true;
         }
@@ -60,47 +62,6 @@ function populateOutfitDropdown(charaId) {
     });
 }
 
-function setupCharacterSearch() {
-    const characterSelect = document.getElementById('characterSelect');
-    if (!characterSelect) return;
-
-    // Make the select searchable by adding a datalist approach
-    // Since native select doesn't support searching well, we'll use a workaround
-    // by allowing keyboard input to filter
-    let searchBuffer = '';
-    let searchTimeout = null;
-
-    characterSelect.addEventListener('keydown', (e) => {
-        // Allow normal navigation keys
-        if (['ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'].includes(e.key)) {
-            return;
-        }
-
-        // Build search buffer
-        if (e.key.length === 1) {
-            searchBuffer += e.key.toLowerCase();
-
-            // Clear buffer after 1 second of no input
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                searchBuffer = '';
-            }, 1000);
-
-            // Find matching character
-            const options = Array.from(characterSelect.options);
-            const match = options.find(opt =>
-                opt.textContent.toLowerCase().includes(searchBuffer)
-            );
-
-            if (match) {
-                characterSelect.value = match.value;
-                // Trigger change to update outfit dropdown
-                const event = new Event('change', { bubbles: true });
-                characterSelect.dispatchEvent(event);
-            }
-        }
-    });
-}
 
 // Bootstrap: Load JSON data and initialize dropdowns
 export async function initializeApp() {
@@ -111,8 +72,34 @@ export async function initializeApp() {
             fetch('assets/totentanz/en-data/live2dList.json')
         ]);
 
-        state.charaListData = await charaResponse.json();
-        state.live2dListData = await live2dResponse.json();
+        const [registeredChars, registeredLive2d] = await Promise.all([
+            charaResponse.json(),
+            live2dResponse.json()
+        ]);
+
+        let missingChars = [];
+        let missingLive2d = [];
+        try {
+            const [missingCharsResponse, missingLive2dResponse] = await Promise.all([
+                fetch('assets/missingCharaList.json'),
+                fetch('assets/missingLive2dList.json')
+            ]);
+            if (missingCharsResponse.ok) missingChars = await missingCharsResponse.json();
+            if (missingLive2dResponse.ok) missingLive2d = await missingLive2dResponse.json();
+        } catch (e) {
+            // Missing files are optional; ignore if not present.
+        }
+
+        const registeredCharIds = new Set(registeredChars.map((c) => Number(c.id)));
+        const registeredLive2dKeys = new Set(
+            registeredLive2d.map((o) => `${Number(o.charaId)}-${String(o.live2dId).padStart(2, '0')}`)
+        );
+
+        const appendedChars = missingChars.filter((c) => !registeredCharIds.has(Number(c.id)));
+        const appendedLive2d = missingLive2d.filter((o) => !registeredLive2dKeys.has(`${Number(o.charaId)}-${String(o.live2dId).padStart(2, '0')}`));
+
+        state.charaListData = registeredChars.concat(appendedChars);
+        state.live2dListData = registeredLive2d.concat(appendedLive2d);
 
         // Populate character dropdown
         populateCharacterDropdown();
@@ -129,8 +116,6 @@ export async function initializeApp() {
         // Ensure currentModelId matches selected character + outfit
         state.currentModelId = buildModelId(state.currentCharacterId, state.currentLive2dId);
 
-        // Setup search functionality
-        setupCharacterSearch();
 
         // Setup assets base UI (override / test)
         try {

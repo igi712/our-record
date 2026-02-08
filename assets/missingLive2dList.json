@@ -1,0 +1,1892 @@
+[
+  {
+    "charaId": 1001,
+    "live2dId": "05",
+    "description": ""
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "06",
+    "description": "インフィニット"
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "80",
+    "description": ""
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "81",
+    "description": ""
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "82",
+    "description": ""
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "83",
+    "description": ""
+  },
+  {
+    "charaId": 1002,
+    "live2dId": "03",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 1002,
+    "live2dId": "80",
+    "description": ""
+  },
+  {
+    "charaId": 1002,
+    "live2dId": "81",
+    "description": ""
+  },
+  {
+    "charaId": 1003,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 1004,
+    "live2dId": "03",
+    "description": "黒/さな"
+  },
+  {
+    "charaId": 1004,
+    "live2dId": "04",
+    "description": "ネオ黒羽根"
+  },
+  {
+    "charaId": 1005,
+    "live2dId": "04",
+    "description": "黒/フェリ"
+  },
+  {
+    "charaId": 1005,
+    "live2dId": "05",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 1007,
+    "live2dId": "03",
+    "description": "ウワサの女王"
+  },
+  {
+    "charaId": 1007,
+    "live2dId": "70",
+    "description": "変身前腕輪"
+  },
+  {
+    "charaId": 1007,
+    "live2dId": "71",
+    "description": "水着腕輪"
+  },
+  {
+    "charaId": 1008,
+    "live2dId": "89",
+    "description": ""
+  },
+  {
+    "charaId": 1010,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 1011,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 1013,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 1014,
+    "live2dId": "03",
+    "description": "変身前"
+  },
+  {
+    "charaId": 1014,
+    "live2dId": "04",
+    "description": "ウワサの女王"
+  },
+  {
+    "charaId": 1014,
+    "live2dId": "05",
+    "description": "ちびねむ"
+  },
+  {
+    "charaId": 1014,
+    "live2dId": "70",
+    "description": "病院服腕輪"
+  },
+  {
+    "charaId": 1014,
+    "live2dId": "71",
+    "description": "変身前腕輪"
+  },
+  {
+    "charaId": 1014,
+    "live2dId": "72",
+    "description": "水着腕輪"
+  },
+  {
+    "charaId": 1015,
+    "live2dId": "02",
+    "description": "病院服"
+  },
+  {
+    "charaId": 1015,
+    "live2dId": "03",
+    "description": "私服"
+  },
+  {
+    "charaId": 1015,
+    "live2dId": "04",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 1015,
+    "live2dId": "05",
+    "description": ""
+  },
+  {
+    "charaId": 1016,
+    "live2dId": "04",
+    "description": ""
+  },
+  {
+    "charaId": 1017,
+    "live2dId": "99",
+    "description": ""
+  },
+  {
+    "charaId": 1021,
+    "live2dId": "02",
+    "description": "覚醒前"
+  },
+  {
+    "charaId": 1021,
+    "live2dId": "03",
+    "description": "変身前"
+  },
+  {
+    "charaId": 1021,
+    "live2dId": "04",
+    "description": "キモチ"
+  },
+  {
+    "charaId": 1025,
+    "live2dId": "03",
+    "description": "ネオ白羽根"
+  },
+  {
+    "charaId": 1029,
+    "live2dId": "02",
+    "description": "黒羽根"
+  },
+  {
+    "charaId": 1030,
+    "live2dId": "02",
+    "description": "黒羽根"
+  },
+  {
+    "charaId": 1031,
+    "live2dId": "02",
+    "description": "ネオマギウス幹部兵"
+  },
+  {
+    "charaId": 1031,
+    "live2dId": "03",
+    "description": "時女幹部兵"
+  },
+  {
+    "charaId": 1032,
+    "live2dId": "02",
+    "description": "ネオマギウス一般兵"
+  },
+  {
+    "charaId": 1032,
+    "live2dId": "03",
+    "description": "時女一般兵"
+  },
+  {
+    "charaId": 1041,
+    "live2dId": "02",
+    "description": "中学生"
+  },
+  {
+    "charaId": 1043,
+    "live2dId": "02",
+    "description": "黒羽根"
+  },
+  {
+    "charaId": 1043,
+    "live2dId": "03",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 1043,
+    "live2dId": "04",
+    "description": ""
+  },
+  {
+    "charaId": 1102,
+    "live2dId": "03",
+    "description": "始まり"
+  },
+  {
+    "charaId": 1102,
+    "live2dId": "04",
+    "description": "始まりver."
+  },
+  {
+    "charaId": 1144,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 1144,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 1144,
+    "live2dId": "03",
+    "description": ""
+  },
+  {
+    "charaId": 1208,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 1210,
+    "live2dId": "01",
+    "description": "人魚ver"
+  },
+  {
+    "charaId": 1210,
+    "live2dId": "02",
+    "description": "人魚ver21"
+  },
+  {
+    "charaId": 2001,
+    "live2dId": "80",
+    "description": ""
+  },
+  {
+    "charaId": 2001,
+    "live2dId": "81",
+    "description": ""
+  },
+  {
+    "charaId": 2003,
+    "live2dId": "02",
+    "description": "眼鏡"
+  },
+  {
+    "charaId": 2003,
+    "live2dId": "53",
+    "description": "眼鏡"
+  },
+  {
+    "charaId": 2003,
+    "live2dId": "80",
+    "description": ""
+  },
+  {
+    "charaId": 2003,
+    "live2dId": "81",
+    "description": ""
+  },
+  {
+    "charaId": 2003,
+    "live2dId": "82",
+    "description": ""
+  },
+  {
+    "charaId": 2004,
+    "live2dId": "53",
+    "description": "マーリンギ・ミラクルスイマー"
+  },
+  {
+    "charaId": 2006,
+    "live2dId": "03",
+    "description": ""
+  },
+  {
+    "charaId": 2006,
+    "live2dId": "54",
+    "description": "scene0私服"
+  },
+  {
+    "charaId": 2006,
+    "live2dId": "55",
+    "description": ""
+  },
+  {
+    "charaId": 2009,
+    "live2dId": "03",
+    "description": "光学迷彩"
+  },
+  {
+    "charaId": 2009,
+    "live2dId": "10",
+    "description": "拡大"
+  },
+  {
+    "charaId": 2009,
+    "live2dId": "11",
+    "description": "私服拡大"
+  },
+  {
+    "charaId": 2009,
+    "live2dId": "12",
+    "description": "ニット制服拡大"
+  },
+  {
+    "charaId": 2009,
+    "live2dId": "13",
+    "description": "光学迷彩拡大"
+  },
+  {
+    "charaId": 2009,
+    "live2dId": "15",
+    "description": "白衣私服拡大"
+  },
+  {
+    "charaId": 2009,
+    "live2dId": "16",
+    "description": "見滝原制服拡大"
+  },
+  {
+    "charaId": 2201,
+    "live2dId": "80",
+    "description": ""
+  },
+  {
+    "charaId": 2301,
+    "live2dId": "04",
+    "description": "眼鏡"
+  },
+  {
+    "charaId": 2301,
+    "live2dId": "05",
+    "description": "眼鏡・入院着"
+  },
+  {
+    "charaId": 2503,
+    "live2dId": "10",
+    "description": "拡大"
+  },
+  {
+    "charaId": 2503,
+    "live2dId": "11",
+    "description": "私服拡大"
+  },
+  {
+    "charaId": 2503,
+    "live2dId": "13",
+    "description": "制服拡大"
+  },
+  {
+    "charaId": 3001,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 3001,
+    "live2dId": "53",
+    "description": "マーリンギ・ミラクルスイマー"
+  },
+  {
+    "charaId": 3002,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3003,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3005,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3006,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 3007,
+    "live2dId": "02",
+    "description": "マギウス翼"
+  },
+  {
+    "charaId": 3007,
+    "live2dId": "03",
+    "description": ""
+  },
+  {
+    "charaId": 3007,
+    "live2dId": "04",
+    "description": ""
+  },
+  {
+    "charaId": 3008,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3011,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3012,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3013,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3014,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3015,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3016,
+    "live2dId": "03",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3017,
+    "live2dId": "02",
+    "description": "白羽根"
+  },
+  {
+    "charaId": 3019,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3023,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3024,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3034,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3035,
+    "live2dId": "02",
+    "description": "ミニサイズ"
+  },
+  {
+    "charaId": 3035,
+    "live2dId": "03",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3036,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3047,
+    "live2dId": "80",
+    "description": ""
+  },
+  {
+    "charaId": 3052,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3053,
+    "live2dId": "03",
+    "description": "黒/D"
+  },
+  {
+    "charaId": 3054,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 3059,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 4001,
+    "live2dId": "02",
+    "description": "私服"
+  },
+  {
+    "charaId": 4001,
+    "live2dId": "03",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 4002,
+    "live2dId": "02",
+    "description": "私服"
+  },
+  {
+    "charaId": 4002,
+    "live2dId": "03",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 4003,
+    "live2dId": "02",
+    "description": "私服"
+  },
+  {
+    "charaId": 4011,
+    "live2dId": "02",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 4011,
+    "live2dId": "03",
+    "description": ""
+  },
+  {
+    "charaId": 4011,
+    "live2dId": "04",
+    "description": "シャドウ"
+  },
+  {
+    "charaId": 4011,
+    "live2dId": "05",
+    "description": ""
+  },
+  {
+    "charaId": 4011,
+    "live2dId": "06",
+    "description": "変身前"
+  },
+  {
+    "charaId": 4015,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 4016,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 4017,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 4017,
+    "live2dId": "01",
+    "description": "変身前"
+  },
+  {
+    "charaId": 4031,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 4031,
+    "live2dId": "03",
+    "description": ""
+  },
+  {
+    "charaId": 4034,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 4037,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 4053,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 4121,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 6001,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 6104,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 6400,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 6401,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 6403,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 6403,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 6403,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 6404,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 6405,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 6407,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 6409,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 6410,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 6412,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 6414,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 6500,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 6602,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7001,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7104,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7109,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7150,
+    "live2dId": "00",
+    "description": "黒/低"
+  },
+  {
+    "charaId": 7150,
+    "live2dId": "01",
+    "description": "黒/中"
+  },
+  {
+    "charaId": 7150,
+    "live2dId": "02",
+    "description": "黒/高"
+  },
+  {
+    "charaId": 7150,
+    "live2dId": "03",
+    "description": "黒/B"
+  },
+  {
+    "charaId": 7150,
+    "live2dId": "04",
+    "description": "黒/E"
+  },
+  {
+    "charaId": 7150,
+    "live2dId": "05",
+    "description": "黒/D"
+  },
+  {
+    "charaId": 7151,
+    "live2dId": "00",
+    "description": "白"
+  },
+  {
+    "charaId": 7151,
+    "live2dId": "01",
+    "description": "白/中"
+  },
+  {
+    "charaId": 7151,
+    "live2dId": "02",
+    "description": "白/高"
+  },
+  {
+    "charaId": 7151,
+    "live2dId": "03",
+    "description": "白/D"
+  },
+  {
+    "charaId": 7151,
+    "live2dId": "04",
+    "description": "黒/H"
+  },
+  {
+    "charaId": 7151,
+    "live2dId": "30",
+    "description": "白月夜"
+  },
+  {
+    "charaId": 7151,
+    "live2dId": "31",
+    "description": "白月咲"
+  },
+  {
+    "charaId": 7400,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7401,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7402,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7403,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7404,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7406,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7407,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7408,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7409,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7410,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7600,
+    "live2dId": "00",
+    "description": "一般兵"
+  },
+  {
+    "charaId": 7601,
+    "live2dId": "00",
+    "description": "幹部兵"
+  },
+  {
+    "charaId": 7700,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7700,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 7700,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 7700,
+    "live2dId": "80",
+    "description": ""
+  },
+  {
+    "charaId": 7700,
+    "live2dId": "81",
+    "description": ""
+  },
+  {
+    "charaId": 7700,
+    "live2dId": "82",
+    "description": ""
+  },
+  {
+    "charaId": 7700,
+    "live2dId": "83",
+    "description": ""
+  },
+  {
+    "charaId": 7700,
+    "live2dId": "84",
+    "description": ""
+  },
+  {
+    "charaId": 7700,
+    "live2dId": "85",
+    "description": ""
+  },
+  {
+    "charaId": 7700,
+    "live2dId": "86",
+    "description": ""
+  },
+  {
+    "charaId": 7700,
+    "live2dId": "87",
+    "description": ""
+  },
+  {
+    "charaId": 7700,
+    "live2dId": "88",
+    "description": ""
+  },
+  {
+    "charaId": 7701,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7701,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 7701,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 7701,
+    "live2dId": "80",
+    "description": ""
+  },
+  {
+    "charaId": 7701,
+    "live2dId": "81",
+    "description": ""
+  },
+  {
+    "charaId": 7701,
+    "live2dId": "82",
+    "description": ""
+  },
+  {
+    "charaId": 7701,
+    "live2dId": "83",
+    "description": ""
+  },
+  {
+    "charaId": 7701,
+    "live2dId": "84",
+    "description": ""
+  },
+  {
+    "charaId": 7701,
+    "live2dId": "85",
+    "description": ""
+  },
+  {
+    "charaId": 7701,
+    "live2dId": "86",
+    "description": ""
+  },
+  {
+    "charaId": 7701,
+    "live2dId": "87",
+    "description": ""
+  },
+  {
+    "charaId": 7701,
+    "live2dId": "88",
+    "description": ""
+  },
+  {
+    "charaId": 7702,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7702,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 7702,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 7703,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7703,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 7704,
+    "live2dId": "00",
+    "description": "一般兵/低"
+  },
+  {
+    "charaId": 7704,
+    "live2dId": "01",
+    "description": "一般兵/中"
+  },
+  {
+    "charaId": 7704,
+    "live2dId": "02",
+    "description": "一般兵/高"
+  },
+  {
+    "charaId": 7705,
+    "live2dId": "00",
+    "description": "幹部兵/中"
+  },
+  {
+    "charaId": 7705,
+    "live2dId": "01",
+    "description": "幹部兵/高"
+  },
+  {
+    "charaId": 7706,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7706,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 7706,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 7707,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7707,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 7901,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7901,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 7902,
+    "live2dId": "00",
+    "description": "銀"
+  },
+  {
+    "charaId": 7902,
+    "live2dId": "01",
+    "description": "茶"
+  },
+  {
+    "charaId": 7903,
+    "live2dId": "00",
+    "description": "モンゴル兵"
+  },
+  {
+    "charaId": 7904,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 7904,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 7905,
+    "live2dId": "00",
+    "description": "ポンペイ"
+  },
+  {
+    "charaId": 7905,
+    "live2dId": "01",
+    "description": "ポンペイ"
+  },
+  {
+    "charaId": 8001,
+    "live2dId": "00",
+    "description": "女"
+  },
+  {
+    "charaId": 8001,
+    "live2dId": "01",
+    "description": "女"
+  },
+  {
+    "charaId": 8001,
+    "live2dId": "02",
+    "description": "女"
+  },
+  {
+    "charaId": 8001,
+    "live2dId": "03",
+    "description": "和服"
+  },
+  {
+    "charaId": 8001,
+    "live2dId": "04",
+    "description": ""
+  },
+  {
+    "charaId": 8002,
+    "live2dId": "00",
+    "description": "女"
+  },
+  {
+    "charaId": 8002,
+    "live2dId": "01",
+    "description": "女"
+  },
+  {
+    "charaId": 8002,
+    "live2dId": "02",
+    "description": "女"
+  },
+  {
+    "charaId": 8002,
+    "live2dId": "03",
+    "description": "女"
+  },
+  {
+    "charaId": 8002,
+    "live2dId": "04",
+    "description": ""
+  },
+  {
+    "charaId": 8003,
+    "live2dId": "00",
+    "description": "女"
+  },
+  {
+    "charaId": 8003,
+    "live2dId": "01",
+    "description": "女"
+  },
+  {
+    "charaId": 8003,
+    "live2dId": "02",
+    "description": "女"
+  },
+  {
+    "charaId": 8003,
+    "live2dId": "03",
+    "description": "女"
+  },
+  {
+    "charaId": 8004,
+    "live2dId": "00",
+    "description": "男"
+  },
+  {
+    "charaId": 8004,
+    "live2dId": "01",
+    "description": "男"
+  },
+  {
+    "charaId": 8004,
+    "live2dId": "02",
+    "description": "男"
+  },
+  {
+    "charaId": 8005,
+    "live2dId": "00",
+    "description": "男"
+  },
+  {
+    "charaId": 8005,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 8005,
+    "live2dId": "03",
+    "description": ""
+  },
+  {
+    "charaId": 8006,
+    "live2dId": "00",
+    "description": "女"
+  },
+  {
+    "charaId": 8006,
+    "live2dId": "01",
+    "description": "女オバケ"
+  },
+  {
+    "charaId": 8007,
+    "live2dId": "00",
+    "description": "男"
+  },
+  {
+    "charaId": 8007,
+    "live2dId": "01",
+    "description": "男オバケ"
+  },
+  {
+    "charaId": 8008,
+    "live2dId": "00",
+    "description": "女"
+  },
+  {
+    "charaId": 8009,
+    "live2dId": "00",
+    "description": "男"
+  },
+  {
+    "charaId": 8009,
+    "live2dId": "01",
+    "description": "赤"
+  },
+  {
+    "charaId": 8010,
+    "live2dId": "00",
+    "description": "女"
+  },
+  {
+    "charaId": 8011,
+    "live2dId": "00",
+    "description": "男"
+  },
+  {
+    "charaId": 8011,
+    "live2dId": "01",
+    "description": "赤"
+  },
+  {
+    "charaId": 8012,
+    "live2dId": "00",
+    "description": "女"
+  },
+  {
+    "charaId": 8012,
+    "live2dId": "01",
+    "description": "女"
+  },
+  {
+    "charaId": 8012,
+    "live2dId": "02",
+    "description": "女"
+  },
+  {
+    "charaId": 8013,
+    "live2dId": "00",
+    "description": "男"
+  },
+  {
+    "charaId": 8014,
+    "live2dId": "00",
+    "description": "女"
+  },
+  {
+    "charaId": 8015,
+    "live2dId": "00",
+    "description": "男"
+  },
+  {
+    "charaId": 8015,
+    "live2dId": "01",
+    "description": "男はげ"
+  },
+  {
+    "charaId": 8016,
+    "live2dId": "00",
+    "description": "女ロング"
+  },
+  {
+    "charaId": 8016,
+    "live2dId": "01",
+    "description": "女ロング"
+  },
+  {
+    "charaId": 8018,
+    "live2dId": "00",
+    "description": "女だんご"
+  },
+  {
+    "charaId": 8020,
+    "live2dId": "00",
+    "description": "メイド長"
+  },
+  {
+    "charaId": 8022,
+    "live2dId": "00",
+    "description": "女"
+  },
+  {
+    "charaId": 8022,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 8023,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8023,
+    "live2dId": "01",
+    "description": "私服"
+  },
+  {
+    "charaId": 8024,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8024,
+    "live2dId": "01",
+    "description": "私服"
+  },
+  {
+    "charaId": 8025,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8100,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8100,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 8100,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 8100,
+    "live2dId": "80",
+    "description": ""
+  },
+  {
+    "charaId": 8101,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8101,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 8102,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8103,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8104,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8105,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8105,
+    "live2dId": "01",
+    "description": "入院着"
+  },
+  {
+    "charaId": 8105,
+    "live2dId": "02",
+    "description": "制服グラデ"
+  },
+  {
+    "charaId": 8106,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8106,
+    "live2dId": "01",
+    "description": "室内着グラデ"
+  },
+  {
+    "charaId": 8200,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8201,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8202,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8203,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8204,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8300,
+    "live2dId": "00",
+    "description": "ラ・イル"
+  },
+  {
+    "charaId": 8301,
+    "live2dId": "00",
+    "description": "ジル・ド・レ"
+  },
+  {
+    "charaId": 8302,
+    "live2dId": "00",
+    "description": "王太子"
+  },
+  {
+    "charaId": 8303,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8304,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8305,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8306,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8307,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8307,
+    "live2dId": "01",
+    "description": "灰色"
+  },
+  {
+    "charaId": 8307,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 8308,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8309,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8310,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8310,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 8311,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8312,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8313,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8313,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 8313,
+    "live2dId": "02",
+    "description": "幼少期"
+  },
+  {
+    "charaId": 8313,
+    "live2dId": "03",
+    "description": ""
+  },
+  {
+    "charaId": 8315,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8316,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8317,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8318,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8319,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8320,
+    "live2dId": "80",
+    "description": ""
+  },
+  {
+    "charaId": 8321,
+    "live2dId": "00",
+    "description": "城主"
+  },
+  {
+    "charaId": 8321,
+    "live2dId": "01",
+    "description": "カラー"
+  },
+  {
+    "charaId": 8322,
+    "live2dId": "00",
+    "description": "山賊頭目"
+  },
+  {
+    "charaId": 8322,
+    "live2dId": "01",
+    "description": "カラー"
+  },
+  {
+    "charaId": 8323,
+    "live2dId": "00",
+    "description": "青"
+  },
+  {
+    "charaId": 8323,
+    "live2dId": "01",
+    "description": "赤"
+  },
+  {
+    "charaId": 8323,
+    "live2dId": "02",
+    "description": "白"
+  },
+  {
+    "charaId": 8324,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8325,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8326,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8327,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8328,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8328,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 8328,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 8329,
+    "live2dId": "00",
+    "description": "青"
+  },
+  {
+    "charaId": 8329,
+    "live2dId": "01",
+    "description": "黒"
+  },
+  {
+    "charaId": 8330,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8331,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8332,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8333,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8334,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8335,
+    "live2dId": "00",
+    "description": "パティシエ"
+  },
+  {
+    "charaId": 8335,
+    "live2dId": "01",
+    "description": "私服"
+  },
+  {
+    "charaId": 8336,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8338,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8339,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8340,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8341,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8342,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8343,
+    "live2dId": "00",
+    "description": "女"
+  },
+  {
+    "charaId": 8343,
+    "live2dId": "01",
+    "description": "女"
+  },
+  {
+    "charaId": 8344,
+    "live2dId": "00",
+    "description": "男"
+  },
+  {
+    "charaId": 8344,
+    "live2dId": "01",
+    "description": "男"
+  },
+  {
+    "charaId": 8345,
+    "live2dId": "00",
+    "description": "私服"
+  },
+  {
+    "charaId": 8346,
+    "live2dId": "00",
+    "description": "次期皇帝"
+  },
+  {
+    "charaId": 8347,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8348,
+    "live2dId": "00",
+    "description": "マリウス"
+  },
+  {
+    "charaId": 8349,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8349,
+    "live2dId": "01",
+    "description": ""
+  },
+  {
+    "charaId": 8349,
+    "live2dId": "02",
+    "description": ""
+  },
+  {
+    "charaId": 8350,
+    "live2dId": "00",
+    "description": "ピンク"
+  },
+  {
+    "charaId": 8350,
+    "live2dId": "01",
+    "description": "ピンク"
+  },
+  {
+    "charaId": 8350,
+    "live2dId": "02",
+    "description": "オレンジ"
+  },
+  {
+    "charaId": 8351,
+    "live2dId": "00",
+    "description": ""
+  },
+  {
+    "charaId": 8352,
+    "live2dId": "00",
+    "description": "イバリ"
+  },
+  {
+    "charaId": 8352,
+    "live2dId": "01",
+    "description": "ネクラ"
+  },
+  {
+    "charaId": 8352,
+    "live2dId": "02",
+    "description": "ウソツキ"
+  },
+  {
+    "charaId": 8352,
+    "live2dId": "03",
+    "description": "レイケツ"
+  },
+  {
+    "charaId": 8352,
+    "live2dId": "04",
+    "description": "ワガママ"
+  },
+  {
+    "charaId": 8352,
+    "live2dId": "05",
+    "description": "ワルクチ"
+  },
+  {
+    "charaId": 8352,
+    "live2dId": "06",
+    "description": "ノロマ"
+  },
+  {
+    "charaId": 8352,
+    "live2dId": "07",
+    "description": "ヤキモチ"
+  },
+  {
+    "charaId": 8352,
+    "live2dId": "08",
+    "description": "ナマケ"
+  },
+  {
+    "charaId": 8352,
+    "live2dId": "09",
+    "description": "ミエ"
+  },
+  {
+    "charaId": 8352,
+    "live2dId": "10",
+    "description": "オクビョウ"
+  },
+  {
+    "charaId": 8352,
+    "live2dId": "11",
+    "description": "マヌケ"
+  },
+  {
+    "charaId": 8352,
+    "live2dId": "12",
+    "description": "ヒガミ"
+  },
+  {
+    "charaId": 8352,
+    "live2dId": "13",
+    "description": "ガンコ"
+  },
+  {
+    "charaId": 8353,
+    "live2dId": "00",
+    "description": "黄虎"
+  },
+  {
+    "charaId": 8353,
+    "live2dId": "01",
+    "description": "青蛇"
+  },
+  {
+    "charaId": 8353,
+    "live2dId": "02",
+    "description": "緑竜"
+  },
+  {
+    "charaId": 8354,
+    "live2dId": "00",
+    "description": "黄虎"
+  },
+  {
+    "charaId": 8354,
+    "live2dId": "01",
+    "description": "青蛇"
+  },
+  {
+    "charaId": 8354,
+    "live2dId": "02",
+    "description": "緑竜"
+  },
+  {
+    "charaId": 8355,
+    "live2dId": "00",
+    "description": "株分け2P"
+  }
+]

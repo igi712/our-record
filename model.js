@@ -784,8 +784,8 @@ export async function loadModel(modelId, opts = {}) {
 
     const params = await (await fetch(paramsPath)).json();
     const heightParam = Number(params.height ?? 0);
-    let modelScaleParam = Number(params.modelScale ?? 1);
-    if (String(modelId) === '160100') modelScaleParam = 1.3;
+    let modelScaleParam = Number(params.modelScale ?? 1.3);
+    if (String(modelId) === '160100') modelScaleParam = 1.3; // Infinite Iroha
 
     const model = await PIXI.live2d.Live2DModel.from(modelPath, { autoInteract: false });
 
@@ -1341,8 +1341,7 @@ export async function loadModel(modelId, opts = {}) {
 
 // Helper functions for character/outfit management
 export function getOutfitsForCharacter(charaId) {
-    return state.live2dListData.filter(outfit => outfit.charaId === charaId)
-        .sort((a, b) => a.live2dId.localeCompare(b.live2dId));
+    return state.live2dListData.filter(outfit => outfit.charaId === charaId);
 }
 
 export function buildModelId(charaId, live2dId) {
@@ -1359,6 +1358,8 @@ export function getModelOption(modelId) {
     const outfit = state.live2dListData.find(o => o.charaId === charaId && String(o.live2dId).padStart(2, '0') === live2dId) ?? null;
 
     const charLabel = character ? (character.title ? `${character.name} (${character.title})` : character.name) : null;
+    const outfitDesc = outfit?.description ?? live2dId;
+    const label = charLabel ? `${String(charaId)} - ${charLabel} (${String(live2dId).padStart(2,'0')} - ${outfitDesc})` : modelId;
 
     return {
         id: modelId,
@@ -1366,6 +1367,6 @@ export function getModelOption(modelId) {
         live2dId,
         character,
         outfit,
-        label: charLabel ? `${charLabel} (${outfit?.description ?? live2dId})` : modelId
+        label
     };
 }
