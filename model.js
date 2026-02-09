@@ -219,17 +219,73 @@ async function preloadModelToRam(modelId) {
         // Filter out nulls (files that 404'd) so the library doesn't crash trying to read them
         const validFiles = results.filter(f => f !== null);
 
+        // Determine which names were skipped so we can optionally synthesize placeholders
+        const skippedNames = [];
+        for (let i = 0; i < filesArray.length; i++) {
+            if (!results[i]) skippedNames.push(filesArray[i]);
+        }
+
         try {
             const fetchedCount = results.filter(Boolean).length;
-            const skipped = [];
-            for (let i = 0; i < filesArray.length; i++) {
-                if (!results[i]) skipped.push(filesArray[i]);
-            }
-            console.info && console.info(`[MR] preloader fetched ${fetchedCount}/${filesArray.length} files for model ${modelId}. Skipped:`, skipped);
+            console.info && console.info(`[MR] preloader fetched ${fetchedCount}/${filesArray.length} files for model ${modelId}. Skipped:`, skippedNames);
         } catch (e) {}
 
-        ramFolderCache.set(modelId, validFiles);
-        return validFiles;
+        // Create lightweight placeholder files for missing assets that the loader expects
+        // (textures and JSON files). This prevents pixi-live2d's validation from failing
+        // when optional files 404.
+        const placeholders = [];
+        if (skippedNames.length) {
+            try {
+                // tiny transparent 1x1 PNG base64
+                const tinyPngB64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=';
+                const b64ToUint8 = (b64) => {
+                    const bin = atob(b64);
+                    const arr = new Uint8Array(bin.length);
+                    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+                    return arr;
+                };
+
+                for (const name of skippedNames) {
+                    const lower = String(name).toLowerCase();
+                    let file = null;
+
+                    // Images
+                    if (/\.(png|jpe?g|gif|webp)$/.test(lower)) {
+                        const blob = new Blob([b64ToUint8(tinyPngB64)], { type: 'image/png' });
+                        file = new File([blob], name, { type: 'image/png' });
+                        Object.defineProperty(file, 'webkitRelativePath', { value: name });
+                    }
+                    // JSON-like files (empty object)
+                    else if (/\.(json|exp3\.json|cdi3\.json)$/.test(lower)) {
+                        const blob = new Blob([JSON.stringify({})], { type: 'application/json' });
+                        file = new File([blob], name, { type: 'application/json' });
+                        Object.defineProperty(file, 'webkitRelativePath', { value: name });
+                    }
+                    // Small empty audio placeholder
+                    else if (/\.(mp3|wav|ogg|m4a)$/.test(lower)) {
+                        const blob = new Blob([], { type: 'application/octet-stream' });
+                        file = new File([blob], name);
+                        Object.defineProperty(file, 'webkitRelativePath', { value: name });
+                    }
+
+                    if (file) {
+                        placeholders.push(file);
+                        console.warn && console.warn(`[MR] created placeholder for missing file: ${name}`);
+                    }
+                }
+            } catch (e) {
+                console.warn && console.warn('[MR] placeholder creation failed', e);
+            }
+        }
+
+        const finalFiles = validFiles.concat(placeholders);
+
+        if (placeholders.length) {
+            console.info && console.info(`[MR] preloader added ${placeholders.length} placeholder files to satisfy loader expectations for model ${modelId}`);
+        }
+
+        ramFolderCache.set(modelId, finalFiles);
+        return finalFiles;
     } finally {
         __mrSetConnecting(false);
     }
