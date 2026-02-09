@@ -34,8 +34,7 @@
 
         /* Connecting / preloader UI */
         .connecting { cursor: progress !important; }
-        /* Dim only the Pixi canvas to avoid dimming the background gradient */
-        .connecting #canvas { filter: brightness(.95); transition: none; }
+        /* No CSS canvas dimming here — dimming is handled in Pixi to avoid affecting background gradient */
         #loading { display: none; position: absolute; width: 334px; height: 54px; background: url('assets/connecting.png') right bottom no-repeat; z-index: 40; pointer-events: none; }
         /* Adjust to a centered 4:3 viewport frame for landscape */
         .connecting #loading { display: block; }

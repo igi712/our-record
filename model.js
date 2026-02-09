@@ -49,6 +49,8 @@ function isPortraitViewMode() {
     } catch (e) { return false; }
 }
 
+let __mrWorldDimFilter = null;
+
 function __mrSetConnecting(on) {
     try {
         const root = document.documentElement;
@@ -57,6 +59,19 @@ function __mrSetConnecting(on) {
             __mrPreloadCount = (__mrPreloadCount || 0) + 1;
             if (__mrPreloadCount === 1) {
                 root.classList.add('connecting');
+
+                // Apply Pixi brightness dim to worldContainer so the background gradient (viewerBgSprite)
+                // is not affected. Use ColorMatrixFilter to adjust brightness.
+                try {
+                    if (window.worldContainer && typeof PIXI !== 'undefined') {
+                        if (!__mrWorldDimFilter) {
+                            __mrWorldDimFilter = new PIXI.filters.ColorMatrixFilter();
+                            try { __mrWorldDimFilter.brightness(0.95, false); } catch (e) {}
+                        }
+                        try { window.worldContainer.filters = [__mrWorldDimFilter]; } catch (e) {}
+                    }
+                } catch (e) {}
+
                 // Only use JS fallback positioning when the app's view mode is portrait
                 if (isPortraitViewMode()) {
                     // position once immediately and a couple of retries to handle async layout changes on mobile
@@ -67,7 +82,10 @@ function __mrSetConnecting(on) {
             }
         } else {
             __mrPreloadCount = Math.max(0, (__mrPreloadCount || 0) - 1);
-            if (__mrPreloadCount === 0) root.classList.remove('connecting');
+            if (__mrPreloadCount === 0) {
+                root.classList.remove('connecting');
+                try { if (window.worldContainer) window.worldContainer.filters = null; } catch (e) {}
+            }
         }
     } catch (e) {}
 }
