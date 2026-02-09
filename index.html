@@ -30,34 +30,24 @@
         #controls select, #controls input[type="range"], #controls input[type="checkbox"] { font-size: 12px; }
         #controls button { font-size: 13px; padding: 6px 8px; }
 
-        /* Canvas fills the frame */
         canvas { display: block; width: 100%; height: 100%; }
-
-        /* Frame: constrained to a centered 4:3 box matching Pixi canvas area */
-        #frame {
-            position: absolute;
-            left: 50%;
-            top: 0;
-            transform: translateX(-50%);
-            width: min(100vw, calc(100vh * 4 / 3));
-            aspect-ratio: 4 / 3;
-            height: auto; /* aspect-ratio determines height */
-            max-height: 100vh;
-            overflow: hidden;
-            pointer-events: none; /* allow canvas internals to handle events */
-        }
 
         /* Connecting / preloader UI */
         .connecting { cursor: progress !important; }
-        .connecting #app { filter: brightness(.95); transition: none; }
-        #loading { display: none; position: absolute; right: 20px; bottom: 20px; width: 334px; height: 54px; background: url('assets/connecting.png') right bottom no-repeat; z-index: 40; pointer-events: none; }
+        /* Dim only the Pixi canvas to avoid dimming the background gradient */
+        .connecting #canvas { filter: brightness(.95); transition: none; }
+        #loading { display: none; position: absolute; width: 334px; height: 54px; background: url('assets/connecting.png') right bottom no-repeat; z-index: 40; pointer-events: none; }
         /* Adjust to a centered 4:3 viewport frame for landscape */
         .connecting #loading { display: block; }
-
-        /* Small screen tuning */
+        /* Position relative to a centered 4:3 frame (landscape). Use safe-area inset for mobile and align to frame right edge */
+        #loading { right: calc((100vw - min(100vw, calc(100vh * 4 / 3))) / 2 + env(safe-area-inset-right, 0px)); bottom: 20px; }
+        /* On narrow screens keep a small inset so the badge is visible and not clipped */
         @media (max-width:520px) {
-            #frame { width: calc(100vw - 40px); }
-            #loading { right: 8px; bottom: 12px; width: 260px; height: 44px; background-size: contain; }
+            #loading { right: calc((100vw - min(100vw, calc(100vh * 4 / 3))) / 2 + env(safe-area-inset-right, 12px)); bottom: 14px; width: 260px; height: 44px; background-size: contain; }
+        }
+        /* Ensure portrait devices that report odd viewport dimensions still align */
+        @media (orientation: portrait) {
+            #loading { right: calc((100vw - min(100vw, calc(100vh * 4 / 3))) / 2 + env(safe-area-inset-right, 0px)); }
         }
 
         .menu-toggle {
@@ -97,6 +87,7 @@
     <div id="app">
         <canvas id="canvas"></canvas>
         <button id="menuToggle" class="menu-toggle" aria-expanded="true" aria-label="Toggle controls">✕</button>
+        <div id="loading" aria-hidden="true"></div>
 
         <div id="controls">
             <div style="display:flex;align-items:center;gap:8px;margin-right:8px;">

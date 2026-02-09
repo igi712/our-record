@@ -16,19 +16,68 @@ let __mrResolvedAssetsBaseSource = null;
 let __mrLoadToken = 0;
 let __mrPreloadCount = 0;
 
+function positionLoadingIndicator() {
+    try {
+        const el = document.getElementById('loading');
+        const canvas = document.getElementById('canvas');
+        if (!el || !canvas) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const lw = el.offsetWidth || 334;
+        const lh = el.offsetHeight || 54;
+
+        // Align right edge to canvas right edge and bottom to canvas bottom with a small inset
+        let left = Math.round(rect.right - lw);
+        let top = Math.round(rect.bottom - lh - 16); // 16px inset from canvas bottom
+
+        // Ensure the indicator doesn't go off the left/top edges
+        left = Math.max(left, Math.round(rect.left + 6));
+        top = Math.max(top, 6);
+
+        el.style.left = `${left}px`;
+        el.style.top = `${top}px`;
+        el.style.right = 'auto';
+        el.style.bottom = 'auto';
+    } catch (e) { /* ignore */ }
+}
+
+function isPortraitViewMode() {
+    try {
+        const vp = window.VIEWPORT;
+        if (vp && typeof vp.mode === 'string') return vp.mode === 'portrait';
+        return window.innerHeight > window.innerWidth;
+    } catch (e) { return false; }
+}
+
 function __mrSetConnecting(on) {
     try {
         const root = document.documentElement;
         if (!root) return;
         if (on) {
             __mrPreloadCount = (__mrPreloadCount || 0) + 1;
-            if (__mrPreloadCount === 1) root.classList.add('connecting');
+            if (__mrPreloadCount === 1) {
+                root.classList.add('connecting');
+                // Only use JS fallback positioning when the app's view mode is portrait
+                if (isPortraitViewMode()) {
+                    // position once immediately and a couple of retries to handle async layout changes on mobile
+                    try { positionLoadingIndicator(); } catch (e) {}
+                    setTimeout(() => { try { positionLoadingIndicator(); } catch (e) {} }, 120);
+                    setTimeout(() => { try { positionLoadingIndicator(); } catch (e) {} }, 600);
+                }
+            }
         } else {
             __mrPreloadCount = Math.max(0, (__mrPreloadCount || 0) - 1);
             if (__mrPreloadCount === 0) root.classList.remove('connecting');
         }
     } catch (e) {}
 }
+
+// Keep indicator positioned when viewport changes
+try {
+    window.addEventListener('resize', positionLoadingIndicator, true);
+    window.addEventListener('orientationchange', positionLoadingIndicator, true);
+    window.addEventListener('fullscreenchange', positionLoadingIndicator, true);
+} catch (e) {}
 
 // Asset base URL detection + overrides.
 // Behavior:
