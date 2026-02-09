@@ -13,6 +13,22 @@ export const state = {
 
 let __mrResolvedAssetsBase = null;
 let __mrResolvedAssetsBaseSource = null;
+let __mrLoadToken = 0;
+let __mrPreloadCount = 0;
+
+function __mrSetConnecting(on) {
+    try {
+        const root = document.documentElement;
+        if (!root) return;
+        if (on) {
+            __mrPreloadCount = (__mrPreloadCount || 0) + 1;
+            if (__mrPreloadCount === 1) root.classList.add('connecting');
+        } else {
+            __mrPreloadCount = Math.max(0, (__mrPreloadCount || 0) - 1);
+            if (__mrPreloadCount === 0) root.classList.remove('connecting');
+        }
+    } catch (e) {}
+}
 
 // Asset base URL detection + overrides.
 // Behavior:
@@ -20,6 +36,138 @@ let __mrResolvedAssetsBaseSource = null;
 //  2) Otherwise, try to detect a local checkout by probing a known small model JSON under
 //     'assets/ma-re-data/resource/image_native/live2d_v4/100100/model.model3.json'. If it exists, prefer local path.
 //  3) Fallback to a remote raw.githubusercontent.com URL (configurable via query param 'assetsRemote' or window.MR_ASSETS_REMOTE).
+// Global cache to store the "virtual files" so we don't re-fetch them on outfit changes
+const ramFolderCache = new Map();
+
+// --- 1. ROBUST PRELOADER (Ignores 404s) ---
+
+async function fetchToVirtualFile(targetUrl, fileName) {
+    try {
+        // Debug: report individual fetch attempts when preloading
+        try { console.debug && console.debug(`[MR] preloader fetching ${fileName} from ${targetUrl}`); } catch (e) {}
+        const res = await fetch(targetUrl);
+        if (!res.ok) {
+            // Log warning but DO NOT throw error. Return null to skip this file.
+            console.warn(`[MR] Optional file missing (skipped): ${fileName} (${res.status})`);
+            return null;
+        }
+        const blob = await res.blob();
+        // Create a File-like object (works with pixi-live2d-display)
+        const file = new File([blob], fileName);
+        // Important: set webkitRelativePath so the library can find it "in the folder"
+        Object.defineProperty(file, 'webkitRelativePath', { value: fileName });
+        return file;
+    } catch (e) {
+        console.warn(`[MR] Network error skipping file: ${fileName}`, e);
+        return null;
+    }
+}
+
+async function preloadModelToRam(modelId) {
+    if (ramFolderCache.has(modelId)) return ramFolderCache.get(modelId);
+
+    // Show connecting cursor / banner while preloading
+    __mrSetConnecting(true);
+
+    try {
+        const ASSETS_BASE = await resolveMaReAssetsBase();
+        const baseUrl = `${ASSETS_BASE}/${modelId}/`;
+        
+        // We must fetch the main model JSON first to know what else to fetch
+        // Try v4 first, then v2
+        let mainJsonName = 'model.model3.json';
+        let mainJson = await (await fetch(baseUrl + mainJsonName).catch(() => null))?.json();
+        
+        if (!mainJson) {
+            // Fallback to Cubism 2
+            mainJsonName = 'model.json';
+            mainJson = await (await fetch(baseUrl + mainJsonName)).json();
+        }
+
+        const filesToFetch = new Set();
+        filesToFetch.add(mainJsonName); // Add the main file itself
+        filesToFetch.add('params.json'); // Add the separate params file
+
+        // --- Collect paths from JSON ---
+        
+        // Cubism 4 (FileReferences)
+        if (mainJson.FileReferences) {
+            const fr = mainJson.FileReferences;
+            if (fr.Moc) filesToFetch.add(fr.Moc);
+            if (fr.Physics) filesToFetch.add(fr.Physics);
+            if (fr.Pose) filesToFetch.add(fr.Pose);
+            if (fr.DisplayInfo) filesToFetch.add(fr.DisplayInfo); // This is the .cdi3.json causing 404s
+            if (fr.UserData) filesToFetch.add(fr.UserData);
+            
+            if (Array.isArray(fr.Textures)) {
+                fr.Textures.forEach(t => filesToFetch.add(t));
+            }
+            
+            if (fr.Motions) {
+                Object.values(fr.Motions).forEach(group => {
+                    if (Array.isArray(group)) {
+                        group.forEach(m => {
+                            if (m.File) filesToFetch.add(m.File);
+                            if (m.Sound) filesToFetch.add(m.Sound);
+                        });
+                    }
+                });
+            }
+            
+            if (Array.isArray(fr.Expressions)) {
+                fr.Expressions.forEach(e => { if (e.File) filesToFetch.add(e.File); });
+            }
+        }
+        // Cubism 2
+        else {
+            if (mainJson.model) filesToFetch.add(mainJson.model);
+            if (mainJson.physics) filesToFetch.add(mainJson.physics);
+            if (mainJson.pose) filesToFetch.add(mainJson.pose);
+            if (Array.isArray(mainJson.textures)) mainJson.textures.forEach(t => filesToFetch.add(t));
+            
+            if (mainJson.motions) {
+                Object.values(mainJson.motions).forEach(group => {
+                    if (Array.isArray(group)) {
+                        group.forEach(m => {
+                            if (m.file) filesToFetch.add(m.file);
+                            if (m.sound) filesToFetch.add(m.sound);
+                        });
+                    }
+                });
+            }
+            if (Array.isArray(mainJson.expressions)) {
+                mainJson.expressions.forEach(e => { if (e.file) filesToFetch.add(e.file); });
+            }
+        }
+
+        // --- Fetch All in Parallel ---
+        const filesArray = Array.from(filesToFetch);
+        try { console.info && console.info(`[MR] preloader will fetch ${filesArray.length} files for model ${modelId}:`, filesArray); } catch (e) {}
+        const promises = filesArray.map(fileName => 
+            fetchToVirtualFile(baseUrl + fileName, fileName)
+        );
+
+        const results = await Promise.all(promises);
+        
+        // Filter out nulls (files that 404'd) so the library doesn't crash trying to read them
+        const validFiles = results.filter(f => f !== null);
+
+        try {
+            const fetchedCount = results.filter(Boolean).length;
+            const skipped = [];
+            for (let i = 0; i < filesArray.length; i++) {
+                if (!results[i]) skipped.push(filesArray[i]);
+            }
+            console.info && console.info(`[MR] preloader fetched ${fetchedCount}/${filesArray.length} files for model ${modelId}. Skipped:`, skipped);
+        } catch (e) {}
+
+        ramFolderCache.set(modelId, validFiles);
+        return validFiles;
+    } finally {
+        __mrSetConnecting(false);
+    }
+}
+
 
 function getAssetsOverride() {
     try {
@@ -652,72 +800,59 @@ function setupControlsForModel(model, modelJson) {
     }
 }
 
-export async function loadModel(modelId, opts = {}) {
-    const preserveState = !!opts.preserveState;
+const waitMs = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-    // Capture UI/controller state if we need to preserve it across outfit swaps.
-    const preservedState = preserveState ? (() => {
-        try {
-            const motionSelectEl = document.getElementById('motionSelect');
-            const expressionSelectEl = document.getElementById('expressionSelect');
-            return {
-                motionValue: motionSelectEl?.value ?? null,
-                faceName: expressionSelectEl?.value ?? null,
-                cheek: getSelectedCheekValue(),
-                eyeClose: !!document.getElementById('eyeClose')?.checked,
-                mouthOpen: !!document.getElementById('mouthOpen')?.checked,
-                tear: !!document.getElementById('tear')?.checked,
-                soulGem: !!document.getElementById('soulGem')?.checked
-            };
-        } catch (e) { return null; }
-    })() : null;
+async function waitForFrames(count) {
+    for (let i = 0; i < count; i++) {
+        await new Promise(resolve => requestAnimationFrame(resolve));
+    }
+}
 
-    state.currentModelId = modelId;
-
-    const modelOpt = getModelOption(modelId);
-
-    // --- TRANSITION LOGIC START ---
-
-    // Capture the model/controller currently on stage before we start loading the new one.
-    const oldModel = state.currentModel;
-    const oldController = state.currentController;
-
-    // Cleanup per-model follow handlers from the OLD model immediately
+function capturePreservedState(preserveState) {
+    if (!preserveState) return null;
     try {
-        if (oldModel) {
-            // Disable interaction on the dying model so user can't click it while it fades
-            oldModel.interactive = false;
-            try { oldModel._autoInteract = false; } catch {}
+        const motionSelectEl = document.getElementById('motionSelect');
+        const expressionSelectEl = document.getElementById('expressionSelect');
+        return {
+            motionValue: motionSelectEl?.value ?? null,
+            faceName: expressionSelectEl?.value ?? null,
+            cheek: getSelectedCheekValue(),
+            eyeClose: !!document.getElementById('eyeClose')?.checked,
+            mouthOpen: !!document.getElementById('mouthOpen')?.checked,
+            tear: !!document.getElementById('tear')?.checked,
+            soulGem: !!document.getElementById('soulGem')?.checked
+        };
+    } catch (e) { return null; }
+}
 
-            // Remove specific handlers
-            if (oldModel.__mrPressHandler) {
-                try { oldModel.off('pointerdown', oldModel.__mrPressHandler); } catch {}
-                try { delete oldModel.__mrPressHandler; } catch {}
-            }
-            if (oldModel.__mrMoveHandler) {
-                try { window.removeEventListener('pointermove', oldModel.__mrMoveHandler, true); } catch {}
-                try { window.removeEventListener('touchmove', oldModel.__mrMoveHandler, true); } catch {}
-                try { delete oldModel.__mrMoveHandler; } catch {}
-            }
+function cleanupOldModelHandlers(oldModel) {
+    try {
+        if (!oldModel) return;
+        // Disable interaction on the dying model so user can't click it while it fades
+        oldModel.interactive = false;
+        try { oldModel._autoInteract = false; } catch {}
+
+        // Remove specific handlers
+        if (oldModel.__mrPressHandler) {
+            try { oldModel.off('pointerdown', oldModel.__mrPressHandler); } catch {}
+            try { delete oldModel.__mrPressHandler; } catch {}
+        }
+        if (oldModel.__mrMoveHandler) {
+            try { window.removeEventListener('pointermove', oldModel.__mrMoveHandler, true); } catch {}
+            try { window.removeEventListener('touchmove', oldModel.__mrMoveHandler, true); } catch {}
+            try { delete oldModel.__mrMoveHandler; } catch {}
         }
     } catch {}
+}
 
-    // Detach global controller reference so UI doesn't control the dying model.
-    // IMPORTANT: We do NOT call stopSequence() here. We want the old model to keep animating
-    // during the fade-out. We will stop it in performFadeOut() after the visual fade is done.
-    state.currentController = null;
-
-    // Clear global reference so other scripts don't target the dying model
-    state.currentModel = null;
-
-    // Define the Fade Out function
-    const performFadeOut = (target, controller) => {
+function createFadeOut(appRef) {
+    return function performFadeOut(target, controller) {
         if (!target) return;
 
         // Setup AlphaFilter for smooth fade out
         const filter = new PIXI.filters.AlphaFilter(1);
         // Ensure resolution matches renderer to prevent blurriness
-        try { filter.resolution = app.renderer.resolution; } catch(e) {}
+        try { filter.resolution = appRef.renderer.resolution; } catch(e) {}
         target.filters = [filter];
 
         const duration = 200;
@@ -749,6 +884,288 @@ export async function loadModel(modelId, opts = {}) {
         }
         requestAnimationFrame(tick);
     };
+}
+
+function readParamValue(core, model, names) {
+    try {
+        if (!core) return null;
+        for (const name of names) {
+            try {
+                if (typeof core.getParameterValueById === 'function') {
+                    const v = core.getParameterValueById(name);
+                    if (typeof v !== 'undefined' && v !== null) return v;
+                }
+                if (typeof core.getParameterValue === 'function') {
+                    const v = core.getParameterValue(name);
+                    if (typeof v !== 'undefined' && v !== null) return v;
+                }
+            } catch (e) {}
+        }
+
+        if (Array.isArray(core.parameters)) {
+            for (const p of core.parameters) {
+                const id = String(p.id || p.parameterId || p.name || '');
+                for (const name of names) {
+                    if (id === name) {
+                        if (typeof p.value !== 'undefined') return p.value;
+                    }
+                }
+            }
+        }
+
+        if (model.internalModel && typeof model.internalModel.getParameterValue === 'function') {
+            for (const name of names) {
+                try {
+                    const v = model.internalModel.getParameterValue(name);
+                    if (typeof v !== 'undefined' && v !== null) return v;
+                } catch (e) {}
+            }
+        }
+
+        return null;
+    } catch (e) { return null; }
+}
+
+function applyDefaultParamsAndPreservedState(model, preservedState) {
+    try {
+        const core = model?.internalModel?.coreModel;
+
+        // Soul gem
+        try {
+            const soulVal = readParamValue(core, model, ['ParamSoulgem', 'ParamSoulGem']);
+            const enabled = !!(soulVal && Number(soulVal) > 0.5);
+            const soulEl = document.getElementById('soulGem');
+            if (soulEl) soulEl.checked = enabled;
+            if (state.currentController && typeof state.currentController.setSoulGem === 'function') state.currentController.setSoulGem(enabled ? 1 : 0, false);
+        } catch (e) {}
+
+        // Eye (use ParamEyeOpen if present, otherwise average left/right)
+        try {
+            let eyeVal = readParamValue(core, model, ['ParamEyeOpen']);
+            if (eyeVal == null) {
+                const l = readParamValue(core, model, ['ParamEyeLOpen']);
+                const r = readParamValue(core, model, ['ParamEyeROpen']);
+                if (typeof l === 'number' && typeof r === 'number') eyeVal = (l + r) / 2;
+                else if (typeof l === 'number') eyeVal = l;
+                else if (typeof r === 'number') eyeVal = r;
+            }
+            if (typeof eyeVal === 'number') {
+                const closed = !!(Number(eyeVal) < 0.5);
+                const eyeEl = document.getElementById('eyeClose');
+                if (eyeEl) eyeEl.checked = closed;
+                applyEyeClose(closed);
+            }
+        } catch (e) {}
+
+        // Mouth
+        try {
+            const mouthVal = readParamValue(core, model, ['ParamMouthOpen', 'ParamMouth']);
+            if (typeof mouthVal === 'number') {
+                const open = !!(Number(mouthVal) > 0.5);
+                const mouthEl = document.getElementById('mouthOpen');
+                if (mouthEl) mouthEl.checked = open;
+                applyMouthOpen(open);
+            }
+        } catch (e) {}
+
+        // Tear
+        try {
+            const tearVal = readParamValue(core, model, ['ParamTear']);
+            if (typeof tearVal === 'number') {
+                const enabled = !!(Number(tearVal) > 0.5);
+                const tearEl = document.getElementById('tear');
+                if (tearEl) tearEl.checked = enabled;
+                applyTear(enabled);
+            }
+        } catch (e) {}
+
+        // Cheek (some models may expose a ParamCheek)
+        try {
+            const cheekVal = readParamValue(core, model, ['ParamCheek']);
+            if (typeof cheekVal === 'number') {
+                const v = String(cheekVal);
+                try {
+                    const r = document.querySelectorAll('input[name="cheek"]');
+                    for (const el of r) {
+                        if (String(el.value) === v) {
+                            el.checked = true;
+                            applyCheek(el.value);
+                            break;
+                        }
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {}
+
+        // Force eyes open by default on model load (user preference override)
+        try {
+            const eyeEl = document.getElementById('eyeClose');
+            if (eyeEl) { eyeEl.checked = false; applyEyeClose(false); }
+        } catch (e) {}
+
+        // If the caller requested preservation of state (e.g., switching outfit for same character),
+        // re-apply preserved UI/controller state and prefer it over model defaults.
+        try {
+            if (preservedState) {
+                // Motion: try to set previous motion if available
+                try {
+                    const ms = document.getElementById('motionSelect');
+                    if (ms && preservedState.motionValue) {
+                        setSelectValue(ms, preservedState.motionValue);
+                        ms.value = preservedState.motionValue;
+                    }
+                } catch (e) {}
+
+                // Expression/Face
+                try {
+                    const es = document.getElementById('expressionSelect');
+                    if (es && preservedState.faceName) {
+                        setSelectValue(es, preservedState.faceName);
+                        es.value = preservedState.faceName;
+                    }
+                } catch (e) {}
+
+                // Cheek
+                try {
+                    if (preservedState.cheek != null) {
+                        applyCheek(preservedState.cheek);
+                        const r = document.querySelectorAll('input[name="cheek"]');
+                        for (const el of r) { el.checked = (String(el.value) === String(preservedState.cheek)); }
+                    }
+                } catch (e) {}
+
+                // Eye Close
+                try { const eyeEl = document.getElementById('eyeClose'); if (eyeEl) { eyeEl.checked = !!preservedState.eyeClose; applyEyeClose(!!preservedState.eyeClose); } } catch (e) {}
+
+                // Mouth
+                try { const mouthEl = document.getElementById('mouthOpen'); if (mouthEl) { mouthEl.checked = !!preservedState.mouthOpen; applyMouthOpen(!!preservedState.mouthOpen); } } catch (e) {}
+
+                // Tear
+                try { const tearEl = document.getElementById('tear'); if (tearEl) { tearEl.checked = !!preservedState.tear; applyTear(!!preservedState.tear); } } catch (e) {}
+
+                // Soul Gem
+                try { const soulEl = document.getElementById('soulGem'); if (soulEl) { soulEl.checked = !!preservedState.soulGem; applySoulGem(!!preservedState.soulGem); } } catch (e) {}
+            }
+        } catch (e) {}
+
+    } catch (e) {}
+}
+
+async function applyInitialMotionAndExpression(opts) {
+    const {
+        controller,
+        modelJson,
+        isStaleLoad,
+        startMotionTracked
+    } = opts || {};
+
+    if (!controller) return;
+    const motionSelect = document.getElementById('motionSelect');
+    const expressionSelect = document.getElementById('expressionSelect');
+
+    const parseMotionValue = (raw) => {
+        try {
+            if (!raw) return null;
+            const v = JSON.parse(raw);
+            if (!v || typeof v.group === 'undefined' || typeof v.index !== 'number') return null;
+            return { group: v.group, index: v.index };
+        } catch { return null; }
+    };
+
+    const getMotionSelection = () => {
+        const parsed = parseMotionValue(motionSelect?.value);
+        if (parsed) return parsed;
+        const group = controller.defaultMotionGroup || (modelJson?.FileReferences?.Motions ? Object.keys(modelJson.FileReferences.Motions)[0] : null);
+        return group ? { group, index: 0 } : null;
+    };
+
+    const motionDelays = [0, 50, 150, 300];
+    for (const d of motionDelays) {
+        if (d) await waitMs(d);
+        if (typeof isStaleLoad === 'function' && isStaleLoad()) return;
+        const sel = getMotionSelection();
+        if (!sel) break;
+        if (startMotionTracked(sel.group, sel.index)) break;
+    }
+
+    const expressionDelays = [0, 50, 150, 300];
+    for (const d of expressionDelays) {
+        if (d) await waitMs(d);
+        if (typeof isStaleLoad === 'function' && isStaleLoad()) return;
+        const name = expressionSelect?.value;
+        if (!name) break;
+        try {
+            if (controller.setExpressionByName(name)) break;
+        } catch {}
+    }
+}
+
+function warmUpModelInteraction(model) {
+    // FIX #1: Force an internal update tick to start the motion immediately
+    try { model.update(10); } catch {}
+    // FIX #3: Force a Transform update on the Pixi object so the world matrix is valid
+    // for the very first interaction check.
+    try { model.updateTransform(); } catch {}
+
+    // FIX #4: Warm up bounds + interaction hit testing.
+    // When swapping models via the dropdown, the first click can be missed if the
+    // object hasn't had its bounds computed yet for Pixi's hit-testing.
+    try { model.getBounds(true); } catch {}
+    try {
+        const interaction = app?.renderer?.plugins?.interaction;
+        if (interaction && typeof interaction.update === 'function') interaction.update();
+    } catch {}
+}
+
+export async function loadModel(modelId, opts = {}) {
+    const preserveState = !!opts.preserveState;
+
+    const loadToken = ++__mrLoadToken;
+    const isStaleLoad = () => __mrLoadToken !== loadToken || state.currentModelId !== modelId;
+
+    // Capture UI/controller state if we need to preserve it across outfit swaps.
+    const preservedState = capturePreservedState(preserveState);
+
+    const oldModel = state.currentModel;
+    const oldController = state.currentController;
+
+    state.currentModelId = modelId;
+
+    let fileList = ramFolderCache.get(modelId);
+    if (!fileList) {
+        fileList = await preloadModelToRam(modelId);
+    }
+
+    // Pass the Array of File objects. 
+    // Pixi-Live2D-Display will find the one named 'model.model3.json' automatically.
+    const model = await PIXI.live2d.Live2DModel.from(fileList, { autoInteract: false });
+
+    // POSITIONING: Get params from RAM
+    const paramsFile = fileList.find(f => f.webkitRelativePath === 'params.json');
+    const params = JSON.parse(await paramsFile.text());
+    
+    // ... (Your positioning logic using 'params.height' etc.)
+    // worldContainer.addChild(model);
+    
+    // CONTROLLER: Get JSON from RAM
+    const jsonFile = fileList.find(f => f.webkitRelativePath === 'model.model3.json');
+    const modelJson = JSON.parse(await jsonFile.text());
+    const modelOpt = getModelOption(modelId);
+
+    // --- TRANSITION LOGIC START ---
+    // Cleanup per-model follow handlers from the OLD model immediately
+    cleanupOldModelHandlers(oldModel);
+
+    // Detach global controller reference so UI doesn't control the dying model.
+    // IMPORTANT: We do NOT call stopSequence() here. We want the old model to keep animating
+    // during the fade-out. We will stop it in performFadeOut() after the visual fade is done.
+    state.currentController = null;
+
+    // Clear global reference so other scripts don't target the dying model
+    state.currentModel = null;
+
+    // Define the Fade Out function
+    const performFadeOut = createFadeOut(app);
 
     // LOGIC:
     // If it's a Character change (!preserveState): Fade out OLD immediately. The stage will be empty briefly while NEW loads.
@@ -780,14 +1197,14 @@ export async function loadModel(modelId, opts = {}) {
     const modelPath = `${ASSETS_BASE}/${modelId}/model.model3.json`;
     const paramsPath = `${ASSETS_BASE}/${modelId}/params.json`;
 
-    const modelJson = await (await fetch(modelPath)).json();
+    // const modelJson = await (await fetch(modelPath)).json();
 
-    const params = await (await fetch(paramsPath)).json();
+    // const params = await (await fetch(paramsPath)).json();
     const heightParam = Number(params.height ?? 0);
     let modelScaleParam = Number(params.modelScale ?? 1.3);
     if (String(modelId) === '160100') modelScaleParam = 1.3; // Infinite Iroha
 
-    const model = await PIXI.live2d.Live2DModel.from(modelPath, { autoInteract: false });
+    // const model = await PIXI.live2d.Live2DModel.from(modelData, { autoInteract: false });
 
     // Hide initially so we can fade in
     model.visible = false;
@@ -849,15 +1266,19 @@ export async function loadModel(modelId, opts = {}) {
     model.scale.set(finalScale);
 
     // v2 controller (magireco_viewer-inspired)
-    state.currentController = window.createMagirecoStyleControllerV2(model, modelJson);
+    const newController = window.createMagirecoStyleControllerV2(model, modelJson);
+    state.currentController = newController;
 
     // Track the most recent motion start so we can wait before fading in.
     let lastMotionStart = null;
     const startMotionTracked = (group, index) => {
         try {
-            lastMotionStart = state.currentController.startMotion(group, index);
+            const res = newController.startMotion(group, index);
+            lastMotionStart = res;
+            return typeof res === 'undefined' ? true : !!res;
         } catch (e) {
             lastMotionStart = null;
+            return false;
         }
     };
 
@@ -868,205 +1289,22 @@ export async function loadModel(modelId, opts = {}) {
         if (cheekValue != null) state.currentController.setCheek(cheekValue, false);
     } catch {}
 
-    // Default: start motion 0 in the primary group if possible.
-    try {
-        startMotionTracked(state.currentController.defaultMotionGroup, 0);
-        // FIX #1: Force an internal update tick to start the motion immediately
-        model.update(10);
-        // FIX #3: Force a Transform update on the Pixi object so the world matrix is valid
-        // for the very first interaction check.
-        model.updateTransform();
-
-        // FIX #4: Warm up bounds + interaction hit testing.
-        // When swapping models via the dropdown, the first click can be missed if the
-        // object hasn't had its bounds computed yet for Pixi's hit-testing.
-        try { model.getBounds(true); } catch {}
-        try {
-            const interaction = app?.renderer?.plugins?.interaction;
-            if (interaction && typeof interaction.update === 'function') interaction.update();
-        } catch {}
-    } catch {}
-
     setupControlsForModel(model, modelJson);
 
-    // Apply the selected expression from setupControlsForModel
-    try {
-        const expressionSelect = document.getElementById('expressionSelect');
-        if (expressionSelect && expressionSelect.value && state.currentController) {
-            state.currentController.setExpressionByName(expressionSelect.value);
-        }
-    } catch (e) {
-        console.warn('Could not apply initial expression', e);
-    }
-
     // Reflect model's default parameter values (soulGem, eyeClose, mouthOpen, tear, cheek) in the UI and controller (if present).
+    applyDefaultParamsAndPreservedState(model, preservedState);
+
+    // Apply the selected motion/expression, with retries for long-load cases.
     try {
-        const core = model?.internalModel?.coreModel;
+        await applyInitialMotionAndExpression({
+            controller: newController,
+            modelJson,
+            isStaleLoad,
+            startMotionTracked
+        });
+    } catch {}
 
-        const readParam = (names) => {
-            try {
-                if (!core) return null;
-                for (const name of names) {
-                    try {
-                        if (typeof core.getParameterValueById === 'function') {
-                            const v = core.getParameterValueById(name);
-                            if (typeof v !== 'undefined' && v !== null) return v;
-                        }
-                        if (typeof core.getParameterValue === 'function') {
-                            const v = core.getParameterValue(name);
-                            if (typeof v !== 'undefined' && v !== null) return v;
-                        }
-                    } catch (e) {}
-                }
-
-                if (Array.isArray(core.parameters)) {
-                    for (const p of core.parameters) {
-                        const id = String(p.id || p.parameterId || p.name || '');
-                        for (const name of names) {
-                            if (id === name) {
-                                if (typeof p.value !== 'undefined') return p.value;
-                            }
-                        }
-                    }
-                }
-
-                if (model.internalModel && typeof model.internalModel.getParameterValue === 'function') {
-                    for (const name of names) {
-                        try {
-                            const v = model.internalModel.getParameterValue(name);
-                            if (typeof v !== 'undefined' && v !== null) return v;
-                        } catch (e) {}
-                    }
-                }
-
-                return null;
-            } catch (e) { return null; }
-        };
-
-        // Soul gem
-        try {
-            const soulVal = readParam(['ParamSoulgem', 'ParamSoulGem']);
-            const enabled = !!(soulVal && Number(soulVal) > 0.5);
-            const soulEl = document.getElementById('soulGem');
-            if (soulEl) soulEl.checked = enabled;
-            if (state.currentController && typeof state.currentController.setSoulGem === 'function') state.currentController.setSoulGem(enabled ? 1 : 0, false);
-        } catch (e) {}
-
-        // Eye (use ParamEyeOpen if present, otherwise average left/right)
-        try {
-            let eyeVal = readParam(['ParamEyeOpen']);
-            if (eyeVal == null) {
-                const l = readParam(['ParamEyeLOpen']);
-                const r = readParam(['ParamEyeROpen']);
-                if (typeof l === 'number' && typeof r === 'number') eyeVal = (l + r) / 2;
-                else if (typeof l === 'number') eyeVal = l;
-                else if (typeof r === 'number') eyeVal = r;
-            }
-            if (typeof eyeVal === 'number') {
-                const closed = !!(Number(eyeVal) < 0.5);
-                const eyeEl = document.getElementById('eyeClose');
-                if (eyeEl) eyeEl.checked = closed;
-                applyEyeClose(closed);
-            }
-        } catch (e) {}
-
-        // Mouth
-        try {
-            const mouthVal = readParam(['ParamMouthOpen', 'ParamMouth']);
-            if (typeof mouthVal === 'number') {
-                const open = !!(Number(mouthVal) > 0.5);
-                const mouthEl = document.getElementById('mouthOpen');
-                if (mouthEl) mouthEl.checked = open;
-                applyMouthOpen(open);
-            }
-        } catch (e) {}
-
-        // Tear
-        try {
-            const tearVal = readParam(['ParamTear']);
-            if (typeof tearVal === 'number') {
-                const enabled = !!(Number(tearVal) > 0.5);
-                const tearEl = document.getElementById('tear');
-                if (tearEl) tearEl.checked = enabled;
-                applyTear(enabled);
-            }
-        } catch (e) {}
-
-        // Cheek (some models may expose a ParamCheek)
-        try {
-            const cheekVal = readParam(['ParamCheek']);
-            if (typeof cheekVal === 'number') {
-                const v = String(cheekVal);
-                try {
-                    const r = document.querySelectorAll('input[name="cheek"]');
-                    for (const el of r) {
-                        if (String(el.value) === v) {
-                            el.checked = true;
-                            applyCheek(el.value);
-                            break;
-                        }
-                    }
-                } catch (e) {}
-            }
-        } catch (e) {}
-
-        // Force eyes open by default on model load (user preference override)
-        try {
-            const eyeEl = document.getElementById('eyeClose');
-            if (eyeEl) { eyeEl.checked = false; applyEyeClose(false); }
-        } catch (e) {}
-
-        // If the caller requested preservation of state (e.g., switching outfit for same character),
-        // re-apply preserved UI/controller state and prefer it over model defaults.
-        try {
-            if (preservedState) {
-                // Motion: try to set previous motion if available
-                try {
-                    const ms = document.getElementById('motionSelect');
-                    if (ms && preservedState.motionValue) {
-                        setSelectValue(ms, preservedState.motionValue);
-                        ms.value = preservedState.motionValue;
-                        try {
-                            const mv = JSON.parse(preservedState.motionValue);
-                            if (mv && typeof mv.group !== 'undefined' && typeof mv.index === 'number') startMotionTracked(mv.group, mv.index);
-                        } catch (e) {}
-                    }
-                } catch (e) {}
-
-                // Expression/Face
-                try {
-                    const es = document.getElementById('expressionSelect');
-                    if (es && preservedState.faceName) {
-                        setSelectValue(es, preservedState.faceName);
-                        es.value = preservedState.faceName;
-                        try { state.currentController.setExpressionByName(preservedState.faceName); } catch (e) {}
-                    }
-                } catch (e) {}
-
-                // Cheek
-                try {
-                    if (preservedState.cheek != null) {
-                        applyCheek(preservedState.cheek);
-                        const r = document.querySelectorAll('input[name="cheek"]');
-                        for (const el of r) { el.checked = (String(el.value) === String(preservedState.cheek)); }
-                    }
-                } catch (e) {}
-
-                // Eye Close
-                try { const eyeEl = document.getElementById('eyeClose'); if (eyeEl) { eyeEl.checked = !!preservedState.eyeClose; applyEyeClose(!!preservedState.eyeClose); } } catch (e) {}
-
-                // Mouth
-                try { const mouthEl = document.getElementById('mouthOpen'); if (mouthEl) { mouthEl.checked = !!preservedState.mouthOpen; applyMouthOpen(!!preservedState.mouthOpen); } } catch (e) {}
-
-                // Tear
-                try { const tearEl = document.getElementById('tear'); if (tearEl) { tearEl.checked = !!preservedState.tear; applyTear(!!preservedState.tear); } } catch (e) {}
-
-                // Soul Gem
-                try { const soulEl = document.getElementById('soulGem'); if (soulEl) { soulEl.checked = !!preservedState.soulGem; applySoulGem(!!preservedState.soulGem); } } catch (e) {}
-            }
-        } catch (e) {}
-
-    } catch (e) {}
+    warmUpModelInteraction(model);
 
     // Ensure autoInteract is explicitly disabled by default; we'll enable it only while user presses the model.
     try { model._autoInteract = false; } catch {}
@@ -1282,13 +1520,12 @@ export async function loadModel(modelId, opts = {}) {
     } catch {}
 
     // Give the model a frame or two to apply the first motion update.
-    await new Promise(resolve => requestAnimationFrame(resolve));
-    await new Promise(resolve => requestAnimationFrame(resolve));
+    await waitForFrames(2);
     try { model.update(10); } catch {}
     try { model.updateTransform(); } catch {}
 
     // If the user switched models mid-load, bail out before showing this one.
-    if (state.currentModelId !== modelId) return;
+    if (isStaleLoad()) return;
 
     // --- TRANSITION LOGIC: CROSSFADE IF NEEDED ---
     // If we have an old model waiting (because it was an outfit change),
@@ -1370,3 +1607,32 @@ export function getModelOption(modelId) {
         label
     };
 }
+
+// Prime the preloader for the initial/default model id so the first visible load benefits from parallel fetching.
+function primePreloadForInitialModel() {
+    try {
+        const id = state.currentModelId;
+        if (!id) return;
+        if (ramFolderCache.has(id)) {
+            try { console.debug && console.debug(`[MR] preloader: model ${id} already cached`); } catch (e) {}
+            return;
+        }
+        const run = async () => {
+            try {
+                console.info && console.info(`[MR] preloader starting for initial model ${id}`);
+                await preloadModelToRam(id);
+                console.info && console.info(`[MR] preloader completed for initial model ${id}`);
+            } catch (e) {
+                console.warn && console.warn(`[MR] preloader failed for ${id}`, e);
+            }
+        };
+        if (typeof requestIdleCallback === 'function') {
+            requestIdleCallback(run, { timeout: 2000 });
+        } else {
+            setTimeout(run, 50);
+        }
+    } catch (e) { }
+}
+
+// Start preloading in background without blocking module load.
+primePreloadForInitialModel();
