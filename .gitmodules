@@ -1,6 +1,3 @@
-[submodule "ma-re-data"]
-	path = assets/ma-re-data
-	url = https://github.com/thefrozenfishy/ma-re-data
 [submodule "assets/totentanz/en-data"]
 	path = assets/totentanz/en-data
 	url = https://github.com/Puella-Care/en-data
