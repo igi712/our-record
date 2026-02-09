@@ -34,7 +34,8 @@
 
         /* Connecting / preloader UI */
         .connecting { cursor: progress !important; }
-        .connecting #app { filter: brightness(.95); transition: none; }
+        /* Dim only the frame (canvas + live2d content), not the page background */
+        .connecting #frame { filter: brightness(.95); transition: none; }
         #loading { display: none; position: absolute; right: 20px; bottom: 20px; width: 334px; height: 54px; background: url('assets/connecting.png') right bottom no-repeat; z-index: 40; pointer-events: none; }
         /* Adjust to a centered 4:3 viewport frame for landscape */
         .connecting #loading { display: block; }
@@ -81,7 +82,9 @@
 </head>
 <body>
     <div id="app">
-        <canvas id="canvas"></canvas>
+        <div id="frame">
+            <canvas id="canvas"></canvas>
+        </div>
         <button id="menuToggle" class="menu-toggle" aria-expanded="true" aria-label="Toggle controls">✕</button>
         <div id="loading" aria-hidden="true"></div>
 

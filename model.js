@@ -39,6 +39,23 @@ function __mrSetConnecting(on) {
 // Global cache to store the "virtual files" so we don't re-fetch them on outfit changes
 const ramFolderCache = new Map();
 
+export function clearModelFromRam(modelId) {
+    try { ramFolderCache.delete(String(modelId)); } catch (e) {}
+}
+export function clearAllRamCache() {
+    try { ramFolderCache.clear(); } catch (e) {}
+}
+export function pruneRamCache(keepCharIds) {
+    try {
+        if (!keepCharIds || typeof keepCharIds.has !== 'function') return;
+        for (const key of Array.from(ramFolderCache.keys())) {
+            const charId = String(key).slice(0,4);
+            if (!keepCharIds.has(charId)) ramFolderCache.delete(key);
+        }
+        try { console.info && console.info('[MR] pruneRamCache kept:', Array.from(keepCharIds)); } catch (e) {}
+    } catch (e) { }
+}
+
 // --- 1. ROBUST PRELOADER (Ignores 404s) ---
 
 async function fetchToVirtualFile(targetUrl, fileName) {
@@ -846,7 +863,7 @@ function cleanupOldModelHandlers(oldModel) {
 }
 
 function createFadeOut(appRef) {
-    return function performFadeOut(target, controller) {
+    return function performFadeOut(target, controller, onComplete) {
         if (!target) return;
 
         // Setup AlphaFilter for smooth fade out
@@ -878,13 +895,16 @@ function createFadeOut(appRef) {
 
                 try {
                     if (target.parent) target.parent.removeChild(target);
-                    target.destroy({ children: true });
+                    // Destroy with texture/baseTexture to free GPU resources
+                    target.destroy({ children: true, texture: true, baseTexture: true });
                 } catch (e) {}
+
+                try { if (typeof onComplete === 'function') onComplete(); } catch (e) {}
             }
         }
         requestAnimationFrame(tick);
     };
-}
+} 
 
 function readParamValue(core, model, names) {
     try {
@@ -1129,12 +1149,29 @@ export async function loadModel(modelId, opts = {}) {
     const oldModel = state.currentModel;
     const oldController = state.currentController;
 
+    const prevModelId = state.currentModelId;
     state.currentModelId = modelId;
+
+    let pruneOnFade = null; 
 
     let fileList = ramFolderCache.get(modelId);
     if (!fileList) {
         fileList = await preloadModelToRam(modelId);
     }
+
+    // Pruning behavior: keep cached models for current and previous character IDs
+    try {
+        const newCharId = String(modelId).slice(0,4);
+        const prevCharId = prevModelId ? String(prevModelId).slice(0,4) : null;
+        const keepSet = new Set([newCharId]);
+        if (prevCharId) keepSet.add(prevCharId);
+        if (!preserveState || !oldModel) {
+            pruneRamCache(keepSet);
+        } else {
+            // Delay pruning until after fade/crossfade completes
+            pruneOnFade = () => pruneRamCache(keepSet);
+        }
+    } catch (e) {} 
 
     // Pass the Array of File objects. 
     // Pixi-Live2D-Display will find the one named 'model.model3.json' automatically.
@@ -1531,7 +1568,7 @@ export async function loadModel(modelId, opts = {}) {
     // If we have an old model waiting (because it was an outfit change),
     // now is the time to fade it out, creating the crossfade effect.
     if (oldModel && preserveState) {
-        performFadeOut(oldModel, oldController);
+        performFadeOut(oldModel, oldController, pruneOnFade);
     }
     // --- END TRANSITION LOGIC ---
 
