@@ -49,11 +49,9 @@
 
         /* Connecting / preloader UI */
         .connecting { cursor: progress !important; }
-        /* Dim only the frame (canvas + live2d content), not the page background */
-        .connecting #frame { filter: brightness(.95); transition: none; }
-
-        /* Loading indicator is inside #frame and anchored to its right-bottom corner */
-        #loading { display: none; position: absolute; right: 0; bottom: 18px; width: 334px; height: 54px; background: url('assets/connecting.png') right bottom no-repeat; z-index: 40; pointer-events: none; }
+        .connecting #app { filter: brightness(.95); transition: none; }
+        #loading { display: none; position: absolute; right: 20px; bottom: 20px; width: 334px; height: 54px; background: url('assets/connecting.png') right bottom no-repeat; z-index: 40; pointer-events: none; }
+        /* Adjust to a centered 4:3 viewport frame for landscape */
         .connecting #loading { display: block; }
 
         /* Small screen tuning */
@@ -97,10 +95,7 @@
 </head>
 <body>
     <div id="app">
-        <div id="frame">
-            <canvas id="canvas"></canvas>
-            <div id="loading" aria-hidden="true"></div>
-        </div>
+        <canvas id="canvas"></canvas>
         <button id="menuToggle" class="menu-toggle" aria-expanded="true" aria-label="Toggle controls">✕</button>
 
         <div id="controls">
