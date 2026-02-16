@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MR Sound Mode</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            margin: 16px;
+        }
+
+        #status {
+            margin-bottom: 12px;
+        }
+
+        #bgmList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 80vh;
+            overflow: auto;
+        }
+
+        #bgmList button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            margin: 0 0 6px;
+            padding: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Magia Record BGM</h1>
+    <div id="status">Loading...</div>
+    <ul id="bgmList"></ul>
+
+    <script type="module">
+        const HCA_JS_URL = new URL("./lib/hca.js", document.baseURI);
+        const BGM_BASE_URL = "./assets/ma-re-data/resource/sound_native/bgm/";
+        const BGM_LIST_URL = `${BGM_BASE_URL}magireco-bgm.json`;
+        const KEY1 = 0x01395C51;
+        const KEY2 = 0x00000000;
+
+        const statusEl = document.getElementById("status");
+        const listEl = document.getElementById("bgmList");
+
+        let hcaModule;
+        let hcaBlobUrl;
+        let worker;
+        let player;
+
+        function setStatus(text) {
+            statusEl.textContent = text;
+        }
+
+        async function initWorker() {
+            if (worker) return worker;
+
+            if (!hcaBlobUrl) {
+                const response = await fetch(HCA_JS_URL.href);
+                const blob = new Blob([await response.arrayBuffer()], { type: "text/javascript" });
+                hcaBlobUrl = URL.createObjectURL(blob);
+            }
+
+            if (!hcaModule) {
+                hcaModule = await import(hcaBlobUrl);
+            }
+
+            worker = await hcaModule.HCAWorker.create(hcaBlobUrl);
+            return worker;
+        }
+
+        async function playTrack(fileName, desc) {
+            try {
+                setStatus(`Loading ${fileName}...`);
+                const activeWorker = await initWorker();
+
+                const fileResponse = await fetch(`${BGM_BASE_URL}${fileName}`);
+                if (!fileResponse.ok) {
+                    throw new Error(`Failed to load ${fileName}: ${fileResponse.status} ${fileResponse.statusText}`);
+                }
+
+                const hcaData = new Uint8Array(await fileResponse.arrayBuffer());
+                const decrypted = await activeWorker.decrypt(hcaData, KEY1, KEY2);
+                const newPlayer = await hcaModule.HCAWebAudioLoopPlayer.create(decrypted, activeWorker);
+
+                if (player) {
+                    await player.stop();
+                }
+                player = newPlayer;
+                player.playInBackground = true;
+                player.play();
+
+                setStatus(`Now playing: ${fileName}${desc ? ` — ${desc}` : ""}`);
+            } catch (error) {
+                console.error(error);
+                setStatus(`Error: ${error.message || error}`);
+            }
+        }
+
+        function createTrackButton(entry) {
+            const item = document.createElement("li");
+            const button = document.createElement("button");
+            const fileName = entry.filename;
+            const desc = entry.desc ? entry.desc.trim() : "";
+
+            button.textContent = desc ? `${fileName} — ${desc}` : fileName;
+            button.addEventListener("click", () => {
+                playTrack(fileName, desc);
+            });
+
+            item.appendChild(button);
+            return item;
+        }
+
+        async function loadList() {
+            setStatus("Loading BGM list...");
+            const response = await fetch(BGM_LIST_URL);
+            if (!response.ok) {
+                throw new Error(`Failed to load BGM list: ${response.status} ${response.statusText}`);
+            }
+
+            const groups = await response.json();
+            const entries = groups
+                .flatMap((group) => Array.isArray(group.entries) ? group.entries : [])
+                .filter((entry) => typeof entry.filename === "string" && entry.filename.endsWith(".hca"));
+
+            listEl.innerHTML = "";
+            entries.forEach((entry) => {
+                listEl.appendChild(createTrackButton(entry));
+            });
+
+            setStatus(`Loaded ${entries.length} tracks. Click one to play.`);
+        }
+
+        loadList().catch((error) => {
+            console.error(error);
+            setStatus(`Error: ${error.message || error}`);
+        });
+    </script>
+</body>
+</html>
