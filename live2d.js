@@ -7,93 +7,9 @@
 (function () {
     'use strict';
 
-    function safeWarn() {
-        try { console.warn.apply(console, arguments); } catch {}
-    }
-
-    // Patch: Fallback for missing textures so models render even when some texture files 404.
-    // Installs a safe replacement for PIXI.Texture.fromURL and `PIXI.Texture.from`.
-    (function installPixiTextureFallback() {
-        function makePlaceholder() {
-            try {
-                const c = document.createElement('canvas');
-                c.width = 2; c.height = 2;
-                const ctx = c.getContext('2d');
-                ctx.clearRect(0,0,2,2);
-                const base = new PIXI.BaseTexture(c);
-                return new PIXI.Texture(base);
-            } catch (e) {
-                // If PIXI not available yet, return a simple object to avoid throws.
-                return { _placeholder: true };
-            }
-        }
-
-        function doPatch() {
-            if (!window.PIXI) return false;
-            if (PIXI.__mrTextureFallbackInstalled) return true;
-
-            // Patch async loader from URL
-            try {
-                if (typeof PIXI.Texture.fromURL === 'function') {
-                    const origFromURL = PIXI.Texture.fromURL.bind(PIXI.Texture);
-                    PIXI.Texture.fromURL = async function (url, options) {
-                        try {
-                            return await origFromURL(url, options);
-                        } catch (e) {
-                            safeWarn('Missing texture, using placeholder:', url);
-                            return makePlaceholder();
-                        }
-                    };
-                }
-            } catch (e) {}
-
-            // Patch synchronous Texture.from (often used by libraries)
-            try {
-                if (typeof PIXI.Texture.from === 'function') {
-                    const origFrom = PIXI.Texture.from.bind(PIXI.Texture);
-                    PIXI.Texture.from = function (resource, options) {
-                        try {
-                            return origFrom(resource, options);
-                        } catch (e) {
-                            safeWarn('Texture.from failed, using placeholder:', resource);
-                            return makePlaceholder();
-                        }
-                    };
-                }
-            } catch (e) {}
-
-            PIXI.__mrTextureFallbackInstalled = true;
-            return true;
-        }
-
-        // Try immediate patch; also retry once PIXI becomes available.
-        try { doPatch(); } catch (e) {}
-        const handle = setInterval(() => { if (doPatch()) clearInterval(handle); }, 250);
-    })();
-
-    // Suppress thrown/rejected texture-loading errors from terminating model load.
-    (function suppressTextureErrors() {
-        try {
-            window.addEventListener('unhandledrejection', function (ev) {
-                try {
-                    const r = ev && ev.reason ? String(ev.reason) : '';
-                    if (r.includes('Texture loading error')) {
-                        safeWarn('Suppressed unhandled rejection:', r);
-                        ev.preventDefault();
-                    }
-                } catch (e) {}
-            });
-            window.addEventListener('error', function (ev) {
-                try {
-                    const m = ev && ev.message ? String(ev.message) : '';
-                    if (m.includes('Texture loading error')) {
-                        safeWarn('Suppressed error event:', m);
-                        ev.preventDefault();
-                    }
-                } catch (e) {}
-            });
-        } catch (e) {}
-    })();
+    // safeWarn is provided globally by pixi-patches.js; fall back defensively
+    // so a reordered script tag can't hard-break this file.
+    const safeWarn = window.safeWarn || function (...a) { try { console.warn(...a); } catch {} };
 
     function easeOutCubic(t) {
         const tt = Math.max(0, Math.min(1, Number(t) || 0));
@@ -104,6 +20,19 @@
         const n = Number(v);
         if (!Number.isFinite(n)) return 0;
         return Math.max(0, Math.min(1, n));
+    }
+
+    // A parameter's working state: current value, whether the user locked it,
+    // and whether manual control is active (overriding blink/motion).
+    function createParamState(initialValue = 0) {
+        return { value: initialValue, locked: false, manualActive: false };
+    }
+
+    // Shared setter for the {value, locked, manualActive} triplet.
+    function setManualParam(p, value, locked, parseFn) {
+        p.value = parseFn ? parseFn(value) : clamp01(value);
+        p.locked = !!locked;
+        p.manualActive = true;
     }
 
     function setParameterById(model, id, value) {
@@ -158,22 +87,17 @@
             sequenceTimer: null,
             restartTimer: null,
             steps: [],
-            cheekManualActive: false,
-            cheekLocked: false,
-            cheekValue: 0,
+            // Clean parameter triplets: cheek / mouth / tear / soulGem.
+            // (Eye is special — it tweens, so it keeps a live value + tween
+            //  handle and is managed directly below.)
+            cheek: createParamState(0),
+            mouth: createParamState(0),
+            tear: createParamState(0),
+            soulGem: createParamState(0),
             eyeManualActive: false,
             eyeLocked: false,
             eyeOpenValue: 1,
             eyeTween: null,
-            mouthManualActive: false,
-            mouthLocked: false,
-            mouthOpenValue: 0,
-            tearManualActive: false,
-            tearLocked: false,
-            tearValue: 0,
-            soulGemManualActive: false,
-            soulGemLocked: false,
-            soulGemValue: 0,
             micActive: false,
             micAnalyser: null,
             micBuf: null,
@@ -262,7 +186,9 @@
                 };
                 mm.__mrV2PatchedCreateMotion = true;
             }
-        } catch {}
+        } catch (e) {
+            safeWarn('Motion policy setup failed', e);
+        }
 
         // Remove body sway (natural movement), but keep breath + blink.
         try {
@@ -290,7 +216,9 @@
                 } catch {}
                 im.__mrV2NoSwayInstalled = true;
             }
-        } catch {}
+        } catch (e) {
+            safeWarn('Natural movement patch failed', e);
+        }
 
         // Blink state
         const blink = {
@@ -306,7 +234,7 @@
         function cancelTween(tweenKey) {
             const tw = state[tweenKey];
             if (tw && typeof tw.raf === 'number') {
-                try { cancelAnimationFrame(tw.raf); } catch {}
+                cancelAnimationFrame(tw.raf);
             }
             state[tweenKey] = null;
         }
@@ -484,8 +412,8 @@
                 return;
             }
             if (typeof step.cheek === 'number') {
-                state.cheekManualActive = true;
-                state.cheekValue = mapCheekScenarioToParam(step.cheek);
+                state.cheek.manualActive = true;
+                state.cheek.value = mapCheekScenarioToParam(step.cheek);
             }
             if (typeof step.eyeOpen === 'number') {
                 state.eyeManualActive = true;
@@ -563,35 +491,25 @@
                 timeMs: 4200
             };
 
-            try {
-                if (typeof window !== 'undefined' && typeof CustomEvent === 'function') {
-                    window.dispatchEvent(new CustomEvent('mrv2:randomChoice', { detail: choice }));
-                }
-            } catch {}
+            if (typeof window !== 'undefined' && typeof CustomEvent === 'function') {
+                window.dispatchEvent(new CustomEvent('mrv2:randomChoice', { detail: choice }));
+            }
 
-            try { if (exprIdx !== null) setExpressionByIndex(exprIdx); } catch (e) {}
+            if (exprIdx !== null) setExpressionByIndex(exprIdx);
 
-            try {
-                state.cheekManualActive = true;
-                state.cheekValue = choice.cheek;
-                setParameterById(model, 'ParamCheek', Number(choice.cheek) || 0);
-            } catch (e) {}
+            state.cheek.manualActive = true;
+            state.cheek.value = choice.cheek;
+            setParameterById(model, 'ParamCheek', Number(choice.cheek) || 0);
 
-            try {
-                setEyeOpenTarget(choice.eyeOpen, { locked: true, durationMs: 300, releaseToAuto: false });
-            } catch (e) {}
+            setEyeOpenTarget(choice.eyeOpen, { locked: true, durationMs: 300, releaseToAuto: false });
 
-            try {
-                state.mouthManualActive = true;
-                state.mouthOpenValue = clamp01(choice.mouth);
-                setParameterById(model, 'ParamMouthOpenY', clamp01(choice.mouth));
-            } catch (e) {}
+            state.mouth.manualActive = true;
+            state.mouth.value = clamp01(choice.mouth);
+            setParameterById(model, 'ParamMouthOpenY', clamp01(choice.mouth));
 
-            try {
-                state.tearManualActive = true;
-                state.tearValue = clamp01(choice.tear);
-                setParameterById(model, 'ParamTear', clamp01(choice.tear));
-            } catch (e) {}
+            state.tear.manualActive = true;
+            state.tear.value = clamp01(choice.tear);
+            setParameterById(model, 'ParamTear', clamp01(choice.tear));
 
             // Soul gem: intentionally not modified by random choice.
 
@@ -624,18 +542,18 @@
                 setParameterById(m, 'ParamEyeROpen', v);
             }
 
-            if (state.cheekManualActive) {
-                const v = Number(state.cheekValue) || 0;
+            if (state.cheek.manualActive) {
+                const v = Number(state.cheek.value) || 0;
                 setParameterById(m, 'ParamCheek', v);
             }
 
-            if (state.tearManualActive) {
-                const v = clamp01(state.tearValue);
+            if (state.tear.manualActive) {
+                const v = clamp01(state.tear.value);
                 setParameterById(m, 'ParamTear', v);
             }
 
-            if (state.soulGemManualActive) {
-                const v = clamp01(state.soulGemValue);
+            if (state.soulGem.manualActive) {
+                const v = clamp01(state.soulGem.value);
                 // Note: asset parameter id is "ParamSoulgem" (lowercase g)
                 setParameterById(m, 'ParamSoulgem', v);
             }
@@ -656,8 +574,8 @@
                     const mouthValue = clamp01(base * (Number(state.micSensitivity) || 1));
                     setParameterById(m, 'ParamMouthOpenY', mouthValue);
                 } catch {}
-            } else if (state.mouthManualActive) {
-                setParameterById(m, 'ParamMouthOpenY', clamp01(state.mouthOpenValue));
+            } else if (state.mouth.manualActive) {
+                setParameterById(m, 'ParamMouthOpenY', clamp01(state.mouth.value));
             }
         }
 
@@ -670,8 +588,8 @@
         function beforeModelUpdate() {
             const m = state.model;
             if (!m) return;
-            if (!state.cheekManualActive) return;
-            const v = Number(state.cheekValue) || 0;
+            if (!state.cheek.manualActive) return;
+            const v = Number(state.cheek.value) || 0;
             setParameterById(m, 'ParamCheek', v);
         }
 
@@ -690,9 +608,7 @@
             clickPlayRandom,
 
             setCheek(value, locked) {
-                state.cheekValue = Number(value) || 0;
-                state.cheekLocked = !!locked;
-                state.cheekManualActive = true;
+                setManualParam(state.cheek, value, locked, (v) => Number(v) || 0);
             },
 
             // scenario_adv.json: eyeClose
@@ -713,28 +629,22 @@
             },
 
             setMouth(value, locked) {
-                state.mouthOpenValue = clamp01(value);
-                state.mouthLocked = !!locked;
-                state.mouthManualActive = true;
+                setManualParam(state.mouth, value, locked);
             },
 
 
             // scenario_adv.json: tear
             setTear(value, locked) {
-                state.tearValue = clamp01(value);
-                state.tearLocked = !!locked;
-                state.tearManualActive = true;
+                setManualParam(state.tear, value, locked);
             },
 
             // scenario_adv.json: soulGem
             setSoulGem(value, locked) {
-                state.soulGemValue = clamp01(value);
-                state.soulGemLocked = !!locked;
-                state.soulGemManualActive = true;
+                setManualParam(state.soulGem, value, locked);
             },
 
             clearMouthManualIfUnlocked() {
-                if (!state.mouthLocked) state.mouthManualActive = false;
+                if (!state.mouth.locked) state.mouth.manualActive = false;
             },
 
             setMic(active, analyser, buf, sensitivity) {

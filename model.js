@@ -852,74 +852,72 @@ function setupControlsForModel(model, modelJson) {
         };
 
         // Reflect random choices from controller in the UI
-        try {
-            window.addEventListener('mrv2:randomChoice', (ev) => {
+        window.addEventListener('mrv2:randomChoice', (ev) => {
+            try {
+                const d = ev && ev.detail;
+                if (!d) return;
+                // Motion select
+                if (motionSelect && typeof d.motionGroup !== 'undefined' && typeof d.motionIndex === 'number') {
+                    const v = JSON.stringify({ group: d.motionGroup, index: d.motionIndex });
+                    setSelectValue(motionSelect, v);
+                    motionSelect.value = v;
+                }
+                // Expression
+                if (expressionSelect && typeof d.faceName === 'string' && d.faceName !== 'null') {
+                    setSelectValue(expressionSelect, d.faceName);
+                    expressionSelect.value = d.faceName;
+                }
+                // Cheek radio
                 try {
-                    const d = ev && ev.detail;
-                    if (!d) return;
-                    // Motion select
-                    if (motionSelect && typeof d.motionGroup !== 'undefined' && typeof d.motionIndex === 'number') {
-                        const v = JSON.stringify({ group: d.motionGroup, index: d.motionIndex });
-                        setSelectValue(motionSelect, v);
-                        motionSelect.value = v;
+                    const r = document.querySelectorAll('input[name="cheek"]');
+                    for (const el of r) {
+                        if (String(el.value) === String(d.cheek)) {
+                            el.checked = true;
+                            applyCheek(el.value);
+                            break;
+                        }
                     }
-                    // Expression
-                    if (expressionSelect && typeof d.faceName === 'string' && d.faceName !== 'null') {
-                        setSelectValue(expressionSelect, d.faceName);
-                        expressionSelect.value = d.faceName;
+                } catch (e) { safeWarn('mrv2:randomChoice handler failed', e); }
+                // Eyes: update controller and the UI checkbox
+                try {
+                    // controller: use explicit method to support tweening
+                    if (state.currentController && typeof state.currentController.setEyeClosed === 'function') {
+                        state.currentController.setEyeClosed(d.eyeClose === true || d.eyeOpen === 0, false);
+                    } else {
+                        applyEyeClose(d.eyeOpen === 0);
                     }
-                    // Cheek radio
-                    try {
-                        const r = document.querySelectorAll('input[name="cheek"]');
-                        for (const el of r) {
-                            if (String(el.value) === String(d.cheek)) {
-                                el.checked = true;
-                                applyCheek(el.value);
-                                break;
-                            }
-                        }
-                    } catch {}
-                    // Eyes: update controller and the UI checkbox
-                    try {
-                        // controller: use explicit method to support tweening
-                        if (state.currentController && typeof state.currentController.setEyeClosed === 'function') {
-                            state.currentController.setEyeClosed(d.eyeClose === true || d.eyeOpen === 0, false);
-                        } else {
-                            applyEyeClosed(d.eyeOpen === 0);
-                        }
 
-                        // UI: find the checkbox by id and update checked state
-                        const eyeEl = document.getElementById('eyeClose');
-                        if (eyeEl) eyeEl.checked = (d.eyeClose === true || d.eyeOpen === 0);
-                    } catch {}
-                    // Mouth: update controller and the UI checkbox
-                    try {
-                        // controller: prefer tweened setter
-                        if (state.currentController && typeof state.currentController.setMouth === 'function') {
-                            // d.mouth may be 0..1 or an integer flag; treat mouthOpen flag first
-                            const mouthVal = (typeof d.mouth === 'number') ? d.mouth : ((d.mouthOpen) ? 1 : 0);
-                            state.currentController.setMouth(mouthVal, false);
-                        } else {
-                            const shouldOpen = (typeof d.mouth === 'number') ? (d.mouth > 0.5) : !!d.mouthOpen;
-                            applyMouthOpen(shouldOpen);
-                        }
+                    // UI: find the checkbox by id and update checked state
+                    const eyeEl = document.getElementById('eyeClose');
+                    if (eyeEl) eyeEl.checked = (d.eyeClose === true || d.eyeOpen === 0);
+                } catch (e) { safeWarn('mrv2:randomChoice handler failed', e); }
+                // Mouth: update controller and the UI checkbox
+                try {
+                    // controller: prefer tweened setter
+                    if (state.currentController && typeof state.currentController.setMouth === 'function') {
+                        // d.mouth may be 0..1 or an integer flag; treat mouthOpen flag first
+                        const mouthVal = (typeof d.mouth === 'number') ? d.mouth : ((d.mouthOpen) ? 1 : 0);
+                        state.currentController.setMouth(mouthVal, false);
+                    } else {
+                        const shouldOpen = (typeof d.mouth === 'number') ? (d.mouth > 0.5) : !!d.mouthOpen;
+                        applyMouthOpen(shouldOpen);
+                    }
 
-                        const mouthEl = document.getElementById('mouthOpen');
-                        if (mouthEl) mouthEl.checked = !!(d.mouthOpen || (typeof d.mouth === 'number' && d.mouth > 0.5));
-                    } catch {}
-                    // Tear: update controller and checkbox
-                    try {
-                        if (state.currentController && typeof state.currentController.setTear === 'function') {
-                            state.currentController.setTear(d.tear ? 1 : 0, false);
-                        }
-                        const tearEl = document.getElementById('tear');
-                        if (tearEl) tearEl.checked = !!d.tear;
-                    } catch {}
-                    // Soul Gem: intentionally ignore random choice for soul gem to avoid toggling it when Random is pressed.
-                    // Do not change controller/UI for soul gem on random events.
-                } catch (e) {}
-            });
-        } catch (e) {}
+                    const mouthEl = document.getElementById('mouthOpen');
+                    if (mouthEl) mouthEl.checked = !!(d.mouthOpen || (typeof d.mouth === 'number' && d.mouth > 0.5));
+                } catch (e) { safeWarn('mrv2:randomChoice handler failed', e); }
+                // Tear: update controller and checkbox
+                try {
+                    if (state.currentController && typeof state.currentController.setTear === 'function') {
+                        state.currentController.setTear(d.tear ? 1 : 0, false);
+                    }
+                    const tearEl = document.getElementById('tear');
+                    if (tearEl) tearEl.checked = !!d.tear;
+                } catch (e) { safeWarn('mrv2:randomChoice handler failed', e); }
+                // Soul Gem: intentionally ignore random choice for soul gem to avoid toggling it when Random is pressed.
+                // Do not change controller/UI for soul gem on random events.
+            } catch (e) { safeWarn('mrv2:randomChoice handler failed', e); }
+        });
     }
 }
 

@@ -283,40 +283,6 @@ export function setupManualControls() {
 
     if (soulGem) soulGem.onchange = (e) => applySoulGem(e.target.checked);
 
-    // Keep the UI in sync when Random is pressed (controller dispatches mrv2:randomChoice).
-    // This is intentionally located here (near the checkbox refs) so it always runs.
-    try {
-        window.addEventListener('mrv2:randomChoice', (ev) => {
-            try {
-                const d = ev && ev.detail;
-                if (!d) return;
-
-                // Eye Close
-                try {
-                    const closed = !!(d.eyeClose === true || d.eyeOpen === 0);
-                    if (eyeClose) eyeClose.checked = closed;
-                    applyEyeClose(closed);
-                } catch {}
-
-                // Mouth Open
-                try {
-                    const open = !!(d.mouthOpen || (typeof d.mouth === 'number' && d.mouth > 0.5));
-                    if (mouthOpen) mouthOpen.checked = open;
-                    applyMouthOpen(open);
-                } catch {}
-
-                // Tear
-                try {
-                    const enabled = !!d.tear;
-                    if (tear) tear.checked = enabled;
-                    applyTear(enabled);
-                } catch {}
-
-                // Soul Gem: intentionally ignore random changes; Random should not alter the soul gem checkbox or state.
-            } catch {}
-        });
-    } catch {}
-
     // mic lipsync: analyser lives here, mouth applied via afterMotionUpdate in live2d_v2
     let micStream = null;
     let micAnalyzer = null;
