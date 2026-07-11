@@ -1,0 +1,264 @@
+@charset "UTF-8";
+/*
+ * Shared MR UI Components
+ * Extracted from the original Magia Record common.css + StoryCollection.css
+ * Only the modular, reusable component styles  Eno global resets.
+ * Usage: link this from sound.html, quotes.html, etc.
+ */
+
+/* ===== Buttons: sb_gold_01 (small gold button, 3-slice) ===== */
+.sb_gold_01 {
+  min-width: 94px;
+  height: 34px;
+  padding: 0 16px;
+  background: url("../resource/image_web/common/btn/btn_s_gold_01_c.png") center top no-repeat;
+  background-size: calc(100% - 30px) 34px;
+  display: inline-block;
+  position: relative;
+  color: #a47122;
+  font-size: 14px;
+  line-height: 34px;
+  text-align: center;
+  border: none;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.sb_gold_01:before, .sb_gold_01:after {
+  width: 16px;
+  height: 34px;
+  display: block;
+  position: absolute;
+  top: 0;
+  content: "";
+}
+
+.sb_gold_01:before {
+  background: url("../resource/image_web/common/btn/btn_s_gold_01_l.png") left top no-repeat;
+  left: 0;
+}
+
+.sb_gold_01:after {
+  background: url("../resource/image_web/common/btn/btn_s_gold_01_r.png") left top no-repeat;
+  right: 0;
+}
+
+/* ===== Tabs: common_tab (gold variant) ===== */
+.common_tab {
+  list-style: none;
+  padding: 9px 0 0;
+  margin: 0;
+  display: block;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.common_tab li {
+  min-width: 176px;
+  height: 60px;
+  padding: 0 10px;
+  position: relative;
+  font-size: 18px;
+  line-height: 60px;
+  text-align: center;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.common_tab li:before, .common_tab li:after {
+  width: 32px;
+  height: 100%;
+  display: block;
+  position: absolute;
+  top: 0;
+  content: "";
+}
+
+.common_tab li:before {
+  left: 0;
+}
+
+.common_tab li:after {
+  right: 0;
+}
+
+.common_tab li span {
+  width: 100%;
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #b07422;
+  z-index: 100;
+}
+
+.common_tab.t_gold li {
+  background: url("../resource/image_web/common/btn/tab_gold_off_c.png") center top no-repeat;
+  background-size: calc(100% - 62px) 100%;
+  color: #ffffff;
+  text-shadow: -1px -1px 2px #b07422, 1px -1px 2px #b07422, -1px 1px 2px #b07422, 1px 1px 2px #b07422, -1px -1px 2px #b07422, 1px -1px 2px #b07422, -1px 1px 2px #b07422, 1px 1px 2px #b07422;
+}
+
+.common_tab.t_gold li:before {
+  background: url("../resource/image_web/common/btn/tab_gold_off_l.png") left top no-repeat;
+  background-size: 100% 100%;
+}
+
+.common_tab.t_gold li:after {
+  background: url("../resource/image_web/common/btn/tab_gold_off_r.png") left top no-repeat;
+  background-size: 100% 100%;
+}
+
+.common_tab.t_gold li span {
+  color: #ffffff;
+}
+
+.common_tab.t_gold li.current {
+  background: url("../resource/image_web/common/btn/tab_gold_on_c.png") center top no-repeat;
+  background-size: calc(100% - 62px) 100%;
+  color: #b07422;
+  text-shadow: 0 0;
+}
+
+.common_tab.t_gold li.current:before {
+  background: url("../resource/image_web/common/btn/tab_gold_on_l.png") left top no-repeat;
+  background-size: 100% 100%;
+}
+
+.common_tab.t_gold li.current:after {
+  background: url("../resource/image_web/common/btn/tab_gold_on_r.png") left top no-repeat;
+  background-size: 100% 100%;
+}
+
+.common_tab.t_gold li.current span {
+  color: #b07422;
+}
+
+/* ===== Frames ===== */
+
+/* commonFrame1: white panel with golden border + pink title header */
+.commonFrame1 {
+  min-width: 60px;
+  min-height: 60px;
+  padding: 10px;
+  background: -webkit-linear-gradient(bottom, #f0efed 0%, white 100%);
+  background: linear-gradient(to top, #f0efed 0%, white 100%);
+  position: relative;
+  border-radius: 25px;
+  box-sizing: border-box;
+}
+
+.commonFrame1:after {
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "";
+  pointer-events: none;
+  border-width: 20px;
+  border-style: solid;
+  border-image: url("../resource/image_web/common/frame/common_frame.png") 22 fill stretch;
+  z-index: 2;
+  filter: drop-shadow(0 0 3px #c6a882);
+  box-sizing: border-box;
+}
+
+/* Pink title bar shared by commonFrame1 and commonFrame3 */
+.commonFrame1 h2, .commonFrame3 h2 {
+  width: 458px;
+  background: url("../resource/image_web/common/frame/frame_title.png") left top no-repeat;
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #ffffff;
+  text-shadow: -1px -1px 2px #ff4f92, 1px -1px 2px #ff4f92, -1px 1px 2px #ff4f92, 1px 1px 2px #ff4f92, -1px -1px 2px #ff4f92, 1px -1px 2px #ff4f92, -1px 1px 2px #ff4f92, 1px 1px 2px #ff4f92;
+  margin: 0;
+}
+
+.commonFrame1 h2 {
+  padding: 0 20px;
+  background-size: 458px 32px;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  font-size: 18px;
+  line-height: 32px;
+  border-radius: 10px 0 0 0;
+  z-index: 1;
+}
+
+/* commonFrame2: semi-transparent panel with golden border (for tab sidebar) */
+.commonFrame2 {
+  min-width: 60px;
+  min-height: 60px;
+  padding: 10px;
+  background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.65) 100%);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.65) 100%);
+  position: relative;
+  border-radius: 25px;
+  box-sizing: border-box;
+}
+
+.commonFrame2:after {
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "";
+  pointer-events: none;
+  border-width: 20px;
+  border-style: solid;
+  border-image: url("../resource/image_web/common/frame/common_frame.png") 22 fill stretch;
+  z-index: 2;
+  filter: drop-shadow(0 0 3px #c6a882);
+  box-sizing: border-box;
+}
+
+/* commonFrame3: white card with golden outline shadow (list items) */
+.commonFrame3 {
+  margin: 2px;
+  background: #ffffff;
+  position: relative;
+  border: 2px solid #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 0 0 2px #c6a882, 0 0 5px #eee9e0 inset;
+  box-sizing: border-box;
+}
+
+/* ===== StoryCollection Layout (from StoryCollection.css) ===== */
+
+#StoryCollection {
+  width: 1024px;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+#StoryCollection #tabBtn {
+  width: 222px;
+  height: calc(100% - 94px);
+  padding: 15px 0px 15px;
+  position: absolute;
+  top: 70px;
+  left: 85px;
+}
+
+#StoryCollection #tabBtn .btn {
+  width: 188px;
+  margin-bottom: 4px;
+  margin-left: 18px;
+  font-size: 16px;
+}
+
+#StoryCollection #listWrap {
+  width: 610px;
+  height: calc(100% - 94px);
+  padding: 30px 0 0;
+  position: absolute;
+  top: 70px;
+  left: 328px;
+}
