@@ -576,7 +576,10 @@ export async function loadModel(modelId, opts = {}) {
     // Debug instrumentation (opt-in via ?debugFollow=1)
     installFollowDebugInstrumentation(model);
 
-    setupFollowForModel(model);
+    // Follow-on-click interactive behavior: keep for viewer, skip for quotes/story pages.
+    if (opts.interactive !== false) {
+        setupFollowForModel(model);
+    }
 
     await transitionIn(model, ctx, performFadeOut, lastMotionStart);
 }
@@ -697,7 +700,8 @@ function positionModel(model, params, modelId) {
     let scaleMult = 1.0;
 
     if (viewMode === 'home16') {
-        xGame = (HOME16_W / 2) + HOME16_OFFSET_X;
+        const home16OffsetX = (window.__QUOTES_CONFIG?.xOffset ?? HOME16_OFFSET_X);
+        xGame = (HOME16_W / 2) + home16OffsetX;
         yGameFromHeight = HOME16_Y_INTERCEPT + (heightParam * HOME16_Y_PER_HEIGHT);
     } else {
         // full43 + portrait both use the 4:3-derived y regression.

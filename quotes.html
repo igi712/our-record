@@ -2,10 +2,45 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
+    <title>Our Record - Quotes</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000000; }
+        #app { position: relative; width: 100vw; height: 100vh; }
+
+        canvas { display: block; width: 100%; height: 100%; }
+
+        /* Connecting / preloader UI */
+        .connecting { cursor: progress !important; }
+        #loading { display: none; position: absolute; width: 334px; height: 54px; background: url('assets/connecting.png') right bottom no-repeat; z-index: 40; pointer-events: none; }
+        .connecting #loading { display: block; }
+        /* Position relative to a centered 16:9 frame (landscape) */
+        #loading { right: calc((100vw - min(100vw, calc(100vh * 16 / 9))) / 2 + env(safe-area-inset-right, 0px)); bottom: 20px; }
+        @media (max-width:520px) {
+            #loading { right: calc((100vw - min(100vw, calc(100vh * 16 / 9))) / 2 + env(safe-area-inset-right, 12px)); bottom: 14px; width: 260px; height: 44px; background-size: contain; }
+        }
+        @media (orientation: portrait) {
+            #loading { right: calc((100vw - min(100vw, calc(100vh * 16 / 9))) / 2 + env(safe-area-inset-right, 0px)); }
+        }
+    </style>
+
+    <script src="lib/live2dcubismcore.min.js"></script>
+    <script src="lib/live2d.min.js"></script>
+    <script src="lib/pixi.min.js"></script>
+    <script src="lib/pixi-live2d-display-index.min.js"></script>
+    <script src="pixi-patches.js"></script>
 </head>
 <body>
-    <p>wip</p>
+    <div id="app">
+        <canvas id="canvas"></canvas>
+        <div id="loading" aria-hidden="true"></div>
+    </div>
+
+    <!-- Config MUST be set before viewer.js loads -->
+    <script>window.__QUOTES_CONFIG = { viewMode: 'home16', noGameBg: true, xOffset: -155 };</script>
+
+    <script src="viewer.js"></script>
+    <script src="live2d.js"></script>
+    <script type="module" src="quotes-main.js"></script>
 </body>
 </html>

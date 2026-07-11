@@ -36,6 +36,8 @@ function createVerticalGradientTexture(topRgb, bottomRgb, height = 256) {
     return PIXI.Texture.from(canvas);
 }
 
+
+
 // World is 1024x768 (4:3).
 // Historically we viewed the 16:9 home region (1024x576) centered inside it.
 // v2 viewer now defaults to full 4:3, but keeps the 16:9 numbers for future use.
@@ -68,6 +70,7 @@ function getInitialViewOverride() {
         if (v === 'home16' || v === '16:9' || v === '16x9') return 'home16';
         if (v === 'full43' || v === '4:3' || v === '4x3') return 'full43';
         if (v === 'portrait') return 'portrait';
+
         return null;
     } catch {
         return null;
@@ -79,10 +82,6 @@ function detectAutoViewMode() {
     return (window.innerHeight || 0) > (window.innerWidth || 0) ? 'portrait' : 'full43';
 }
 
-const viewerBgSprite = new PIXI.Sprite(createVerticalGradientTexture(0x000000, 0x333333));
-viewerBgSprite.position.set(0, 0);
-app.stage.addChild(viewerBgSprite);
-
 const cameraContainer = new PIXI.Container();
 
 const gameBg = new PIXI.Graphics();
@@ -92,9 +91,16 @@ const worldContainer = new PIXI.Container();
 cameraContainer.addChild(worldContainer);
 app.stage.addChild(cameraContainer);
 
+// Opaque borders covering bleeding from Live2D custom rendering
+const viewerBgTexture = createVerticalGradientTexture(0x000000, 0x333333);
+const viewerBgGraphics = new PIXI.Graphics();
+app.stage.addChild(viewerBgGraphics);
+
 const cameraMask = new PIXI.Graphics();
 cameraContainer.addChild(cameraMask);
 cameraContainer.mask = cameraMask;
+
+
 
 let currentViewW = VIEW43_W;
 let currentViewH = VIEW43_H;
@@ -121,11 +127,11 @@ function updateViewport() {
 
     app.renderer.resize(w, h);
 
-    viewerBgSprite.width = w;
-    viewerBgSprite.height = h;
+    // Opaque borders are updated at the end of the function
 
     const overrideMode = getInitialViewOverride();
-    const mode = overrideMode || detectAutoViewMode();
+    const configMode = window.__QUOTES_CONFIG?.viewMode;
+    const mode = overrideMode || configMode || detectAutoViewMode();
 
     let viewW = VIEW43_W;
     let viewH = VIEW43_H;
@@ -159,10 +165,13 @@ function updateViewport() {
     cameraMask.drawRect(0, 0, viewW, viewH);
     cameraMask.endFill();
 
+    // Always clear gameBg; only draw the gray fill when not suppressed by config.
     gameBg.clear();
-    gameBg.beginFill(0x999999);
-    gameBg.drawRect(0, 0, viewW, viewH);
-    gameBg.endFill();
+    if (!window.__QUOTES_CONFIG?.noGameBg) {
+        gameBg.beginFill(0x999999);
+        gameBg.drawRect(0, 0, viewW, viewH);
+        gameBg.endFill();
+    }
 
     // Scale: normally fit; in portrait, fill height to avoid letterboxing and allow horizontal cropping.
     let scale;
@@ -175,6 +184,25 @@ function updateViewport() {
     const vx = Math.floor((w - viewW * scale) / 2);
     const vy = Math.floor((h - viewH * scale) / 2);
     cameraContainer.position.set(vx, vy);
+
+    // Draw opaque borders over the letterbox/pillarbox areas.
+    // This hides any Live2D models that bleed outside the camera mask
+    // due to the library's custom WebGL state ignoring PIXI's stencil mask.
+    viewerBgGraphics.clear();
+    const matrix = new PIXI.Matrix();
+    matrix.scale(1, h / 256); // Stretch the 256px gradient to the screen height
+    viewerBgGraphics.beginTextureFill({ texture: viewerBgTexture, matrix: matrix });
+    
+    // Top border
+    if (vy > 0) viewerBgGraphics.drawRect(0, 0, w, vy);
+    // Bottom border
+    if (h - (vy + viewH * scale) > 0) viewerBgGraphics.drawRect(0, vy + viewH * scale, w, h - (vy + viewH * scale));
+    // Left border
+    if (vx > 0) viewerBgGraphics.drawRect(0, vy, vx, viewH * scale);
+    // Right border
+    if (w - (vx + viewW * scale) > 0) viewerBgGraphics.drawRect(vx + viewW * scale, vy, w - (vx + viewW * scale), viewH * scale);
+    
+    viewerBgGraphics.endFill();
 
     // Expose active viewport metrics for placement code.
     window.VIEWPORT = {
@@ -209,4 +237,4 @@ PIXI.live2d.Live2DModel.registerTicker(PIXI.Ticker);
 window.app = app;
 window.cameraContainer = cameraContainer;
 window.worldContainer = worldContainer;
-window.viewerBgSprite = viewerBgSprite;
+window.viewerBgSprite = viewerBgGraphics;
