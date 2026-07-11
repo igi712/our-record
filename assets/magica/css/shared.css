@@ -270,6 +270,10 @@
   position: fixed;
   pointer-events: none;
   z-index: 1000100;
+  transform: scale(0.75);
+  -webkit-transform: scale(0.75);
+  transform-origin: center;
+  -webkit-transform-origin: center;
 }
 
 .commonEffect .effect01, .commonEffect .effect02, .commonEffect .effect03 {
