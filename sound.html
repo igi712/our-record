@@ -5,11 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>MR Sound Mode</title>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/magica/css/shared.css">
     <style>
         body {
             font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
+            font-weight: 600;
             margin: 0;
             padding: 0;
             background-color: #050508;
@@ -19,6 +20,11 @@
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
+        }
+
+        h2, button, input, select, textarea {
+            font-family: inherit;
+            font-weight: 600;
         }
 
         #bgCanvas {
@@ -536,6 +542,54 @@
 
         // Trigger an initial resize layout sizing
         resizeBg();
+
+        // Tap effect interaction
+        let activeTapEffect = null;
+        let activeTapTimeout = null;
+
+        function showTapEffect(e) {
+            if (activeTapEffect) {
+                activeTapEffect.remove();
+                activeTapEffect = null;
+            }
+            if (activeTapTimeout) {
+                clearTimeout(activeTapTimeout);
+                activeTapTimeout = null;
+            }
+
+            const size = 256;
+            const x = e.clientX - size / 2;
+            const y = e.clientY - size / 2;
+
+            const effect = document.createElement('div');
+            effect.className = 'commonEffect';
+            effect.style.left = `${x}px`;
+            effect.style.top = `${y}px`;
+
+            const e1 = document.createElement('div');
+            e1.className = 'effect01';
+            const e2 = document.createElement('div');
+            e2.className = 'effect02';
+            const e3 = document.createElement('div');
+            e3.className = 'effect03';
+
+            effect.appendChild(e1);
+            effect.appendChild(e2);
+            effect.appendChild(e3);
+
+            document.body.appendChild(effect);
+
+            activeTapEffect = effect;
+
+            activeTapTimeout = setTimeout(() => {
+                effect.remove();
+                if (activeTapEffect === effect) {
+                    activeTapEffect = null;
+                }
+                activeTapTimeout = null;
+            }, 1000);
+        }
+        window.addEventListener('pointerdown', showTapEffect, true);
     </script>
 </body>
 

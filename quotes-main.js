@@ -164,6 +164,91 @@ async function init() {
     // Load the default Iroha model (100100); it fades in when ready.
     // interactivity disabled: no follow-on-click (this is a quotes page, not the viewer).
     loadModel("100100", { interactive: false }).catch((e) => console.error('[quotes] model load failed:', e));
+
+    // Tap effect interaction
+    window.addEventListener('pointerdown', showTapEffect, true);
+}
+
+let activeTapEffect = null;
+let activeTapTimeout = null;
+
+function showTapEffect(e) {
+    const camera = window.cameraContainer;
+    const viewport = window.VIEWPORT;
+    if (!camera || !viewport) return;
+
+    const vx = camera.x;
+    const vy = camera.y;
+    const scale = camera.scale.x;
+    const activeW = viewport.viewW * scale;
+    const activeH = viewport.viewH * scale;
+
+    // Check if the click is within the active game viewport boundaries
+    if (e.clientX < vx || e.clientX > vx + activeW || e.clientY < vy || e.clientY > vy + activeH) {
+        return; // Ignore clicks outside the active game viewport
+    }
+
+    // Immediately remove previous active tap effect if any
+    if (activeTapEffect) {
+        activeTapEffect.remove();
+        activeTapEffect = null;
+    }
+    if (activeTapTimeout) {
+        clearTimeout(activeTapTimeout);
+        activeTapTimeout = null;
+    }
+
+    // Coordinates relative to the active game viewport
+    const clickX = e.clientX - vx;
+    const clickY = e.clientY - vy;
+
+    // Create container if not exists
+    let container = document.getElementById('tapEffectContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'tapEffectContainer';
+        container.style.position = 'fixed';
+        container.style.overflow = 'hidden';
+        container.style.pointerEvents = 'none';
+        container.style.zIndex = '1000100';
+        document.body.appendChild(container);
+    }
+
+    // Keep the container aligned with the active game viewport
+    container.style.left = `${vx}px`;
+    container.style.top = `${vy}px`;
+    container.style.width = `${activeW}px`;
+    container.style.height = `${activeH}px`;
+
+    const size = 256;
+    const effect = document.createElement('div');
+    effect.className = 'commonEffect';
+    // Position absolute inside the overflow: hidden container
+    effect.style.position = 'absolute';
+    effect.style.left = `${clickX - size / 2}px`;
+    effect.style.top = `${clickY - size / 2}px`;
+
+    const e1 = document.createElement('div');
+    e1.className = 'effect01';
+    const e2 = document.createElement('div');
+    e2.className = 'effect02';
+    const e3 = document.createElement('div');
+    e3.className = 'effect03';
+
+    effect.appendChild(e1);
+    effect.appendChild(e2);
+    effect.appendChild(e3);
+
+    activeTapEffect = effect;
+    container.appendChild(effect);
+
+    activeTapTimeout = setTimeout(() => {
+        effect.remove();
+        if (activeTapEffect === effect) {
+            activeTapEffect = null;
+        }
+        activeTapTimeout = null;
+    }, 1000);
 }
 
 init();

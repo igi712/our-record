@@ -262,3 +262,173 @@
   top: 70px;
   left: 328px;
 }
+
+/* ===== Tap Effect ===== */
+.commonEffect {
+  width: 256px;
+  height: 256px;
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000100;
+}
+
+.commonEffect .effect01, .commonEffect .effect02, .commonEffect .effect03 {
+  width: 256px;
+  height: 256px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.commonEffect .effect01 {
+  background: url("../resource/image_web/common/tapEffect/tap_effect_circle.png") left top no-repeat;
+  -webkit-animation: tap_effect_circle 1s ease-in-out 0s 1 alternate;
+  -webkit-animation-fill-mode: both;
+  animation: tap_effect_circle 1s ease-in-out 0s 1 alternate;
+  animation-fill-mode: both;
+}
+
+.commonEffect .effect02 {
+  background: url("../resource/image_web/common/tapEffect/tap_effect_circle_s.png") left top no-repeat;
+  -webkit-animation: tap_effect_circle_s 1s ease-in-out 0s 1 alternate;
+  -webkit-animation-fill-mode: both;
+  animation: tap_effect_circle_s 1s ease-in-out 0s 1 alternate;
+  animation-fill-mode: both;
+}
+
+.commonEffect .effect03 {
+  background: url("../resource/image_web/common/tapEffect/tap_effect_glitter.png") left top no-repeat;
+  -webkit-animation: tap_effect_glitter 1s ease-in-out 0s 1 alternate;
+  -webkit-animation-fill-mode: both;
+  animation: tap_effect_glitter 1s ease-in-out 0s 1 alternate;
+  animation-fill-mode: both;
+}
+
+@-webkit-keyframes tap_effect_circle {
+  0% {
+    -webkit-transform: scale(0.3);
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  6% {
+    opacity: .8;
+  }
+  24% {
+    opacity: .8;
+  }
+  30% {
+    -webkit-transform: scale(0.8);
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes tap_effect_circle {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  6% {
+    opacity: .8;
+  }
+  24% {
+    opacity: .8;
+  }
+  30% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@-webkit-keyframes tap_effect_circle_s {
+  0% {
+    -webkit-transform: scale(0.4);
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  12% {
+    opacity: .8;
+  }
+  30% {
+    opacity: .8;
+  }
+  48% {
+    -webkit-transform: scale(0.8);
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes tap_effect_circle_s {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  12% {
+    opacity: .8;
+  }
+  30% {
+    opacity: .8;
+  }
+  48% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@-webkit-keyframes tap_effect_glitter {
+  0% {
+    -webkit-transform: scale(0.5);
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  18% {
+    opacity: .8;
+  }
+  34% {
+    opacity: .8;
+  }
+  58% {
+    -webkit-transform: scale(0.8);
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes tap_effect_glitter {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  18% {
+    opacity: .8;
+  }
+  34% {
+    opacity: .8;
+  }
+  58% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
