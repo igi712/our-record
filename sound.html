@@ -620,14 +620,14 @@
                 }
             } catch (e) { }
 
-            // 2) Local probe — try fetching the BGM list JSON from the local path
+            // 2) Local probe — try checking if a local BGM audio file exists
             const localBase = './assets/ma-re-data/resource/sound_native/bgm';
             try {
-                const probeUrl = `./assets/magireco-bgm.json`;
+                const probeUrl = `${localBase}/bgm02_anime11_hca.hca`;
                 console.debug('[MR-BGM] probing local assets at', probeUrl);
                 const controller = new AbortController();
                 const timer = setTimeout(() => controller.abort(), 2000);
-                const resp = await fetch(probeUrl, { method: 'GET', cache: 'no-store', signal: controller.signal });
+                const resp = await fetch(probeUrl, { method: 'HEAD', cache: 'no-store', signal: controller.signal });
                 clearTimeout(timer);
                 if (resp && resp.ok) {
                     _bgmBase = localBase;
