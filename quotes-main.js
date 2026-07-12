@@ -75,7 +75,7 @@ async function resolveBgmBase() {
     // 2) Local probe
     const localBase = './assets/ma-re-data/resource/sound_native/bgm';
     try {
-        const probeUrl = `${localBase}/magireco-bgm.json`;
+        const probeUrl = `./assets/magireco-bgm.json`;
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 2000);
         const resp = await fetch(probeUrl, { method: 'GET', cache: 'no-store', signal: controller.signal });

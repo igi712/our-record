@@ -22,7 +22,11 @@
             overflow: hidden;
         }
 
-        h2, button, input, select, textarea {
+        h2,
+        button,
+        input,
+        select,
+        textarea {
             font-family: inherit;
             font-weight: 600;
         }
@@ -86,30 +90,23 @@
             color: #ffffff;
             font-size: 20px;
             font-weight: 600;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
             letter-spacing: 1px;
             margin-right: 40px;
         }
 
-        /* Status Label */
-        #status {
-            position: absolute;
-            top: 9px;
-            right: 20px;
-            height: 24px;
-            line-height: 22px;
-            background: rgba(0, 0, 0, 0.4);
-            color: #ffffff;
-            font-size: 11px;
-            padding: 0 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(198, 168, 130, 0.6);
-            z-index: 3;
-            max-width: 300px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            box-sizing: border-box;
+        /* Heights adjustment to make room for bottom player controls */
+        #StoryCollection #tabBtn {
+            height: calc(100% - 150px);
+        }
+
+        #StoryCollection #listWrap {
+            height: calc(100% - 150px);
+        }
+
+        #tabBtn .common_tab {
+            overflow-y: auto;
+            max-height: 100%;
         }
 
         /* List Main Container (Positioned directly below pink header - no gap) */
@@ -125,127 +122,323 @@
 
         #bgmList {
             list-style: none;
-            padding: 10px 0;
+            padding: 15px;
             margin: 0;
             height: 100%;
             overflow-y: auto;
             box-sizing: border-box;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px 16px;
+            align-content: start;
         }
 
-        /* Custom scrollbar */
-        #bgmList::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        #bgmList::-webkit-scrollbar-track {
-            background: rgba(198, 168, 130, 0.15);
-            border-radius: 4px;
-        }
-
-        #bgmList::-webkit-scrollbar-thumb {
-            background: #c6a882;
-            border-radius: 4px;
-        }
-
-        #bgmList::-webkit-scrollbar-thumb:hover {
-            background: #b07422;
-        }
-
-        /* BGM card sizing (overrides base commonFrame3 from shared.css) */
-        #bgmList .commonFrame3 {
-            width: calc(100% - 30px);
-            height: 60px;
-            margin: 0 auto 10px;
+        #bgmList li {
             display: flex;
+            justify-content: center;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 15px;
-            transition: box-shadow 0.25s ease, background-color 0.25s ease;
+            width: 100%;
         }
 
-        /* Quest Card Active State Highlight */
-        .commonFrame3.playing {
-            box-shadow: 0 0 0 2px #ff4f92, 0 0 8px rgba(255, 79, 146, 0.4), 0 0 5px #eee9e0 inset;
-            background: #fffcfd;
+        /* ===== Buttons: sb_gold_02 (small gold button, 3-slice, no wings) ===== */
+        .bgm-btn {
+            width: 100%;
+            height: 34px;
+            padding: 0 14px;
+            display: inline-block;
+            position: relative;
+            font-size: 13px;
+            line-height: 34px;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+            box-sizing: border-box;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            font-family: inherit;
+            font-weight: 600;
         }
 
-        /* Original Story-style layout components */
-        .sectionNumber {
+        .bgm-btn:before,
+        .bgm-btn:after {
+            width: 10px;
+            height: 34px;
+            display: block;
             position: absolute;
             top: 0;
+            content: "";
+        }
+
+        .bgm-btn:before {
             left: 0;
-            height: 100%;
-            width: 120px;
+        }
+
+        .bgm-btn:after {
+            right: 0;
+        }
+
+        .sb_gold_02 {
+            background: url("assets/magica/resource/image_web/common/btn/btn_s_gold_02_c.png") center top no-repeat;
+            background-size: calc(100% - 20px) 34px;
+            color: #a47122;
+            text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.8);
+        }
+
+        .sb_gold_02:before {
+            background: url("assets/magica/resource/image_web/common/btn/btn_s_gold_02_l.png") left top no-repeat;
+        }
+
+        .sb_gold_02:after {
+            background: url("assets/magica/resource/image_web/common/btn/btn_s_gold_02_r.png") left top no-repeat;
+        }
+
+        .sb_gold_02:hover {
+            filter: brightness(1.05);
+        }
+
+        .sb_gold_02:active {
+            filter: brightness(0.95);
+        }
+
+        /* ===== Buttons: sb_pink (small pink button, 3-slice, active state) ===== */
+        .sb_pink {
+            background: url("assets/magica/resource/image_web/common/btn/btn_s_pink_c.png") center top no-repeat;
+            background-size: calc(100% - 20px) 34px;
+            color: #ffffff;
+            text-shadow: -1px -1px 2px #ff4f92, 1px -1px 2px #ff4f92, -1px 1px 2px #ff4f92, 1px 1px 2px #ff4f92;
+        }
+
+        .sb_pink:before {
+            background: url("assets/magica/resource/image_web/common/btn/btn_s_pink_l.png") left top no-repeat;
+        }
+
+        .sb_pink:after {
+            background: url("assets/magica/resource/image_web/common/btn/btn_s_pink_r.png") left top no-repeat;
+        }
+
+        .sb_pink:hover {
+            filter: brightness(1.05);
+        }
+
+        .sb_pink:active {
+            filter: brightness(0.95);
+        }
+
+        /* ===== Bottom Playback Controls Area ===== */
+        #bottomPlayer {
+            position: absolute;
+            bottom: 10px;
+            left: 85px;
+            width: 854px;
+            height: 58px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        /* Row 1: Progress Timeline (Centered & cohesive width) */
+        #timelineContainer {
             display: flex;
             align-items: center;
             justify-content: center;
-            border-top-left-radius: 4px;
-            border-bottom-left-radius: 4px;
-            box-sizing: border-box;
-            z-index: 1;
-            font-size: 13px;
+            gap: 12px;
+            width: 75%;
+            margin: 0 auto;
+        }
+
+        #timeElapsed,
+        #timeTotal {
+            font-size: 12px;
+            color: #ffffff;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+            width: 32px;
+            text-align: center;
+        }
+
+        #progressContainer {
+            flex-grow: 1;
+            height: 6px;
+            background: #ebdcc7;
+            border-radius: 3px;
+            border: 1px solid #c6a882;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        #progressFill {
+            height: 100%;
+            width: 0%;
+            background: #ff4f92;
+            border-radius: 3px;
+            transition: width 0.1s linear;
+        }
+
+        /* Row 2: Control Buttons + Now Playing */
+        #controlPanel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            height: 36px;
+        }
+
+        .control-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 240px;
+            justify-content: flex-start;
+        }
+
+        #nowPlaying {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-width: 0;
+            pointer-events: none;
+            position: relative;
+        }
+
+        #nowPlayingText {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-family: inherit;
+            position: relative;
+            width: 100%;
+        }
+
+        #nowPlayingMain {
+            font-size: 16px;
             font-weight: 600;
             color: #ffffff;
-            background: #bca17d;
-            text-shadow: -1px -1px 0 #7d6342, 1px -1px 0 #7d6342, -1px 1px 0 #7d6342, 1px 1px 0 #7d6342;
-        }
-
-        .sectionNumber::after {
-            content: "";
-            position: absolute;
-            right: -15px;
-            top: 0;
-            width: 0;
-            height: 0;
-            border-top: 30px solid transparent;
-            border-bottom: 30px solid transparent;
-            border-left: 15px solid #bca17d;
-            z-index: 1;
-        }
-
-        .sectionNumber.col-brown {
-            background: #bca17d;
-            text-shadow: -1px -1px 0 #7d6342, 1px -1px 0 #7d6342, -1px 1px 0 #7d6342, 1px 1px 0 #7d6342;
-        }
-        .sectionNumber.col-brown::after {
-            border-left-color: #bca17d;
-        }
-
-        .sectionNumber.col-yellow {
-            background: #eebc29;
-            text-shadow: -1px -1px 0 #a67707, 1px -1px 0 #a67707, -1px 1px 0 #a67707, 1px 1px 0 #a67707;
-        }
-        .sectionNumber.col-yellow::after {
-            border-left-color: #eebc29;
-        }
-
-        .sectionNumber.col-purple {
-            background: #493b82;
-            text-shadow: -1px -1px 0 #281e54, 1px -1px 0 #281e54, -1px 1px 0 #281e54, 1px 1px 0 #281e54;
-        }
-        .sectionNumber.col-purple::after {
-            border-left-color: #493b82;
-        }
-
-        .sectionNumber.col-blue {
-            background: #3976af;
-            text-shadow: -1px -1px 0 #1b4973, 1px -1px 0 #1b4973, -1px 1px 0 #1b4973, 1px 1px 0 #1b4973;
-        }
-        .sectionNumber.col-blue::after {
-            border-left-color: #3976af;
-        }
-
-        .sectionTitle {
-            flex-grow: 1;
-            margin-left: 145px;
-            margin-right: 15px;
-            font-size: 15px;
-            color: #4a3c31;
-            font-weight: 600;
+            text-shadow: 0 0 5px #ff4f92, 0 0 5px #ff4f92, 0 0 5px #ff4f92, 0 0 5px #ff4f92;
+            line-height: 1.5;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            text-align: left;
+            width: 100%;
+        }
+
+        #nowPlayingSub {
+            font-size: 11px;
+            font-weight: 600;
+            color: #ffffff;
+            text-shadow: 0 0 3px #ff4f92, 0 0 3px #ff4f92, 0 0 3px #ff4f92;
+            line-height: 1.5;
+            opacity: 0.95;
+            position: absolute;
+            top: 20px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        .control-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 240px;
+            justify-content: flex-end;
+        }
+
+        /* Standard circular gold/pink buttons */
+        .control-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #c6a882;
+            background: linear-gradient(to bottom, #ffffff 0%, #f7f4ee 100%);
+            color: #b07422;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s ease;
+            padding: 0;
+            padding-bottom: 2px;
+            /* Visual vertical offset adjustment for baseline-heavy Unicode characters */
+            font-family: inherit;
+        }
+
+        .control-btn:hover {
+            border-color: #ff4f92;
+            color: #ff4f92;
+            box-shadow: 0 0 5px rgba(255, 79, 146, 0.4);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .control-icon-btn {
+            background: none;
+            border: none;
+            color: #c6a882;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            font-family: inherit;
+            font-weight: 600;
+        }
+
+        .control-icon-btn:hover {
+            color: #ff4f92;
+            text-shadow: 0 0 4px rgba(255, 79, 146, 0.5);
+        }
+
+        /* Volume Custom Slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        input[type="range"]:focus {
+            outline: none;
+        }
+
+        #volumeSlider {
+            width: 80px;
+            height: 6px;
+            background: #ebdcc7;
+            border-radius: 3px;
+            border: 1px solid #c6a882;
+        }
+
+        #volumeSlider::-webkit-slider-runnable-track {
+            height: 4px;
+            background: transparent;
+        }
+
+        #volumeSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #c6a882;
+            border: 1px solid #ffffff;
+            margin-top: -5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        #volumeSlider::-webkit-slider-thumb:hover {
+            background: #ff4f92;
         }
     </style>
     <script src="lib/pixi.min.js"></script>
@@ -258,7 +451,6 @@
         <!-- Top Bar -->
         <div class="top-bar">
             <a href="index.html" id="backBtn">Back</a>
-            <div class="page-title">SOUND ARCHIVE</div>
         </div>
 
         <!-- Story Archive Main View -->
@@ -266,16 +458,55 @@
             <!-- Left Side Categories -->
             <div id="tabBtn" class="commonFrame2">
                 <ul class="common_tab t_gold">
-                    <li class="btn se_tabs current"><span>Game BGM</span></li>
+                    <!-- Dynamically populated from JS -->
                 </ul>
             </div>
 
             <!-- Right Side Song List -->
             <div id="listWrap" class="commonFrame1 main">
-                <h2 id="listTitle">BGM List</h2>
-                <div id="status">Loading...</div>
+                <h2 id="listTitle">Event Stories</h2>
                 <div class="listMain">
                     <ul id="bgmList"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Controls & Now Playing Area -->
+        <div id="bottomPlayer">
+            <!-- Row 1: Progress Timeline -->
+            <div id="timelineContainer">
+                <span id="timeElapsed">0:00</span>
+                <div id="progressContainer">
+                    <div id="progressFill"></div>
+                </div>
+                <span id="timeTotal">0:00</span>
+            </div>
+
+            <!-- Row 2: Playback Controls -->
+            <div id="controlPanel">
+                <!-- Buttons Left -->
+                <div class="control-left">
+                    <button id="prevBtn" class="control-btn" title="Previous Track"
+                        style="padding-bottom: 2px;">⏮</button>
+                    <button id="playPauseBtn" class="control-btn" title="Play/Pause">▶</button>
+                    <button id="stopBtn" class="control-btn" title="Stop">◼</button>
+                    <button id="nextBtn" class="control-btn" title="Next Track">⏭</button>
+                    <button id="loopModeBtn" class="control-btn" title="Loop Track"
+                        style="padding-bottom: 2px;"></button>
+                </div>
+
+                <!-- Now Playing Center -->
+                <div id="nowPlaying">
+                    <div id="nowPlayingText">
+                        <span id="nowPlayingMain">Select a track to play</span>
+                        <span id="nowPlayingSub"></span>
+                    </div>
+                </div>
+
+                <!-- Volume Right -->
+                <div class="control-right">
+                    <button id="volumeBtn" class="control-btn" title="Mute/Unmute"></button>
+                    <input type="range" id="volumeSlider" min="0" max="1" value="0.5" step="0.05">
                 </div>
             </div>
         </div>
@@ -344,8 +575,10 @@
         const KEY1 = 0x01395C51;
         const KEY2 = 0x00000000;
 
-        const statusEl = document.getElementById("status");
+        const nowPlayingTextEl = document.getElementById("nowPlayingText");
         const listEl = document.getElementById("bgmList");
+        const tabsContainer = document.querySelector("#tabBtn .common_tab");
+        const listTitleEl = document.getElementById("listTitle");
 
         let hcaModule;
         let hcaBlobUrl;
@@ -390,7 +623,7 @@
             // 2) Local probe — try fetching the BGM list JSON from the local path
             const localBase = './assets/ma-re-data/resource/sound_native/bgm';
             try {
-                const probeUrl = `${localBase}/magireco-bgm.json`;
+                const probeUrl = `./assets/magireco-bgm.json`;
                 console.debug('[MR-BGM] probing local assets at', probeUrl);
                 const controller = new AbortController();
                 const timer = setTimeout(() => controller.abort(), 2000);
@@ -415,7 +648,7 @@
         }
 
         function setStatus(text) {
-            statusEl.textContent = text;
+            console.info('[MR-BGM] Status:', text);
         }
 
         async function initWorker() {
@@ -435,8 +668,337 @@
             return worker;
         }
 
-        async function playTrack(fileName, desc) {
+        const LOOP_TRACK_SVG = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><text x="12" y="15" font-size="8" font-family="sans-serif" font-weight="bold" fill="currentColor" text-anchor="middle">1</text></svg>`;
+        const LOOP_GROUP_SVG = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`;
+        const LOOP_NONE_SVG = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>`;
+
+        const VOL_HIGH_SVG = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="display: block;"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`;
+        const VOL_LOW_SVG = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="display: block;"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>`;
+        const VOL_MUTE_SVG = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="display: block;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>`;
+
+        let savedVolume = localStorage.getItem("bgmVolume") !== null ? parseFloat(localStorage.getItem("bgmVolume")) : 0.5;
+        let preMuteVolume = savedVolume > 0 ? savedVolume : 0.5;
+        let loopMode = "track"; // "track", "group", "none"
+        let timelineInterval = null;
+        let startCtxTime = 0;
+        let elapsedBeforePause = 0;
+
+        // Initialize UI values
+        document.getElementById("volumeSlider").value = savedVolume;
+        updateVolumeIcon(savedVolume);
+        updateVolumeSliderFill(savedVolume);
+        document.getElementById("loopModeBtn").innerHTML = LOOP_TRACK_SVG;
+
+        document.getElementById("volumeSlider").addEventListener("input", (e) => {
+            const val = parseFloat(e.target.value);
+            setVolume(val);
+        });
+
+        document.getElementById("volumeBtn").addEventListener("click", () => {
+            if (savedVolume > 0) {
+                setVolume(0);
+            } else {
+                setVolume(preMuteVolume);
+            }
+        });
+
+        document.getElementById("playPauseBtn").addEventListener("click", togglePlayPause);
+        document.getElementById("stopBtn").addEventListener("click", stopBgm);
+        document.getElementById("prevBtn").addEventListener("click", playPrevTrack);
+        document.getElementById("nextBtn").addEventListener("click", playNextTrack);
+        document.getElementById("loopModeBtn").addEventListener("click", toggleLoopMode);
+
+        // Click on progress bar to seek BGM position
+        document.getElementById("progressContainer").addEventListener("click", (e) => {
+            if (!player || player.closed || !player.bufSrc || !player.bufSrc.buffer) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const pct = clickX / rect.width;
+            const duration = player.bufSrc.buffer.duration;
+            const targetSeconds = pct * duration;
+            seekTo(targetSeconds);
+        });
+
+        function updateVolumeIcon(val) {
+            const volumeBtn = document.getElementById("volumeBtn");
+            if (val === 0) {
+                volumeBtn.innerHTML = VOL_MUTE_SVG;
+            } else if (val < 0.5) {
+                volumeBtn.innerHTML = VOL_LOW_SVG;
+            } else {
+                volumeBtn.innerHTML = VOL_HIGH_SVG;
+            }
+        }
+
+        function updateVolumeSliderFill(val) {
+            const slider = document.getElementById("volumeSlider");
+            slider.style.background = `linear-gradient(to right, #ff4f92 ${val * 100}%, #ebdcc7 ${val * 100}%)`;
+        }
+
+        function setVolume(val) {
+            savedVolume = val;
+            localStorage.setItem("bgmVolume", val);
+            if (player && !player.closed) {
+                player.volume = val;
+            }
+            updateVolumeIcon(val);
+            updateVolumeSliderFill(val);
+            document.getElementById("volumeSlider").value = val;
+            if (val > 0) {
+                preMuteVolume = val;
+            }
+        }
+
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds < 0) return "0:00";
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        function startTimelineUpdate() {
+            stopTimelineUpdate();
+            startCtxTime = player.audioCtx.currentTime;
+            elapsedBeforePause = 0;
+
+            const progressFill = document.getElementById("progressFill");
+            const timeElapsedEl = document.getElementById("timeElapsed");
+            const timeTotalEl = document.getElementById("timeTotal");
+
+            const duration = player.bufSrc.buffer.duration;
+            timeTotalEl.textContent = formatTime(duration);
+
+            timelineInterval = setInterval(() => {
+                if (!player || player.closed) {
+                    stopTimelineUpdate();
+                    return;
+                }
+
+                let elapsed = 0;
+                if (player.audioCtx.state === "suspended") {
+                    elapsed = elapsedBeforePause;
+                } else {
+                    elapsed = (player.audioCtx.currentTime - startCtxTime) + elapsedBeforePause;
+                }
+
+                if (player.bufSrc.loop) {
+                    elapsed = elapsed % duration;
+                } else if (elapsed >= duration) {
+                    elapsed = duration;
+                    stopTimelineUpdate();
+                }
+
+                const pct = Math.min(100, (elapsed / duration) * 100);
+                progressFill.style.width = `${pct}%`;
+                timeElapsedEl.textContent = formatTime(elapsed);
+            }, 100);
+        }
+
+        function stopTimelineUpdate() {
+            if (timelineInterval) {
+                clearInterval(timelineInterval);
+                timelineInterval = null;
+            }
+        }
+
+        function togglePlayPause() {
+            if (!player || player.closed) return;
+            const playPauseBtn = document.getElementById("playPauseBtn");
+            if (player.audioCtx.state === "running") {
+                player.pause();
+                playPauseBtn.textContent = "▶";
+                playPauseBtn.title = "Play";
+                elapsedBeforePause += (player.audioCtx.currentTime - startCtxTime);
+            } else {
+                player.play();
+                playPauseBtn.textContent = "❚❚";
+                playPauseBtn.title = "Pause";
+                startCtxTime = player.audioCtx.currentTime;
+            }
+        }
+
+        async function stopBgm() {
+            stopTimelineUpdate();
+            if (player && !player.closed) {
+                if (player.bufSrc) {
+                    player.bufSrc.onended = null;
+                }
+                await player.stop();
+            }
+            player = null;
+
+            document.getElementById("playPauseBtn").textContent = "▶";
+            document.getElementById("playPauseBtn").title = "Play";
+            document.getElementById("progressFill").style.width = "0%";
+            document.getElementById("timeElapsed").textContent = "0:00";
+            document.getElementById("timeTotal").textContent = "0:00";
+
+            updateNowPlaying(null);
+
+            if (activeBgmBtn) {
+                activeBgmBtn.className = "sb_gold_02 bgm-btn";
+                activeBgmBtn = null;
+            }
+            playingFilename = null;
+        }
+
+        async function seekTo(seconds) {
+            if (!player || player.closed || !player.bufSrc || !player.bufSrc.buffer) return;
             try {
+                player.bufSrc.onended = null;
+                try {
+                    player.bufSrc.stop();
+                } catch (e) { }
+                player.bufSrc.disconnect();
+
+                const newSource = player.audioCtx.createBufferSource();
+                newSource.buffer = player.bufSrc.buffer;
+
+                if (player.info.loop != null && player.info.loop.end > player.info.loop.start) {
+                    newSource.loopStart = player.info.loopStartTime;
+                    newSource.loopEnd = player.info.loopEndTime;
+                    newSource.loop = player.bufSrc.loop;
+                }
+
+                newSource.connect(player.gainNode);
+                newSource.start(0, seconds);
+                player.bufSrc = newSource;
+                player.bufSrcStarted = true;
+
+                elapsedBeforePause = seconds;
+                startCtxTime = player.audioCtx.currentTime;
+
+                player.bufSrc.onended = () => {
+                    if (loopMode === "group") {
+                        playNextTrack();
+                    } else if (loopMode === "none") {
+                        stopBgm();
+                    }
+                };
+
+                // Resume audioCtx if it was paused and we want to keep playing
+                const playPauseBtn = document.getElementById("playPauseBtn");
+                if (player.audioCtx.state === "suspended") {
+                    player.play();
+                    playPauseBtn.textContent = "❚❚";
+                    playPauseBtn.title = "Pause";
+                }
+            } catch (e) {
+                console.error('[MR-BGM] Seek failed:', e);
+            }
+        }
+
+        function playNextTrack() {
+            const activeGroup = bgmGroups[currentGroupIdx];
+            if (!activeGroup || !activeGroup.entries) return;
+            const entries = activeGroup.entries.filter(e => typeof e.filename === "string" && e.filename.endsWith(".hca"));
+            if (entries.length === 0) return;
+
+            let nextIdx = 0;
+            if (playingFilename) {
+                const currentIdx = entries.findIndex(e => e.filename === playingFilename);
+                if (currentIdx !== -1) {
+                    nextIdx = (currentIdx + 1) % entries.length;
+                }
+            }
+
+            const nextEntry = entries[nextIdx];
+            playEntry(nextEntry);
+        }
+
+        function playPrevTrack() {
+            const activeGroup = bgmGroups[currentGroupIdx];
+            if (!activeGroup || !activeGroup.entries) return;
+            const entries = activeGroup.entries.filter(e => typeof e.filename === "string" && e.filename.endsWith(".hca"));
+            if (entries.length === 0) return;
+
+            let prevIdx = 0;
+            if (playingFilename) {
+                const currentIdx = entries.findIndex(e => e.filename === playingFilename);
+                if (currentIdx !== -1) {
+                    prevIdx = (currentIdx - 1 + entries.length) % entries.length;
+                }
+            }
+
+            const prevEntry = entries[prevIdx];
+            playEntry(prevEntry);
+        }
+
+        function playEntry(entry) {
+            const btn = listEl.querySelector(`button[data-filename="${entry.filename}"]`);
+            if (btn) {
+                btn.click();
+            } else {
+                const desc = entry.desc ? entry.desc.trim() : "";
+                const displayName = desc || entry.filename.replace(/\.hca$/i, '');
+                const context = entry.context ? entry.context.trim() : "";
+
+                if (activeBgmBtn) {
+                    activeBgmBtn.className = "sb_gold_02 bgm-btn";
+                    activeBgmBtn = null;
+                }
+                playingFilename = entry.filename;
+                playTrack(entry.filename, displayName, context);
+            }
+        }
+
+        function toggleLoopMode() {
+            const btn = document.getElementById("loopModeBtn");
+            if (loopMode === "track") {
+                loopMode = "group";
+                btn.innerHTML = LOOP_GROUP_SVG;
+                btn.title = "Loop Group";
+                if (player && !player.closed) {
+                    player.bufSrc.loop = false;
+                    // Reset timeline variables so elapsed starts from the current modulo position
+                    if (player.bufSrc.buffer) {
+                        const duration = player.bufSrc.buffer.duration;
+                        const currentElapsed = ((player.audioCtx.currentTime - startCtxTime) + elapsedBeforePause) % duration;
+                        elapsedBeforePause = currentElapsed;
+                        startCtxTime = player.audioCtx.currentTime;
+                    }
+                }
+            } else if (loopMode === "group") {
+                loopMode = "none";
+                btn.innerHTML = LOOP_NONE_SVG;
+                btn.title = "Play Once";
+                if (player && !player.closed) {
+                    player.bufSrc.loop = false;
+                }
+            } else {
+                loopMode = "track";
+                btn.innerHTML = LOOP_TRACK_SVG;
+                btn.title = "Loop Track";
+                if (player && !player.closed) {
+                    player.bufSrc.loop = true;
+                    // Reset timeline variables to keep absolute sync
+                    if (player.bufSrc.buffer) {
+                        const duration = player.bufSrc.buffer.duration;
+                        const currentElapsed = ((player.audioCtx.currentTime - startCtxTime) + elapsedBeforePause) % duration;
+                        elapsedBeforePause = currentElapsed;
+                        startCtxTime = player.audioCtx.currentTime;
+                    }
+                }
+            }
+        }
+
+        function updateNowPlaying(displayName, context) {
+            const mainEl = document.getElementById("nowPlayingMain");
+            const subEl = document.getElementById("nowPlayingSub");
+            if (mainEl && subEl) {
+                if (displayName) {
+                    mainEl.textContent = displayName;
+                    subEl.textContent = context || "";
+                } else {
+                    mainEl.textContent = "Select a track to play";
+                    subEl.textContent = "";
+                }
+            }
+        }
+
+        async function playTrack(fileName, displayName, context) {
+            try {
+                stopTimelineUpdate();
                 setStatus(`Loading ${fileName}...`);
                 const activeWorker = await initWorker();
                 await resolveBgmBase(); // Ensure base is resolved
@@ -451,87 +1013,160 @@
                 const newPlayer = await hcaModule.HCAWebAudioLoopPlayer.create(decrypted, activeWorker);
 
                 if (player) {
+                    if (player.bufSrc) {
+                        player.bufSrc.onended = null;
+                    }
                     await player.stop();
                 }
                 player = newPlayer;
+                player.volume = savedVolume;
                 player.playInBackground = true;
+
+                // Configure loop behavior
+                if (loopMode === "track") {
+                    player.bufSrc.loop = true;
+                } else {
+                    player.bufSrc.loop = false;
+                }
+
+                player.bufSrc.onended = () => {
+                    if (loopMode === "group") {
+                        playNextTrack();
+                    } else if (loopMode === "none") {
+                        stopBgm();
+                    }
+                };
+
                 player.play();
 
-                setStatus(`Now playing: ${fileName}${desc ? ` — ${desc}` : ""}`);
+                const playPauseBtn = document.getElementById("playPauseBtn");
+                playPauseBtn.textContent = "❚❚";
+                playPauseBtn.title = "Pause";
+
+                startTimelineUpdate();
+
+                setStatus(`Now playing: ${fileName} (${displayName})`);
+                updateNowPlaying(displayName, context);
             } catch (error) {
                 console.error(error);
                 setStatus(`Error: ${error.message || error}`);
+                updateNowPlaying(`Error: ${error.message || error}`, "");
             }
         }
 
-        let activeItemEl = null;
+        let activeBgmBtn = null;
+        let playingFilename = null;
 
         function createTrackButton(entry, idx) {
             const item = document.createElement("li");
-            item.className = "commonFrame3";
 
             const fileName = entry.filename;
             const desc = entry.desc ? entry.desc.trim() : "";
-            
-            // Remove the .hca extension for the badge
-            const badgeText = fileName.replace(/\.hca$/i, '');
-
-            const colors = ["col-brown", "col-yellow", "col-purple", "col-blue"];
-            const colorClass = colors[idx % colors.length];
-
-            const badge = document.createElement("div");
-            badge.className = `sectionNumber ${colorClass}`;
-            badge.textContent = badgeText;
-            item.appendChild(badge);
-
-            const descEl = document.createElement("div");
-            descEl.className = "sectionTitle";
-            descEl.textContent = desc || fileName;
-            item.appendChild(descEl);
+            const displayName = desc || fileName.replace(/\.hca$/i, '');
+            const context = entry.context ? entry.context.trim() : "";
 
             const button = document.createElement("button");
-            button.className = "sb_gold_01";
-            button.textContent = "Playback";
-            button.addEventListener("click", () => {
-                if (activeItemEl) {
-                    activeItemEl.classList.remove("playing");
-                    const prevBtn = activeItemEl.querySelector(".sb_gold_01");
-                    if (prevBtn) prevBtn.textContent = "Playback";
-                }
-                item.classList.add("playing");
-                button.textContent = "Playing";
-                activeItemEl = item;
+            button.setAttribute("data-filename", fileName);
 
-                playTrack(fileName, desc);
+            if (playingFilename === fileName) {
+                button.className = "sb_pink bgm-btn playing";
+                activeBgmBtn = button;
+            } else {
+                button.className = "sb_gold_02 bgm-btn";
+            }
+
+            button.textContent = displayName;
+            button.title = displayName;
+
+            button.addEventListener("click", () => {
+                if (activeBgmBtn) {
+                    activeBgmBtn.className = "sb_gold_02 bgm-btn";
+                }
+                button.className = "sb_pink bgm-btn playing";
+                activeBgmBtn = button;
+                playingFilename = fileName;
+
+                playTrack(fileName, displayName, context);
             });
 
             item.appendChild(button);
             return item;
         }
 
+        let bgmGroups = [];
+        let currentGroupIdx = 0;
+
+        function selectGroup(idx) {
+            currentGroupIdx = idx;
+
+            const tabs = tabsContainer.querySelectorAll("li");
+            tabs.forEach((tab, tIdx) => {
+                if (tIdx === idx) {
+                    tab.classList.add("current");
+                } else {
+                    tab.classList.remove("current");
+                }
+            });
+
+            const group = bgmGroups[idx];
+            listTitleEl.textContent = group.groupname || "BGM List";
+
+            // Render BGM tracks
+            listEl.innerHTML = "";
+            const entries = (group.entries || [])
+                .filter((entry) => typeof entry.filename === "string" && entry.filename.endsWith(".hca"));
+
+            entries.forEach((entry, idx) => {
+                listEl.appendChild(createTrackButton(entry, idx));
+            });
+
+            listEl.scrollTop = 0; // Scroll back to top when switching groups
+        }
+
+        function renderGroups() {
+            tabsContainer.innerHTML = "";
+            bgmGroups.forEach((group, idx) => {
+                const li = document.createElement("li");
+                li.className = "btn se_tabs";
+                if (idx === currentGroupIdx) {
+                    li.classList.add("current");
+                }
+
+                const span = document.createElement("span");
+                span.textContent = group.groupname || `Group ${idx + 1}`;
+                li.appendChild(span);
+
+                li.addEventListener("click", () => {
+                    selectGroup(idx);
+                });
+
+                tabsContainer.appendChild(li);
+            });
+        }
+
         async function loadList() {
             setStatus("Loading BGM list...");
             const base = await resolveBgmBase();
-            const listUrl = `${base}/magireco-bgm.json`;
+            const listUrl = `./assets/magireco-bgm.json`;
             const response = await fetch(listUrl);
             if (!response.ok) {
                 throw new Error(`Failed to load BGM list: ${response.status} ${response.statusText}`);
             }
 
-            const groups = await response.json();
-            const entries = groups
-                .flatMap((group) => Array.isArray(group.entries) ? group.entries : [])
-                .filter((entry) => typeof entry.filename === "string" && entry.filename.endsWith(".hca"));
-
-            listEl.innerHTML = "";
-            entries.forEach((entry, idx) => {
-                listEl.appendChild(createTrackButton(entry, idx));
-            });
+            bgmGroups = await response.json();
+            const totalTracksCount = bgmGroups.reduce((acc, group) => {
+                const entries = Array.isArray(group.entries) ? group.entries : [];
+                return acc + entries.filter(e => typeof e.filename === "string" && e.filename.endsWith(".hca")).length;
+            }, 0);
 
             const sourceLabel = _bgmBaseSource ? ` (${_bgmBaseSource})` : '';
-            setStatus(`Loaded ${entries.length} tracks${sourceLabel}. Click one to play.`);
-            
-            // Initial call to scale the app properly right after list is ready
+            setStatus(`Loaded ${bgmGroups.length} groups containing ${totalTracksCount} tracks${sourceLabel}.`);
+
+            renderGroups();
+            if (bgmGroups.length > 0) {
+                selectGroup(0);
+            }
+
             resizeBg();
         }
 

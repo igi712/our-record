@@ -1,0 +1,1074 @@
+[
+    {
+        "groupname": "Arc 1",
+        "entries": [
+            {
+                "filename": "bgm00_system01_hca.hca",
+                "desc": "Kakawari (Off Vocal)"
+            },
+            {
+                "filename": "bgm01_battle01_hca.hca",
+                "desc": "Infinite Battle"
+            },
+            {
+                "filename": "bgm01_battle02_hca.hca",
+                "desc": "First Contact"
+            },
+            {
+                "filename": "bgm01_battle03_hca.hca",
+                "desc": "Place to Hunt"
+            },
+            {
+                "filename": "bgm01_battle04_hca.hca",
+                "desc": "Creation"
+            },
+            {
+                "filename": "bgm01_battle05_hca.hca",
+                "desc": "Awaken"
+            },
+            {
+                "filename": "bgm01_battle06_hca.hca",
+                "desc": "Welcome to Mirrors"
+            },
+            {
+                "filename": "bgm01_battle07_hca.hca",
+                "desc": "Battle Bell"
+            },
+            {
+                "filename": "bgm01_battle08_hca.hca",
+                "desc": "Depth in the Mirror"
+            },
+            {
+                "filename": "bgm01_battle09_hca.hca",
+                "desc": "The Other Side"
+            },
+            {
+                "filename": "bgm01_battle10_hca.hca",
+                "desc": "Initiation Battle"
+            },
+            {
+                "filename": "bgm01_battle11_hca.hca",
+                "desc": "Magical Artist"
+            },
+            {
+                "filename": "bgm01_battle12_hca.hca",
+                "desc": "Calculated Future"
+            },
+            {
+                "filename": "bgm01_battle13_hca.hca",
+                "desc": "Reunion"
+            },
+            {
+                "filename": "bgm02_boss01_hca.hca",
+                "desc": "Be Terrified"
+            },
+            {
+                "filename": "bgm02_boss02_hca.hca",
+                "desc": "Wings of Magius"
+            },
+            {
+                "filename": "bgm02_boss03_hca.hca",
+                "desc": "Full Moon"
+            },
+            {
+                "filename": "bgm02_boss04_hca.hca",
+                "desc": "The Imaginator"
+            },
+            {
+                "filename": "bgm03_story01_hca.hca",
+                "desc": "Lost Tension"
+            },
+            {
+                "filename": "bgm03_story02_hca.hca",
+                "desc": "Memories"
+            },
+            {
+                "filename": "bgm03_story03_hca.hca",
+                "desc": "To Remember"
+            },
+            {
+                "filename": "bgm03_story04_hca.hca",
+                "desc": "The Lecture"
+            },
+            {
+                "filename": "bgm03_story05_hca.hca",
+                "desc": "Repeat Days"
+            },
+            {
+                "filename": "bgm03_story06_hca.hca",
+                "desc": "Twilight"
+            },
+            {
+                "filename": "bgm03_story07_hca.hca",
+                "desc": "Remain"
+            },
+            {
+                "filename": "bgm03_story08_hca.hca",
+                "desc": "Anxiety"
+            },
+            {
+                "filename": "bgm03_story09_hca.hca",
+                "desc": "Coordinator"
+            },
+            {
+                "filename": "bgm03_story10_hca.hca",
+                "desc": "Into The Territory"
+            },
+            {
+                "filename": "bgm03_story11_hca.hca",
+                "desc": "Thought of You"
+            },
+            {
+                "filename": "bgm03_story12_hca.hca",
+                "desc": "Touch One's Heart"
+            },
+            {
+                "filename": "bgm03_story13_hca.hca",
+                "desc": "Hotel Fenthope"
+            },
+            {
+                "filename": "bgm03_story14_hca.hca",
+                "desc": "Uwasa-san"
+            },
+            {
+                "filename": "bgm03_story15_hca.hca",
+                "desc": "Intermediate"
+            },
+            {
+                "filename": "bgm03_story16_hca.hca",
+                "desc": "One Day She Meets"
+            },
+            {
+                "filename": "bgm03_story17_hca.hca",
+                "desc": "Plot"
+            },
+            {
+                "filename": "bgm03_story18_hca.hca",
+                "desc": "Farewell"
+            },
+            {
+                "filename": "bgm03_story19_hca.hca",
+                "desc": "This Morning"
+            },
+            {
+                "filename": "bgm03_story20_hca.hca",
+                "desc": "Little Trick"
+            },
+            {
+                "filename": "bgm03_story21_hca.hca",
+                "desc": "Hot Summer Day"
+            },
+            {
+                "filename": "bgm03_story22_hca.hca",
+                "desc": "Last Dungeon"
+            },
+            {
+                "filename": "bgm03_story23_hca.hca",
+                "desc": "Inception"
+            }
+        ]
+    },
+    {
+        "groupname": "Events",
+        "entries": [
+            {
+                "filename": "bgm05_event01_hca.hca",
+                "desc": "Happy Christmas"
+            },
+            {
+                "filename": "bgm05_event02_hca.hca",
+                "desc": "Happy New Year"
+            },
+            {
+                "filename": "bgm05_event03_hca.hca",
+                "desc": "Battle Fields"
+            },
+            {
+                "filename": "bgm05_event04_hca.hca",
+                "desc": "The Crow"
+            },
+            {
+                "filename": "bgm05_event05_hca.hca",
+                "desc": "Painful Memories"
+            },
+            {
+                "filename": "bgm05_event06_hca.hca",
+                "desc": "Sunshine of the Mind"
+            },
+            {
+                "filename": "bgm05_event07_hca.hca",
+                "desc": "Complex Home"
+            },
+            {
+                "filename": "bgm05_event08_hca.hca",
+                "desc": "Inerasable"
+            },
+            {
+                "filename": "bgm05_event09_hca.hca",
+                "desc": "There is"
+            },
+            {
+                "filename": "bgm05_event10_hca.hca",
+                "desc": "Day of Rest"
+            },
+            {
+                "filename": "bgm05_event11_hca.hca",
+                "desc": "Double Christmas"
+            },
+            {
+                "filename": "bgm05_event12_hca.hca",
+                "desc": "Kokuhou High End"
+            },
+            {
+                "filename": "bgm05_event13_hca.hca",
+                "desc": "BGM 5 Event 13",
+                "context": "Giuseppe Verdi's \"Libiamo ne' lieti calici\" (Piano Arrangement)"
+            },
+            {
+                "filename": "bgm05_event14_hca.hca",
+                "desc": "BGM 5 Event 14",
+                "context": "Ludwig van Beethoven's \"Violin Sonata No. 5 in F Major \"Spring\""
+            },
+            {
+                "filename": "bgm05_event15_hca.hca",
+                "desc": "BGM 5 Event 15",
+                "context": "Wolfgang Amadeus Mozart's \"Dies irae\" (from Requiem, K. 626)"
+            }
+        ]
+    },
+    {
+        "groupname": "Arc 2",
+        "entries": [
+            {
+                "filename": "bgm20_song01_hca.hca",
+                "desc": "Signal"
+            },
+            {
+                "filename": "bgm20_song03_hca.hca",
+                "desc": "Utsuroi"
+            },
+            {
+                "filename": "bgm20_song05_hca.hca",
+                "desc": "Sazanka no Ato"
+            },
+            {
+                "filename": "bgm20_song07_hca.hca",
+                "desc": "Bulimia"
+            },
+            {
+                "filename": "bgm20_song09_2_hca.hca",
+                "desc": "Cinis (Volume Down)"
+            },
+            {
+                "filename": "bgm20_song09_hca.hca",
+                "desc": "Cinis"
+            },
+            {
+                "filename": "bgm20_song10_hca.hca",
+                "desc": "Cinis (Off Vocal)"
+            },
+            {
+                "filename": "bgm20_song11_hca.hca",
+                "desc": "Kanaechao"
+            },
+            {
+                "filename": "bgm20_song12_hca.hca",
+                "desc": "Kanaechao (Off Vocal)"
+            },
+            {
+                "filename": "bgm20_song13_2_hca.hca",
+                "desc": "Ideology (Volume Down)"
+            },
+            {
+                "filename": "bgm20_song13_hca.hca",
+                "desc": "Ideology"
+            },
+            {
+                "filename": "bgm20_song14_hca.hca",
+                "desc": "Ideology (Off Vocal)"
+            },
+            {
+                "filename": "bgm20_song15_hca.hca",
+                "desc": "Funeral Song (Ensou)"
+            },
+            {
+                "filename": "bgm20_song16_hca.hca",
+                "desc": "Funeral Song (Ensou) (Off Vocal)"
+            },
+            {
+                "filename": "bgm21_system01_hca.hca",
+                "desc": "Arc 2 System 1",
+                "context": "Extermination Battle Menu"
+            },
+            {
+                "filename": "bgm21_system02_hca.hca",
+                "desc": "Arc 2 System 2",
+                "context": "Puella Historia Menu / Ch 12 Story"
+            },
+            {
+                "filename": "bgm21_system03_hca.hca",
+                "desc": "Outbreak"
+            },
+            {
+                "filename": "bgm21_system04_hca.hca",
+                "desc": "Arc 2 System 4",
+                "context": "Battle Museum Menu"
+            },
+            {
+                "filename": "bgm22_battle01_hca.hca",
+                "desc": "Arc 2 Battle 1)",
+                "context": "Extermination Battle Boss"
+            },
+            {
+                "filename": "bgm22_battle03_hca.hca",
+                "desc": "Arc 2 Battle 3",
+                "context": "Battle Museum Stage"
+            },
+            {
+                "filename": "bgm22_battle04_hca.hca",
+                "desc": "Arc 2 Battle 4",
+                "context": "Pillar of Tomorrow"
+            },
+            {
+                "filename": "bgm22_battle05_hca.hca",
+                "desc": "Arc 2 Battle 5",
+                "context": "Chapter 10 Main Theme"
+            },
+            {
+                "filename": "bgm22_battle06_hca.hca",
+                "desc": "Arc 2 Battle 6",
+                "context": "Mirror Witch Winchester Battle"
+            },
+            {
+                "filename": "bgm22_battle07_hca.hca",
+                "desc": "Arc 2 Battle 7",
+                "context": "Mirror Witch Winchester Battle - Phase 2"
+            },
+            {
+                "filename": "bgm22_battle08_hca.hca",
+                "desc": "Battle Fanfare"
+            },
+            {
+                "filename": "bgm22_battle09_hca.hca",
+                "desc": "Bloody Battle"
+            },
+            {
+                "filename": "bgm22_battle10_hca.hca",
+                "desc": "Descended Battle"
+            },
+            {
+                "filename": "bgm22_battle11_hca.hca",
+                "desc": "Dance in the War"
+            },
+            {
+                "filename": "bgm22_battle12_hca.hca",
+                "desc": "New Era"
+            },
+            {
+                "filename": "bgm22_battle13_hca.hca",
+                "desc": "Battle Wings"
+            },
+            {
+                "filename": "bgm22_battle14_hca.hca",
+                "desc": "Arc 2 Battle 14",
+                "context": "Chapter 11 Ep 4 Climax"
+            },
+            {
+                "filename": "bgm22_battle15_hca.hca",
+                "desc": "Arc 2 Battle 15",
+                "context": "Chapter 11 Ep 4 Tension"
+            },
+            {
+                "filename": "bgm22_battle16_hca.hca",
+                "desc": "Arc 2 Battle 16",
+                "context": "Chapter 12 Ep 3 vs. Puella Care"
+            },
+            {
+                "filename": "bgm22_battle17_hca.hca",
+                "desc": "Arc 2 Battle 17",
+                "context": "Chapter 9 Encounter"
+            },
+            {
+                "filename": "bgm22_battle18_hca.hca",
+                "desc": "Chain Battle"
+            },
+            {
+                "filename": "bgm22_battle19_hca.hca",
+                "desc": "Arc 2 Battle 19",
+                "context": "Unreleased Climax Theme"
+            },
+            {
+                "filename": "bgm22_battle20_hca.hca",
+                "desc": "Arc 2 Battle 20",
+                "context": "Chapter 9 Skirmish"
+            },
+            {
+                "filename": "bgm22_battle21_hca.hca",
+                "desc": "Sapphire"
+            },
+            {
+                "filename": "bgm22_battle22_hca.hca",
+                "desc": "Ruby"
+            },
+            {
+                "filename": "bgm22_battle23_hca.hca",
+                "desc": "Aqua Marine"
+            },
+            {
+                "filename": "bgm22_battle24_hca.hca",
+                "desc": "Turquoise"
+            },
+            {
+                "filename": "bgm22_battle25_hca.hca",
+                "desc": "Opal"
+            },
+            {
+                "filename": "bgm22_battle26_hca.hca",
+                "desc": "Pearl"
+            },
+            {
+                "filename": "bgm22_battle27_hca.hca",
+                "desc": "Diamond"
+            },
+            {
+                "filename": "bgm22_battle28_hca.hca",
+                "desc": "Garnet"
+            },
+            {
+                "filename": "bgm23_folklore01_hca.hca",
+                "desc": "Folklore of 0"
+            },
+            {
+                "filename": "bgm23_folklore02_hca.hca",
+                "desc": "Story Telling"
+            },
+            {
+                "filename": "bgm23_folklore03_hca.hca",
+                "desc": "Old Days"
+            },
+            {
+                "filename": "bgm23_folklore04_hca.hca",
+                "desc": "Gloomy"
+            },
+            {
+                "filename": "bgm23_folklore05_hca.hca",
+                "desc": "Ambient"
+            },
+            {
+                "filename": "bgm23_folklore06_hca.hca",
+                "desc": "Forbidden"
+            },
+            {
+                "filename": "bgm23_magus01_hca.hca",
+                "desc": "Neo Magius"
+            },
+            {
+                "filename": "bgm23_magus02_hca.hca",
+                "desc": "Feather Rest"
+            },
+            {
+                "filename": "bgm23_magus03_hca.hca",
+                "desc": "Fly High"
+            },
+            {
+                "filename": "bgm23_magus04_hca.hca",
+                "desc": "Mystery"
+            },
+            {
+                "filename": "bgm23_magus05_hca.hca",
+                "desc": "Frantic"
+            },
+            {
+                "filename": "bgm23_magus06_hca.hca",
+                "desc": "New Order"
+            },
+            {
+                "filename": "bgm23_promised01_hca.hca",
+                "desc": "Promised Blood"
+            },
+            {
+                "filename": "bgm23_promised02_hca.hca",
+                "desc": "Daily Life"
+            },
+            {
+                "filename": "bgm23_promised03_hca.hca",
+                "desc": "Funny Three"
+            },
+            {
+                "filename": "bgm23_promised04_hca.hca",
+                "desc": "Mysterious Red"
+            },
+            {
+                "filename": "bgm23_promised05_hca.hca",
+                "desc": "Crimson Fear"
+            },
+            {
+                "filename": "bgm23_promised06_hca.hca",
+                "desc": "Pressure"
+            },
+            {
+                "filename": "bgm23_puella01_hca.hca",
+                "desc": "Puella Care"
+            },
+            {
+                "filename": "bgm23_puella02_hca.hca",
+                "desc": "Travelling"
+            },
+            {
+                "filename": "bgm23_puella03_hca.hca",
+                "desc": "Trailer House"
+            },
+            {
+                "filename": "bgm23_puella04_hca.hca",
+                "desc": "Mysterious Road"
+            },
+            {
+                "filename": "bgm23_puella05_hca.hca",
+                "desc": "Road to Nowhere"
+            },
+            {
+                "filename": "bgm23_puella06_hca.hca",
+                "desc": "Trip in the Dark"
+            },
+            {
+                "filename": "bgm23_tokime01_hca.hca",
+                "desc": "Tokime Tribe"
+            },
+            {
+                "filename": "bgm23_tokime02_hca.hca",
+                "desc": "Country Side"
+            },
+            {
+                "filename": "bgm23_tokime03_hca.hca",
+                "desc": "In Nature"
+            },
+            {
+                "filename": "bgm23_tokime04_hca.hca",
+                "desc": "Ritual"
+            },
+            {
+                "filename": "bgm23_tokime05_hca.hca",
+                "desc": "Longing"
+            },
+            {
+                "filename": "bgm23_tokime06_hca.hca",
+                "desc": "Heritage"
+            },
+            {
+                "filename": "bgm24_story01_hca.hca",
+                "desc": "Heritage (Alternate Edit)"
+            },
+            {
+                "filename": "bgm24_story02_hca.hca",
+                "desc": "Revive"
+            },
+            {
+                "filename": "bgm24_story03_hca.hca",
+                "desc": "Inferiority"
+            },
+            {
+                "filename": "bgm24_story04_hca.hca",
+                "desc": "Night Combat"
+            },
+            {
+                "filename": "bgm24_story05_hca.hca",
+                "desc": "Ignition"
+            },
+            {
+                "filename": "bgm24_story06_hca.hca",
+                "desc": "Faint Breath"
+            },
+            {
+                "filename": "bgm24_story07_hca.hca",
+                "desc": "Alone"
+            },
+            {
+                "filename": "bgm24_story08_hca.hca",
+                "desc": "Ordinary"
+            },
+            {
+                "filename": "bgm24_story09_hca.hca",
+                "desc": "Counter Strike"
+            }
+        ]
+    },
+    {
+        "groupname": "PMMM",
+        "entries": [
+            {
+                "filename": "bgm01_anime02_hca.hca",
+                "desc": "Scaena felix"
+            },
+            {
+                "filename": "bgm01_anime03_hca.hca",
+                "desc": "Postmeridie"
+            },
+            {
+                "filename": "bgm01_anime04_hca.hca",
+                "desc": "Conturbatio"
+            },
+            {
+                "filename": "bgm01_anime05_hca.hca",
+                "desc": "Puella in somnio"
+            },
+            {
+                "filename": "bgm01_anime06_hca.hca",
+                "desc": "Salve, terrae magicae"
+            },
+            {
+                "filename": "bgm01_anime07_hca.hca",
+                "desc": "Desiderium"
+            },
+            {
+                "filename": "bgm01_anime08_hca.hca",
+                "desc": "Gradus prohibitus"
+            },
+            {
+                "filename": "bgm01_anime09_hca.hca",
+                "desc": "Credens justitiam"
+            },
+            {
+                "filename": "bgm01_anime10_hca.hca",
+                "desc": "Sis puella magica!"
+            },
+            {
+                "filename": "bgm01_anime11_hca.hca",
+                "desc": "Inevitabilis"
+            },
+            {
+                "filename": "bgm01_anime12_hca.hca",
+                "desc": "Pugna cum maga"
+            },
+            {
+                "filename": "bgm01_anime13_hca.hca",
+                "desc": "Vocalise Op. 34 No. 14"
+            },
+            {
+                "filename": "bgm01_anime14_hca.hca",
+                "desc": "Umbra nigra"
+            },
+            {
+                "filename": "bgm01_anime15_hca.hca",
+                "desc": "Venari strigas"
+            },
+            {
+                "filename": "bgm01_anime16_hca.hca",
+                "desc": "Agmen clientum"
+            },
+            {
+                "filename": "bgm01_anime17_hca.hca",
+                "desc": "Signum malum"
+            },
+            {
+                "filename": "bgm01_anime18_hca.hca",
+                "desc": "Serena ira"
+            },
+            {
+                "filename": "bgm01_anime19_hca.hca",
+                "desc": "Incertus"
+            },
+            {
+                "filename": "bgm01_anime20_hca.hca",
+                "desc": "Ave Maria"
+            },
+            {
+                "filename": "bgm01_anime21_hca.hca",
+                "desc": "Decretum"
+            },
+            {
+                "filename": "bgm01_anime22_hca.hca",
+                "desc": "Anima mala"
+            },
+            {
+                "filename": "bgm01_anime25_hca.hca",
+                "desc": "Connect (Game Instrumental)"
+            },
+            {
+                "filename": "bgm02_anime02_hca.hca",
+                "desc": "Amicae carae meae"
+            },
+            {
+                "filename": "bgm02_anime03_hca.hca",
+                "desc": "Clementia"
+            },
+            {
+                "filename": "bgm02_anime06_hca.hca",
+                "desc": "Confessio"
+            },
+            {
+                "filename": "bgm02_anime07_hca.hca",
+                "desc": "Cor destructum"
+            },
+            {
+                "filename": "bgm02_anime08_hca.hca",
+                "desc": "Terror adhaerens"
+            },
+            {
+                "filename": "bgm02_anime09_hca.hca",
+                "desc": "Symposium magarum"
+            },
+            {
+                "filename": "bgm02_anime10_2_hca.hca",
+                "desc": "Numquam vincar (Extended Edit)"
+            },
+            {
+                "filename": "bgm02_anime10_hca.hca",
+                "desc": "Numquam vincar"
+            },
+            {
+                "filename": "bgm02_anime11_hca.hca",
+                "desc": "Quamobrem?"
+            },
+            {
+                "filename": "bgm02_anime12_hca.hca",
+                "desc": "Surgam identidem"
+            },
+            {
+                "filename": "bgm02_anime13_hca.hca",
+                "desc": "Nux Walpurgis"
+            },
+            {
+                "filename": "bgm02_anime14_hca.hca",
+                "desc": "Sagitta luminis"
+            },
+            {
+                "filename": "bgm02_anime15_hca.hca",
+                "desc": "Cubiculum album"
+            },
+            {
+                "filename": "bgm02_anime16_hca.hca",
+                "desc": "Taenia memoriae"
+            },
+            {
+                "filename": "bgm02_anime17_hca.hca",
+                "desc": "Pergo pugnare"
+            }
+        ]
+    },
+    {
+        "groupname": "PMMM Movie",
+        "entries": [
+            {
+                "filename": "bgm03_movie05_hca.hca",
+                "desc": "odd world #2"
+            },
+            {
+                "filename": "bgm03_movie10_hca.hca",
+                "desc": "something unusual"
+            },
+            {
+                "filename": "bgm03_movie11_hca.hca",
+                "desc": "crises happening"
+            },
+            {
+                "filename": "bgm03_movie12_hca.hca",
+                "desc": "witch world #1"
+            },
+            {
+                "filename": "bgm03_movie13_hca.hca",
+                "desc": "odd world #3"
+            },
+            {
+                "filename": "bgm03_movie14_hca.hca",
+                "desc": "wicked"
+            },
+            {
+                "filename": "bgm03_movie15_hca.hca",
+                "desc": "a human bullet"
+            },
+            {
+                "filename": "bgm03_movie17_hca.hca",
+                "desc": "touch-and-go"
+            },
+            {
+                "filename": "bgm03_movie20_hca.hca",
+                "desc": "she has a heart"
+            },
+            {
+                "filename": "bgm03_movie22_hca.hca",
+                "desc": "wounded feeling"
+            },
+            {
+                "filename": "bgm03_movie23_hca.hca",
+                "desc": "witch world #2"
+            },
+            {
+                "filename": "bgm03_movie27_hca.hca",
+                "desc": "threatening"
+            },
+            {
+                "filename": "bgm03_movie29_hca.hca",
+                "desc": "fateful #4"
+            },
+            {
+                "filename": "bgm03_movie35_hca.hca",
+                "desc": "her wings"
+            },
+            {
+                "filename": "bgm03_movie37_hca.hca",
+                "desc": "for the next episode"
+            },
+            {
+                "filename": "bgm04_movie01_hca.hca",
+                "desc": "once we were"
+            },
+            {
+                "filename": "bgm04_movie02_hca.hca",
+                "desc": "nightmare ballet"
+            },
+            {
+                "filename": "bgm04_movie03_hca.hca",
+                "desc": "Mada dame yo"
+            },
+            {
+                "filename": "bgm04_movie04_hca.hca",
+                "desc": "nice to meet you"
+            },
+            {
+                "filename": "bgm04_movie06_hca.hca",
+                "desc": "nightmare!!"
+            },
+            {
+                "filename": "bgm04_movie07_hca.hca",
+                "desc": "Holly Quintet"
+            },
+            {
+                "filename": "bgm04_movie08_hca.hca",
+                "desc": "one for all"
+            },
+            {
+                "filename": "bgm04_movie09_hca.hca",
+                "desc": "he is..."
+            },
+            {
+                "filename": "bgm04_movie11_hca.hca",
+                "desc": "The battle is over"
+            },
+            {
+                "filename": "bgm04_movie12_hca.hca",
+                "desc": "something, everything is wrong"
+            },
+            {
+                "filename": "bgm04_movie13_hca.hca",
+                "desc": "raise the curtain"
+            },
+            {
+                "filename": "bgm04_movie14_hca.hca",
+                "desc": "never get there"
+            },
+            {
+                "filename": "bgm04_movie15_hca.hca",
+                "desc": "I remember"
+            },
+            {
+                "filename": "bgm04_movie16_hca.hca",
+                "desc": "face the truth"
+            },
+            {
+                "filename": "bgm04_movie17_hca.hca",
+                "desc": "doubt #2"
+            },
+            {
+                "filename": "bgm04_movie18_hca.hca",
+                "desc": "gonna fight with me"
+            },
+            {
+                "filename": "bgm04_movie19_hca.hca",
+                "desc": "absolute configuration"
+            },
+            {
+                "filename": "bgm04_movie20_hca.hca",
+                "desc": "her decision"
+            },
+            {
+                "filename": "bgm04_movie21_hca.hca",
+                "desc": "where is the truth?"
+            },
+            {
+                "filename": "bgm04_movie22_hca.hca",
+                "desc": "pulling my own weight"
+            },
+            {
+                "filename": "bgm04_movie23_hca.hca",
+                "desc": "another episode"
+            },
+            {
+                "filename": "bgm04_movie24_hca.hca",
+                "desc": "wanna destroy?"
+            },
+            {
+                "filename": "bgm04_movie25_hca.hca",
+                "desc": "dream world"
+            },
+            {
+                "filename": "bgm04_movie26_hca.hca",
+                "desc": "never leave you alone"
+            },
+            {
+                "filename": "bgm04_movie27_hca.hca",
+                "desc": "this is the truth"
+            },
+            {
+                "filename": "bgm04_movie28_hca.hca",
+                "desc": "flame of despair"
+            },
+            {
+                "filename": "bgm04_movie29_hca.hca",
+                "desc": "now he is"
+            },
+            {
+                "filename": "bgm04_movie30_hca.hca",
+                "desc": "you are here"
+            },
+            {
+                "filename": "bgm04_movie31_hca.hca",
+                "desc": "experimentation"
+            },
+            {
+                "filename": "bgm04_movie32_hca.hca",
+                "desc": "Noi!"
+            },
+            {
+                "filename": "bgm04_movie33_hca.hca",
+                "desc": "the worst ending"
+            },
+            {
+                "filename": "bgm04_movie34_hca.hca",
+                "desc": "I cursed myself"
+            },
+            {
+                "filename": "bgm04_movie35_hca.hca",
+                "desc": "this is my despair"
+            },
+            {
+                "filename": "bgm04_movie36_hca.hca",
+                "desc": "theater of a witch"
+            },
+            {
+                "filename": "bgm04_movie36_loop_hca.hca",
+                "desc": "theater of a witch (Loop)"
+            },
+            {
+                "filename": "bgm04_movie37_hca.hca",
+                "desc": "we're here for you"
+            },
+            {
+                "filename": "bgm04_movie38_hca.hca",
+                "desc": "take your hands"
+            },
+            {
+                "filename": "bgm04_movie39_hca.hca",
+                "desc": "wings of relief"
+            },
+            {
+                "filename": "bgm04_movie40_hca.hca",
+                "desc": "I was waiting for this moment"
+            },
+            {
+                "filename": "bgm04_movie41_hca.hca",
+                "desc": "her new wings"
+            },
+            {
+                "filename": "bgm04_movie42_hca.hca",
+                "desc": "solve the riddle"
+            },
+            {
+                "filename": "bgm04_movie43_hca.hca",
+                "desc": "I think this world is precious"
+            },
+            {
+                "filename": "bgm04_movie44_hca.hca",
+                "desc": "happy ending"
+            },
+            {
+                "filename": "bgm04_movie45_hca.hca",
+                "desc": "not yet"
+            }
+        ]
+    },
+    {
+        "groupname": "Collab Events",
+        "entries": [
+            {
+                "filename": "bgm90_lycoris01_hca.hca",
+                "desc": "Lycoris Recoil Theme",
+                "context": "Lycoris Recoil Collab"
+            },
+            {
+                "filename": "bgm90_lycoris02_hca.hca",
+                "desc": "Counterattack Begins",
+                "context": "Lycoris Recoil Collab"
+            },
+            {
+                "filename": "bgm90_monoga01_hca.hca",
+                "desc": "Sensou",
+                "context": "Monogatari Collab"
+            },
+            {
+                "filename": "bgm90_monoga02_hca.hca",
+                "desc": "Gaidankousetsu",
+                "context": "Monogatari Collab"
+            },
+            {
+                "filename": "bgm90_monoga03_hca.hca",
+                "desc": "Ika, Kaisou",
+                "context": "Monogatari Collab"
+            },
+            {
+                "filename": "bgm90_monoga04_hca.hca",
+                "desc": "Senjougahara Tore",
+                "context": "Monogatari Collab"
+            },
+            {
+                "filename": "bgm90_monoga05_hca.hca",
+                "desc": "Zatta Rutsubo",
+                "context": "Monogatari Collab"
+            },
+            {
+                "filename": "bgm90_monoga06_hca.hca",
+                "desc": "Nichiyoubi",
+                "context": "Monogatari Collab"
+            },
+            {
+                "filename": "bgm90_monoga07_hca.hca",
+                "desc": "Jinchiku",
+                "context": "Monogatari Collab"
+            },
+            {
+                "filename": "bgm90_monoga08_hca.hca",
+                "desc": "Zaregoto",
+                "context": "Monogatari Collab"
+            },
+            {
+                "filename": "bgm90_monoga09_hca.hca",
+                "desc": "Oumagatoki",
+                "context": "Monogatari Collab"
+            },
+            {
+                "filename": "bgm90_monoga10_hca.hca",
+                "desc": "Hourousha",
+                "context": "Monogatari Collab"
+            },
+            {
+                "filename": "bgm90_monoga11_hca.hca",
+                "desc": "Irobokeneko",
+                "context": "Monogatari Collab"
+            },
+            {
+                "filename": "bgm90_nanoha01_hca.hca",
+                "desc": "Exceed Breaker",
+                "context": "Magical Girl Lyrical Nanoha Collab - Normal Battle Theme"
+            },
+            {
+                "filename": "bgm90_nanoha02_hca.hca",
+                "desc": "Raising Heart Estrella",
+                "context": "Magical Girl Lyrical Nanoha Collab - Boss Battle Theme"
+            },
+            {
+                "filename": "bgm90_nanoha03_hca.hca",
+                "desc": "Collision",
+                "context": "Magical Girl Lyrical Nanoha Collab - Map/Event BGM"
+            }
+        ]
+    }
+]
