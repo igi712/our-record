@@ -316,7 +316,7 @@
             },
             {
                 "filename": "bgm22_battle01_hca.hca",
-                "desc": "Arc 2 Battle 1)",
+                "desc": "Arc 2 Battle 1",
                 "context": "Extermination Battle Boss"
             },
             {
@@ -556,7 +556,8 @@
             },
             {
                 "filename": "bgm24_story01_hca.hca",
-                "desc": "Heritage (Alternate Edit)"
+                "desc": "Arc 2 Story 1",
+                "context": "Heritage?"
             },
             {
                 "filename": "bgm24_story02_hca.hca",
