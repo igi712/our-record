@@ -2,7 +2,8 @@
 // Wires up: cocos-to-pixi background, HCA BGM loop, and the default Live2D model.
 // Differences from viewer.html: no controls, no follow-on-click.
 import { loadCocosStudioAssets, CocosStudioArmature } from './lib/cocos-to-pixi.js';
-import { loadModel } from './model.js';
+import { loadModel, state } from './model.js';
+import { DEFAULT_SCENARIO_URL, ScenarioSequencePlayer } from './quotes-sequence.js';
 
 // ---- World constants (must match viewer.js) ----
 const WORLD_W = 1024;
@@ -41,6 +42,7 @@ let hcaModule = null;
 let hcaBlobUrl = null;
 let worker = null;
 let player = null;
+let scenarioPlayer = null;
 let _bgmBase = null;
 let _bgmBaseSource = null;
 
@@ -140,6 +142,7 @@ function setupAudioAutoResume() {
         if (player?.audioCtx && player.audioCtx.state === 'suspended') {
             player.audioCtx.resume();
         }
+        scenarioPlayer?.resumeAudio();
     };
     window.addEventListener('pointerdown', resume);
     window.addEventListener('touchstart', resume);
@@ -161,9 +164,19 @@ async function init() {
     // Resume audio on first user interaction if Chrome suspended the context.
     setupAudioAutoResume();
 
-    // Load the default Iroha model (100100); it fades in when ready.
-    // interactivity disabled: no follow-on-click (this is a quotes page, not the viewer).
-    loadModel("100100", { interactive: false }).catch((e) => console.error('[quotes] model load failed:', e));
+    // Load the default Iroha model, then run the first home dialogue group.
+    // The scenario runner starts motions through the viewer controller, while
+    // its HCA analyser drives the same ParamMouthOpenY hook used for mic lipsync.
+    try {
+        await loadModel('100100', { interactive: false });
+        scenarioPlayer = new ScenarioSequencePlayer({
+            controller: state.currentController,
+            subtitleElement: document.getElementById('subtitle')
+        });
+        await scenarioPlayer.loadAndPlay(DEFAULT_SCENARIO_URL, 'group_1');
+    } catch (e) {
+        console.error('[quotes] model or scenario load failed:', e);
+    }
 
     // Tap effect interaction
     window.addEventListener('pointerdown', showTapEffect, true);

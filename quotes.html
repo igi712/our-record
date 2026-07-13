@@ -8,6 +8,8 @@
     <title>Our Record - Quotes</title>
     <link rel="stylesheet" href="assets/magica/css/shared.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@600;700&display=swap');
+
         body {
             margin: 0;
             overflow: hidden;
@@ -66,6 +68,23 @@
                 right: calc((100vw - min(100vw, calc(100vh * 16 / 9))) / 2 + env(safe-area-inset-right, 0px));
             }
         }
+
+        #subtitle {
+            position: absolute;
+            z-index: 20;
+            left: 0;
+            right: 0;
+            bottom: clamp(20px, 5.5vh, 58px);
+            margin: 0 auto;
+            padding: 0 24px;
+            max-width: min(72vw, 820px);
+            color: #fff;
+            font: 700 clamp(18px, 2.3vw, 32px)/1.15 'Open Sans', sans-serif;
+            text-align: center;
+            white-space: pre-line;
+            text-shadow: -2px -2px 0 #4d4a46, 2px -2px 0 #4d4a46, -2px 2px 0 #4d4a46, 2px 2px 0 #4d4a46, 0 3px 5px rgba(0, 0, 0, .65);
+            pointer-events: none;
+        }
     </style>
 
     <script src="lib/live2dcubismcore.min.js"></script>
@@ -79,6 +98,7 @@
     <div id="app">
         <canvas id="canvas"></canvas>
         <div id="loading" aria-hidden="true"></div>
+        <div id="subtitle" aria-live="polite" hidden></div>
     </div>
 
     <!-- Config MUST be set before viewer.js loads -->

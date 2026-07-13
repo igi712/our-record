@@ -782,7 +782,11 @@
                 }
 
                 if (player.bufSrc.loop) {
-                    elapsed = elapsed % duration;
+                    const loopStart = player.bufSrc.loopStart || 0;
+                    const loopEnd = player.bufSrc.loopEnd || duration;
+                    if (loopEnd > loopStart && elapsed > loopEnd) {
+                        elapsed = loopStart + ((elapsed - loopStart) % (loopEnd - loopStart));
+                    }
                 } else if (elapsed >= duration) {
                     elapsed = duration;
                     stopTimelineUpdate();
