@@ -7,7 +7,7 @@ const KEY1 = 0x01395C51;
 const KEY2 = 0x00000000;
 
 export const DEFAULT_SCENARIO_URL =
-    './assets/totentanz/en-download/magica/resource/download/asset/master/resource/scenario/json/general/100100.json';
+    'https://raw.githubusercontent.com/Puella-Care/en-download/refs/heads/main/magica/resource/download/asset/master/resource/scenario/json/general/100100.json';
 
 function toMilliseconds(value) {
     const seconds = Number(value);
