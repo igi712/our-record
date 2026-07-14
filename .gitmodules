@@ -1,6 +1,0 @@
-[submodule "assets/totentanz/en-data"]
-	path = assets/totentanz/en-data
-	url = https://github.com/Puella-Care/en-data
-[submodule "assets/totentanz/en-download"]
-	path = assets/totentanz/en-download
-	url = https://github.com/Puella-Care/en-download
