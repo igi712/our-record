@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 const repoRoot = process.cwd();
-const charaListPath = path.join(repoRoot, 'assets', 'totentanz', 'en-data', 'charaList.json');
-const live2dListPath = path.join(repoRoot, 'assets', 'totentanz', 'en-data', 'live2dList.json');
+const charaListUrl = 'https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/charaList.json';
+const live2dListUrl = 'https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/live2dList.json';
 const live2dDir = path.join(repoRoot, 'assets', 'ma-re-data', 'resource', 'image_native', 'live2d_v4');
 
 const missingCharsOut = path.join(repoRoot, 'assets', 'missingCharaList.json');
@@ -40,9 +40,9 @@ function walkDirs(dirPath) {
   return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
 }
 
-function main() {
-  const charaList = readJson(charaListPath);
-  const live2dList = readJson(live2dListPath);
+async function main() {
+  const charaList = await fetch(charaListUrl).then(res => res.json());
+  const live2dList = await fetch(live2dListUrl).then(res => res.json());
 
   const existingCharaIds = new Set(charaList.map((c) => Number(c.id)));
   const existingLive2d = new Set(
@@ -99,4 +99,7 @@ function main() {
   console.log(`Wrote ${sortedOutfits.length} outfits to ${missingLive2dOut}`);
 }
 
-main();
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
