@@ -68,8 +68,8 @@ export async function initializeApp() {
     try {
         // Load character and outfit data
         const [charaResponse, live2dResponse] = await Promise.all([
-            fetch('assets/totentanz/en-data/charaList.json'),
-            fetch('assets/totentanz/en-data/live2dList.json')
+            fetch('https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/charaList.json'),
+            fetch('https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/live2dList.json')
         ]);
 
         const [registeredChars, registeredLive2d] = await Promise.all([
