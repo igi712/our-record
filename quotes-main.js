@@ -192,7 +192,7 @@ async function loadCharaMetadata(charaId) {
 }
 
 function setupVoiceButtons() {
-    const voiceBtns = document.querySelectorAll('.voiceBtn:not(.debug)');
+    const voiceBtns = document.querySelectorAll('.voiceBtn');
     voiceBtns.forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
@@ -215,32 +215,6 @@ function setupVoiceButtons() {
                 }
             } catch (err) {
                 console.error('[quotes] Error playing voice button:', err);
-            }
-        });
-    });
-}
-
-function setupDebugVoiceButtons() {
-    const debugBtns = document.querySelectorAll('.voiceBtn.debug');
-    debugBtns.forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            document.querySelectorAll('.voiceBtn.current').forEach(b => b.classList.remove('current'));
-            btn.classList.add('current');
-
-            const groupName = btn.getAttribute('data-group');
-            const charaId = state.currentCharacterId || 1001;
-            const scenarioUrl =
-                `https://raw.githubusercontent.com/Puella-Care/en-download/refs/heads/main/magica/resource/download/asset/master/resource/scenario/json/general/${charaId}00.json`;
-
-            console.log(`[quotes] Debug play group: ${groupName}`);
-
-            try {
-                if (scenarioPlayer) {
-                    await scenarioPlayer.loadAndPlay(scenarioUrl, groupName);
-                }
-            } catch (err) {
-                console.error('[quotes] Error playing debug group:', err);
             }
         });
     });
@@ -314,7 +288,6 @@ async function init() {
 
         loadCharaMetadata(charaId);
         setupVoiceButtons();
-        setupDebugVoiceButtons();
         setupBackBtn();
         setupVoiceSettings();
     } catch (e) {

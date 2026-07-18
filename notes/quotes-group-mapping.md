@@ -7,7 +7,7 @@
 ## Voice‑to‑group mapping
 
 ### Legend
-- **Button label** = the label shown in `quotes.html`. Debug buttons show the group name in purple.
+- **Button label** = the label shown in `quotes.html`.
 - **Wiki name** = the name from the Magia Record wiki quote database.
 - **Has textHome?** = whether the scenario step contains subtitle text. Groups marked "no" play voice+animation only (no subtitles).
 
@@ -46,7 +46,7 @@
 | `vo_char_1001_00_38` | group_30 | Magical Girl Tap 6 | 魔法少女タップ⑥ – Tap 6 | yes |
 | `vo_char_1001_00_39` | group_31 | Magical Girl Tap 7 | 魔法少女タップ⑦ – Tap 7 | yes |
 | `vo_char_1001_00_40` | group_32 | Magical Girl Tap 8 | 魔法少女タップ⑧ – Tap 8 | yes |
-| `vo_char_1001_00_41` | group_33 | *(debug: group_33)* → Tap 9 | 魔法少女タップ⑨ – Tap 9 | yes |
+| `vo_char_1001_00_41` | group_33 | Magical Girl Tap 9 | 魔法少女タップ⑨ – Tap 9 | yes |
 | `vo_char_1001_00_42` | group_34 | Start Quest | クエスト開始 – Battle Start | yes |
 | `vo_char_1001_00_43` | group_35 | Quest Victory 1 | クエスト勝利① – Battle Victory 1 | yes |
 | `vo_char_1001_00_44` | group_36 | Quest Victory 2 | クエスト勝利② – Battle Victory 2 | yes |
