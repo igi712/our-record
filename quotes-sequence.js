@@ -147,6 +147,45 @@ export class ScenarioSequencePlayer {
         return this.playGroup(scenario?.story?.[groupName], groupName);
     }
 
+    async loadAndPlayVoice(url, voiceKey, charaId) {
+        const response = await fetch(url).catch(() => null);
+        let scenario = null;
+        if (response && response.ok) {
+            scenario = await response.json();
+        }
+
+        let foundGroup = null;
+        let groupName = null;
+        if (scenario?.story) {
+            for (const [gName, steps] of Object.entries(scenario.story)) {
+                const hasVoice = steps.some(step => 
+                    step.chara?.some(c => c.voice === voiceKey || c.voice === voiceKey + "_hca")
+                );
+                if (hasVoice) {
+                    foundGroup = steps;
+                    groupName = gName;
+                    break;
+                }
+            }
+        }
+
+        if (foundGroup) {
+            return this.playGroup(foundGroup, groupName);
+        } else {
+            console.warn(`[quotes] Voice key ${voiceKey} not found in scenario. Playing audio fallback.`);
+            const fallbackGroup = [{
+                autoTurnFirst: 4.0,
+                chara: [{
+                    id: Number(charaId + "00"),
+                    voice: voiceKey,
+                    motion: 300,
+                    face: "mtn_ex_010.exp.json"
+                }]
+            }];
+            return this.playGroup(fallbackGroup, 'fallback_voice');
+        }
+    }
+
     playGroup(group, groupName = 'group') {
         if (!Array.isArray(group)) throw new Error(`Scenario ${groupName} is not an action list`);
         this.stop();

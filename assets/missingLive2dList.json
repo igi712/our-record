@@ -640,6 +640,11 @@
     "description": ""
   },
   {
+    "charaId": 4130,
+    "live2dId": "30",
+    "description": "魔法少女"
+  },
+  {
     "charaId": 6001,
     "live2dId": "00",
     "description": ""

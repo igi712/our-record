@@ -1,4 +1,19 @@
-﻿assets/ma-re-data/
+assets/ma-re-data/
 assets/todestrieb-na/
 assets/puella-historia/
-assets/magireco-viewer/
+assets/magireco_viewer/
+assets/totentanz
+
+docs/
+.agent/
+
+# Common temporary / log files
+*.log
+*.tmp
+
+# Editor / OS artefacts
+*.DS_Store
+.idea/
+.vscode/
+
+AGENTS.md

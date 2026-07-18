@@ -135,6 +135,136 @@ async function playTrack(fileName) {
     console.info(`[quotes] Now playing: ${fileName} (${_bgmBaseSource})`);
 }
 
+const CHARA_ATTRIBUTES = {
+    1001: 'light',  // Iroha
+    1002: 'light',  // Madoka
+    1003: 'dark',   // Homura
+    1004: 'water',  // Sayaka
+    1005: 'timber', // Mami
+    1006: 'fire',   // Kyoko
+    1007: 'water',  // Yachiyo
+    1008: 'fire',   // Tsuruno
+    1009: 'dark',   // Felicia
+    1010: 'timber', // Sana
+    1011: 'fire',   // Momoko
+    1012: 'timber', // Kaede
+    1013: 'water',  // Rena
+    1014: 'void',   // Mitama
+    1015: 'fire',   // Karin
+    1016: 'timber', // Alina
+    1017: 'dark',   // Mifuyu
+    1018: 'fire',   // Touka
+    1019: 'light',  // Nemu
+    1020: 'dark',   // Ui
+    1021: 'dark',   // Sakurako
+    1022: 'light',  // Iroha (Anime Ver.)
+    1023: 'water',  // Yachiyo (Anime Ver.)
+    1024: 'dark',   // Kuroe
+};
+
+function updateUILayer() {
+    const uiLayer = document.getElementById('ui-layer');
+    if (!uiLayer) return;
+    const camera = window.cameraContainer;
+    if (!camera) return;
+    uiLayer.style.left = `${camera.x}px`;
+    uiLayer.style.top = `${camera.y}px`;
+    uiLayer.style.transform = `scale(${camera.scale.x})`;
+}
+
+async function loadCharaMetadata(charaId) {
+    try {
+        const response = await fetch('https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/charaList.json');
+        if (!response.ok) return;
+        const charas = await response.json();
+        const chara = charas.find(c => Number(c.id) === Number(charaId));
+        if (chara) {
+            const nameEl = document.getElementById('charaNameText');
+            const kanaEl = document.getElementById('charaKanaText');
+            if (nameEl) nameEl.textContent = chara.name;
+            if (kanaEl) {
+                kanaEl.textContent = chara.kana || chara.name;
+            }
+        }
+    } catch (e) {
+        console.warn('[quotes] Failed to load character metadata:', e);
+    }
+}
+
+function setupVoiceButtons() {
+    const voiceBtns = document.querySelectorAll('.voiceBtn:not(.debug)');
+    voiceBtns.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            document.querySelectorAll('.voiceBtn.current').forEach(b => b.classList.remove('current'));
+            btn.classList.add('current');
+            
+            const voiceId = btn.getAttribute('data-voice');
+            const charaId = state.currentCharacterId || 1001;
+            const voicePrefix = '00';
+            
+            const voiceKey = `vo_char_${charaId}_${voicePrefix}_${voiceId}`;
+            const scenarioUrl = `https://raw.githubusercontent.com/Puella-Care/en-download/refs/heads/main/magica/resource/download/asset/master/resource/scenario/json/general/${charaId}00.json`;
+            
+            console.log(`[quotes] Play voice button clicked. key: ${voiceKey}, url: ${scenarioUrl}`);
+            
+            try {
+                if (scenarioPlayer) {
+                    await scenarioPlayer.loadAndPlayVoice(scenarioUrl, voiceKey, charaId);
+                }
+            } catch (err) {
+                console.error('[quotes] Error playing voice button:', err);
+            }
+        });
+    });
+}
+
+function setupDebugVoiceButtons() {
+    const debugBtns = document.querySelectorAll('.voiceBtn.debug');
+    debugBtns.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            document.querySelectorAll('.voiceBtn.current').forEach(b => b.classList.remove('current'));
+            btn.classList.add('current');
+
+            const groupName = btn.getAttribute('data-group');
+            const charaId = state.currentCharacterId || 1001;
+            const scenarioUrl =
+                `https://raw.githubusercontent.com/Puella-Care/en-download/refs/heads/main/magica/resource/download/asset/master/resource/scenario/json/general/${charaId}00.json`;
+
+            console.log(`[quotes] Debug play group: ${groupName}`);
+
+            try {
+                if (scenarioPlayer) {
+                    await scenarioPlayer.loadAndPlay(scenarioUrl, groupName);
+                }
+            } catch (err) {
+                console.error('[quotes] Error playing debug group:', err);
+            }
+        });
+    });
+}
+
+function setupBackBtn() {
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        backBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = 'index.html';
+        });
+    }
+}
+
+function setupVoiceSettings() {
+    const voiceCheck = document.querySelector('.voiceCheck');
+    if (voiceCheck) {
+        voiceCheck.addEventListener('click', () => {
+            voiceCheck.classList.toggle('on');
+        });
+    }
+}
+
 // Chrome autoplay policy: AudioContext created before a user gesture stays suspended.
 // Try to autoplay; if suspended, resume on the first pointer interaction anywhere.
 function setupAudioAutoResume() {
@@ -164,18 +294,31 @@ async function init() {
     // Resume audio on first user interaction if Chrome suspended the context.
     setupAudioAutoResume();
 
-    // Load the default Iroha model, then run the first home dialogue group.
-    // The scenario runner starts motions through the viewer controller, while
-    // its HCA analyser drives the same ParamMouthOpenY hook used for mic lipsync.
+    // Load the default Iroha model
     try {
         await loadModel('100100', { interactive: false });
         scenarioPlayer = new ScenarioSequencePlayer({
             controller: state.currentController,
             subtitleElement: document.getElementById('subtitle')
         });
-        await scenarioPlayer.loadAndPlay(DEFAULT_SCENARIO_URL, 'group_1');
+
+        // Initialize UI scaling and dynamically fetch character info
+        updateUILayer();
+        window.addEventListener('resize', updateUILayer);
+        window.app.ticker.add(updateUILayer);
+
+        const charaId = state.currentCharacterId || 1001;
+        const attribute = CHARA_ATTRIBUTES[charaId] || 'light';
+        const attEl = document.getElementById('att');
+        if (attEl) attEl.className = attribute;
+
+        loadCharaMetadata(charaId);
+        setupVoiceButtons();
+        setupDebugVoiceButtons();
+        setupBackBtn();
+        setupVoiceSettings();
     } catch (e) {
-        console.error('[quotes] model or scenario load failed:', e);
+        console.error('[quotes] model load failed:', e);
     }
 
     // Tap effect interaction
