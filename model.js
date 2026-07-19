@@ -562,7 +562,7 @@ function warmUpModelInteraction(model) {
 
 export async function loadModel(modelId, opts = {}) {
     const ctx = beginLoad(modelId, opts);
-    const { model, params, modelJson } = await fetchAndCreateModel(modelId);
+    const { model, params, modelJson } = await fetchAndCreateModel(modelId, opts);
 
     const performFadeOut = createFadeOut(app);
     beginTransition(ctx, performFadeOut);
@@ -603,10 +603,10 @@ function beginLoad(modelId, opts) {
 }
 
 // Phase 2: RAM cache lookup + model creation + JSON parsing.
-async function fetchAndCreateModel(modelId) {
+async function fetchAndCreateModel(modelId, opts) {
     let fileList = ramFolderCache.get(modelId);
     if (!fileList) {
-        fileList = await preloadModelToRam(modelId);
+        fileList = await preloadModelToRam(modelId, opts);
     }
 
     // Pixi-Live2D-Display will find the one named 'model.model3.json' automatically.

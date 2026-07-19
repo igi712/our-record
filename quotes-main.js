@@ -3,7 +3,8 @@
 // Differences from viewer.html: no controls, no follow-on-click.
 import { loadCocosStudioAssets, CocosStudioArmature } from './lib/cocos-to-pixi.js';
 import { loadModel, state } from './model.js';
-import { DEFAULT_SCENARIO_URL, ScenarioSequencePlayer } from './quotes-sequence.js';
+import { preloadModelToRam } from './model-assets.js';
+import { DEFAULT_SCENARIO_URL, ScenarioSequencePlayer, preloadScenarioVoices, scenarioCache } from './quotes-sequence.js';
 
 // ---- World constants (must match viewer.js) ----
 const WORLD_W = 1024;
@@ -191,6 +192,10 @@ async function loadCharaMetadata(charaId) {
     }
 }
 
+async function resolveScenarioBase() {
+    return 'https://raw.githubusercontent.com/Puella-Care/en-download/refs/heads/main/magica/resource/download/asset/master/resource/scenario/json/general';
+}
+
 function setupVoiceButtons() {
     const voiceBtns = document.querySelectorAll('.voiceBtn');
     voiceBtns.forEach(btn => {
@@ -205,7 +210,8 @@ function setupVoiceButtons() {
             const voicePrefix = '00';
             
             const voiceKey = `vo_char_${charaId}_${voicePrefix}_${voiceId}`;
-            const scenarioUrl = `https://raw.githubusercontent.com/Puella-Care/en-download/refs/heads/main/magica/resource/download/asset/master/resource/scenario/json/general/${charaId}00.json`;
+            const scenarioBase = await resolveScenarioBase();
+            const scenarioUrl = `${scenarioBase}/${charaId}00.json`;
             
             console.log(`[quotes] Play voice button clicked. key: ${voiceKey}, url: ${scenarioUrl}`);
             
@@ -257,10 +263,94 @@ function setupAudioAutoResume() {
 async function init() {
     document.body.classList.add('connecting');
 
-    // Load background + BGM in parallel; don't reveal until both are ready.
+    // Initialize UI scaling immediately so it is positioned correctly from the start.
+    updateUILayer();
+    window.addEventListener('resize', updateUILayer);
+    window.app.ticker.add(updateUILayer);
+
+    // Make UI layer visible now that it is correctly positioned and scaled
+    const uiLayer = document.getElementById('ui-layer');
+    if (uiLayer) {
+        uiLayer.style.display = 'block';
+    }
+
+    // Parse the character ID dynamically from URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const charaIdParam = params.get('charaId') || params.get('id');
+    if (charaIdParam) {
+        state.currentCharacterId = Number(charaIdParam);
+    }
+    const charaId = state.currentCharacterId || 1001;
+    const defaultModelId = String(charaId) + '00';
+
+    // Instantiate scenario player early
+    scenarioPlayer = new ScenarioSequencePlayer({
+        controller: null,
+        subtitleElement: document.getElementById('subtitle')
+    });
+
+    // Load the scenario JSON first and cache it
+    const scenarioBase = await resolveScenarioBase();
+    const scenarioUrl = `${scenarioBase}/${charaId}00.json`;
+    let scenarioJson = null;
+    try {
+        const resp = await fetch(scenarioUrl);
+        if (resp.ok) {
+            scenarioJson = await resp.json();
+            scenarioCache.set(scenarioUrl, scenarioJson);
+            console.info(`[quotes] Scenario JSON loaded and cached: ${scenarioUrl}`);
+        } else {
+            console.warn(`[quotes] Failed to load scenario JSON from ${scenarioUrl}`);
+        }
+    } catch (e) {
+        console.warn(`[quotes] Error loading scenario JSON:`, e);
+    }
+
+    // Parse scenario to find unique models, expressions, motions, and voices
+    const allowedModels = new Set();
+    const allowedExpressions = new Set();
+    const allowedMotions = new Set();
+    const allowedVoices = new Set();
+
+    allowedModels.add(defaultModelId);
+
+    if (scenarioJson && scenarioJson.story) {
+        Object.values(scenarioJson.story).forEach(steps => {
+            if (Array.isArray(steps)) {
+                steps.forEach(step => {
+                    if (Array.isArray(step.chara)) {
+                        step.chara.forEach(c => {
+                            if (c.id) allowedModels.add(String(c.id));
+                            if (c.face) {
+                                const normFace = c.face.replace(/\.exp3\.json$/, '').replace(/\.exp\.json$/, '').replace(/\.json$/, '');
+                                allowedExpressions.add(normFace);
+                            }
+                            if (typeof c.motion === 'number') {
+                                allowedMotions.add(c.motion);
+                            }
+                            if (c.voice) {
+                                allowedVoices.add(c.voice);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    // Setup parallel preloading promises
+    const modelPreloadPromises = Array.from(allowedModels).map(modelId =>
+        preloadModelToRam(modelId, { allowedExpressions, allowedMotions })
+    );
+    const voicePreloadPromise = preloadScenarioVoices(Array.from(allowedVoices), scenarioPlayer.voice);
+
+    // Load background, BGM, required model files, and voice lines in parallel.
+    // Keep loading indicator showing until all are complete.
     await Promise.all([
         initBackground().catch((e) => console.warn('[quotes] background error:', e)),
         playTrack('bgm02_anime11_hca.hca').catch((e) => console.warn('[quotes] bgm error:', e)),
+        ...modelPreloadPromises.map(p => p.catch((e) => console.warn('[quotes] model preload error:', e))),
+        voicePreloadPromise.catch((e) => console.warn('[quotes] voice preload error:', e))
     ]);
 
     document.body.classList.remove('connecting');
@@ -268,20 +358,17 @@ async function init() {
     // Resume audio on first user interaction if Chrome suspended the context.
     setupAudioAutoResume();
 
-    // Load the default Iroha model
+    // Render the default model (from RAM cache, instantly!)
     try {
-        await loadModel('100100', { interactive: false });
-        scenarioPlayer = new ScenarioSequencePlayer({
-            controller: state.currentController,
-            subtitleElement: document.getElementById('subtitle')
+        await loadModel(defaultModelId, {
+            interactive: false,
+            allowedExpressions,
+            allowedMotions
         });
 
-        // Initialize UI scaling and dynamically fetch character info
-        updateUILayer();
-        window.addEventListener('resize', updateUILayer);
-        window.app.ticker.add(updateUILayer);
+        // Set the active controller on our scenario player
+        scenarioPlayer.controller = state.currentController;
 
-        const charaId = state.currentCharacterId || 1001;
         const attribute = CHARA_ATTRIBUTES[charaId] || 'light';
         const attEl = document.getElementById('att');
         if (attEl) attEl.className = attribute;

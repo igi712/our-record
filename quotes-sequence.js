@@ -33,6 +33,34 @@ async function stopPlayer(player) {
     }
 }
 
+export const scenarioCache = new Map();
+export const voiceCache = new Map();
+
+export async function preloadScenarioVoices(voices, voicePlayer) {
+    if (!voices || voices.length === 0) return;
+    try {
+        await voicePlayer.initDecoder();
+        const base = await voicePlayer.resolveBase();
+        const promises = voices.map(async (voice) => {
+            const fileName = normaliseVoiceFile(voice);
+            if (!fileName || voiceCache.has(fileName)) return;
+            try {
+                const response = await fetch(`${base}/${fileName}`);
+                if (!response.ok) return;
+                const encrypted = new Uint8Array(await response.arrayBuffer());
+                const decrypted = await voicePlayer.worker.decrypt(encrypted, KEY1, KEY2);
+                voiceCache.set(fileName, decrypted);
+                console.info(`[quotes] Preloaded voice: ${fileName}`);
+            } catch (e) {
+                console.warn(`[quotes] Failed to preload voice ${fileName}:`, e);
+            }
+        });
+        await Promise.all(promises);
+    } catch (e) {
+        console.warn(`[quotes] preloadScenarioVoices failed:`, e);
+    }
+}
+
 class HcaVoicePlayer {
     constructor() {
         this.player = null;
@@ -81,12 +109,17 @@ class HcaVoicePlayer {
         const token = ++this.playToken;
         await this.initDecoder();
 
-        const base = await this.resolveBase();
-        const response = await fetch(`${base}/${fileName}`);
-        if (!response.ok) throw new Error(`Failed to load voice ${fileName}: ${response.status}`);
+        let decrypted = voiceCache.get(fileName);
+        if (!decrypted) {
+            const base = await this.resolveBase();
+            const response = await fetch(`${base}/${fileName}`);
+            if (!response.ok) throw new Error(`Failed to load voice ${fileName}: ${response.status}`);
 
-        const encrypted = new Uint8Array(await response.arrayBuffer());
-        const decrypted = await this.worker.decrypt(encrypted, KEY1, KEY2);
+            const encrypted = new Uint8Array(await response.arrayBuffer());
+            decrypted = await this.worker.decrypt(encrypted, KEY1, KEY2);
+            voiceCache.set(fileName, decrypted);
+        }
+
         const player = await this.hcaModule.HCAWebAudioLoopPlayer.create(decrypted, this.worker);
         if (token !== this.playToken) {
             await stopPlayer(player);
@@ -141,17 +174,24 @@ export class ScenarioSequencePlayer {
     }
 
     async loadAndPlay(url, groupName) {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`Failed to load scenario: ${response.status}`);
-        const scenario = await response.json();
+        let scenario = scenarioCache.get(url);
+        if (!scenario) {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Failed to load scenario: ${response.status}`);
+            scenario = await response.json();
+            scenarioCache.set(url, scenario);
+        }
         return this.playGroup(scenario?.story?.[groupName], groupName);
     }
 
     async loadAndPlayVoice(url, voiceKey, charaId) {
-        const response = await fetch(url).catch(() => null);
-        let scenario = null;
-        if (response && response.ok) {
-            scenario = await response.json();
+        let scenario = scenarioCache.get(url);
+        if (!scenario) {
+            const response = await fetch(url).catch(() => null);
+            if (response && response.ok) {
+                scenario = await response.json();
+                scenarioCache.set(url, scenario);
+            }
         }
 
         let foundGroup = null;

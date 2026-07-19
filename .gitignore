@@ -17,3 +17,5 @@ docs/
 .vscode/
 
 AGENTS.md
+
+.playwright-mcp/

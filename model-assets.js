@@ -123,11 +123,14 @@ async function fetchToVirtualFile(targetUrl, fileName) {
     }
 }
 
-export async function preloadModelToRam(modelId) {
+export async function preloadModelToRam(modelId, options = {}) {
     if (ramFolderCache.has(modelId)) return ramFolderCache.get(modelId);
 
     // Show connecting cursor / banner while preloading
     __mrSetConnecting(true);
+
+    const allowedExpressions = options.allowedExpressions; // normalized Sets of names
+    const allowedMotions = options.allowedMotions; // Sets of numbers
 
     try {
         const ASSETS_BASE = await resolveMaReAssetsBase();
@@ -164,10 +167,26 @@ export async function preloadModelToRam(modelId) {
             }
 
             if (fr.Motions) {
-                Object.values(fr.Motions).forEach(group => {
-                    if (Array.isArray(group)) {
-                        group.forEach(m => {
-                            if (m.File) filesToFetch.add(m.File);
+                const defaultMotionGroup = Object.keys(fr.Motions)[0];
+                Object.entries(fr.Motions).forEach(([group, arr]) => {
+                    if (Array.isArray(arr)) {
+                        arr.forEach((m, idx) => {
+                            if (m.File) {
+                                const isFirstDefault = (group === defaultMotionGroup && idx === 0);
+                                if (allowedMotions) {
+                                    const name = m.Name || m.File.split('/').pop();
+                                    const match = /^motion_(\d+)/i.exec(name);
+                                    let allowed = false;
+                                    if (match) {
+                                        const num = Number(match[1]);
+                                        if (allowedMotions.has(num)) allowed = true;
+                                    }
+                                    if (!allowed && !isFirstDefault) {
+                                        return;
+                                    }
+                                }
+                                filesToFetch.add(m.File);
+                            }
                             if (m.Sound) filesToFetch.add(m.Sound);
                         });
                     }
@@ -175,7 +194,19 @@ export async function preloadModelToRam(modelId) {
             }
 
             if (Array.isArray(fr.Expressions)) {
-                fr.Expressions.forEach(e => { if (e.File) filesToFetch.add(e.File); });
+                fr.Expressions.forEach(e => {
+                    if (e.File) {
+                        if (allowedExpressions) {
+                            const fileName = e.File.split('/').pop();
+                            const normName = fileName.replace(/\.exp3\.json$/, '').replace(/\.exp\.json$/, '').replace(/\.json$/, '');
+                            const isDefault = normName.includes('mtn_ex_01');
+                            if (!allowedExpressions.has(normName) && !isDefault) {
+                                return;
+                            }
+                        }
+                        filesToFetch.add(e.File);
+                    }
+                });
             }
         }
         // Cubism 2
@@ -186,17 +217,45 @@ export async function preloadModelToRam(modelId) {
             if (Array.isArray(mainJson.textures)) mainJson.textures.forEach(t => filesToFetch.add(t));
 
             if (mainJson.motions) {
-                Object.values(mainJson.motions).forEach(group => {
-                    if (Array.isArray(group)) {
-                        group.forEach(m => {
-                            if (m.file) filesToFetch.add(m.file);
+                const defaultMotionGroup = Object.keys(mainJson.motions)[0];
+                Object.entries(mainJson.motions).forEach(([group, arr]) => {
+                    if (Array.isArray(arr)) {
+                        arr.forEach((m, idx) => {
+                            if (m.file) {
+                                const isFirstDefault = (group === defaultMotionGroup && idx === 0);
+                                if (allowedMotions) {
+                                    const name = m.name || m.file.split('/').pop();
+                                    const match = /^motion_(\d+)/i.exec(name);
+                                    let allowed = false;
+                                    if (match) {
+                                        const num = Number(match[1]);
+                                        if (allowedMotions.has(num)) allowed = true;
+                                    }
+                                    if (!allowed && !isFirstDefault) {
+                                        return;
+                                    }
+                                }
+                                filesToFetch.add(m.file);
+                            }
                             if (m.sound) filesToFetch.add(m.sound);
                         });
                     }
                 });
             }
             if (Array.isArray(mainJson.expressions)) {
-                mainJson.expressions.forEach(e => { if (e.file) filesToFetch.add(e.file); });
+                mainJson.expressions.forEach(e => {
+                    if (e.file) {
+                        if (allowedExpressions) {
+                            const fileName = e.file.split('/').pop();
+                            const normName = fileName.replace(/\.exp3\.json$/, '').replace(/\.exp\.json$/, '').replace(/\.json$/, '');
+                            const isDefault = normName.includes('mtn_ex_01');
+                            if (!allowedExpressions.has(normName) && !isDefault) {
+                                return;
+                            }
+                        }
+                        filesToFetch.add(e.file);
+                    }
+                });
             }
         }
 
