@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CocosStudio & Plist Debugger</title>
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            color: #ccc;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #controls {
+            padding: 10px;
+            background: #0d0d0d;
+            border-bottom: 1px solid #222;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            z-index: 10;
+            flex-wrap: wrap;
+        }
+        #canvasContainer {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        canvas {
+            display: block;
+            background: #000;
+        }
+        select, input, button {
+            background: #151515;
+            border: 1px solid #333;
+            color: #eee;
+            padding: 5px 10px;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+        }
+        select:focus, input:focus, button:focus {
+            border-color: #555;
+        }
+        button:hover {
+            background: #222;
+            border-color: #444;
+        }
+        #info {
+            font-size: 11px;
+            color: #666;
+        }
+    </style>
+    <script src="lib/pixi.min.js"></script>
+</head>
+<body>
+    <div id="controls">
+        <input type="file" id="filePicker" multiple>
+        <button id="btnPresetParticle">Preset: 1013_ef01 (Particle)</button>
+        <button id="btnPresetDust">Preset: web_0015 Dust (Particle)</button>
+        <button id="btnPresetArmature">Preset: web_0015 (Armature)</button>
+        <select id="animSelect" style="display: none;"></select>
+        <label style="display: inline-flex; align-items: center; gap: 5px; font-size: 11px; cursor: pointer; color: #eee; background: #151515; border: 1px solid #333; padding: 4px 8px;">
+            <input type="checkbox" id="chkHighVisibility" style="margin: 0; cursor: pointer;"> High Visibility Particles
+        </label>
+        <span id="info">Select files to begin. Choose a single particle .plist, or a set of (.ExportJson + .plist + .png) files.</span>
+    </div>
+    <div id="canvasContainer">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <script type="module">
+        import { loadCocosStudioFromLocalFiles, CocosStudioArmature, CocosStudioParticleEmitter } from './lib/cocos-to-pixi.js';
+
+        // Setup PIXI Application
+        const canvas = document.getElementById('gameCanvas');
+        const container = document.getElementById('canvasContainer');
+
+        const app = new PIXI.Application({
+            view: canvas,
+            width: container.clientWidth,
+            height: container.clientHeight,
+            backgroundColor: 0x000000,
+            antialias: true
+        });
+
+        function resizeCanvas() {
+            app.renderer.resize(container.clientWidth, container.clientHeight);
+            if (activeNode) {
+                activeNode.x = container.clientWidth / 2;
+                activeNode.y = container.clientHeight / 2;
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        const filePicker = document.getElementById('filePicker');
+        const animSelect = document.getElementById('animSelect');
+        const info = document.getElementById('info');
+        const btnPresetParticle = document.getElementById('btnPresetParticle');
+        const btnPresetDust = document.getElementById('btnPresetDust');
+        const btnPresetArmature = document.getElementById('btnPresetArmature');
+        const chkHighVisibility = document.getElementById('chkHighVisibility');
+
+        window.highVisibilityParticles = false;
+        chkHighVisibility.addEventListener('change', (e) => {
+            window.highVisibilityParticles = e.target.checked;
+        });
+
+        let activeNode = null;
+        let activeTick = null;
+
+        async function loadAndDisplay(files) {
+            // Clear previous states
+            if (activeNode) {
+                app.stage.removeChild(activeNode);
+                activeNode.destroy({ children: true });
+                activeNode = null;
+            }
+            if (activeTick) {
+                app.ticker.remove(activeTick);
+                activeTick = null;
+            }
+            animSelect.style.display = 'none';
+            animSelect.innerHTML = '';
+            info.textContent = 'Loading...';
+
+            try {
+                const result = await loadCocosStudioFromLocalFiles(files);
+
+                if (result.type === 'particle') {
+                    const emitter = new CocosStudioParticleEmitter(result.config);
+                    emitter.x = container.clientWidth / 2;
+                    emitter.y = container.clientHeight / 2;
+                    app.stage.addChild(emitter);
+                    activeNode = emitter;
+
+                    activeTick = (delta) => {
+                        emitter.update(delta / 60);
+                    };
+                    app.ticker.add(activeTick);
+
+                    if (result.config.isTiff) {
+                        info.innerHTML = `Loaded particle system: (max: ${result.config.maxParticles || 100}). <span style="color: #ff4444; font-weight: bold;">Warning: Plist embeds a TIFF image (not supported by browsers). Please pick a PNG file named '${result.config.textureFileName}' to render it.</span>`;
+                    } else {
+                        info.textContent = `Loaded particle system: (max: ${result.config.maxParticles || 100})`;
+                    }
+                } else if (result.type === 'armature') {
+                    const armature = new CocosStudioArmature(result.json, result.textures, result.particles);
+                    armature.x = container.clientWidth / 2;
+                    armature.y = container.clientHeight / 2;
+                    app.stage.addChild(armature);
+                    activeNode = armature;
+
+                    activeTick = (delta) => {
+                        armature.update(delta / 60);
+                    };
+                    app.ticker.add(activeTick);
+
+                    const movData = result.json.animation_data?.[0]?.mov_data || [];
+                    if (movData.length > 0) {
+                        animSelect.style.display = 'block';
+                        movData.forEach((mov) => {
+                            const option = document.createElement('option');
+                            option.value = mov.name;
+                            option.textContent = mov.name;
+                            animSelect.appendChild(option);
+                        });
+
+                        animSelect.onchange = (evt) => {
+                            armature.play(evt.target.value, true);
+                        };
+
+                        // Play the first animation by default
+                        armature.play(movData[0].name, true);
+                    }
+
+                    info.textContent = `Loaded armature with ${movData.length} animations, ${Object.keys(result.textures).length} texture frames.`;
+                }
+            } catch (err) {
+                console.error(err);
+                info.textContent = `Error: ${err.message || err}`;
+            }
+        }
+
+        filePicker.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                loadAndDisplay(e.target.files);
+            }
+        });
+
+        btnPresetParticle.addEventListener('click', async () => {
+            try {
+                info.textContent = 'Fetching preset particle...';
+                const plistUrl = 'assets/ma-re-data/resource/image_native/effect/story/1013_ef01.plist';
+                const resp = await fetch(plistUrl);
+                if (!resp.ok) throw new Error(`Could not fetch ${plistUrl}: ${resp.status}`);
+                const text = await resp.text();
+                const file = new File([text], '1013_ef01.plist', { type: 'text/xml' });
+                await loadAndDisplay([file]);
+            } catch (err) {
+                console.error(err);
+                info.textContent = `Error loading preset: ${err.message || err}`;
+            }
+        });
+
+        btnPresetDust.addEventListener('click', async () => {
+            try {
+                info.textContent = 'Fetching preset dust...';
+                const plistUrl = 'bg/web/web_0015_ef_dust.plist';
+                const resp = await fetch(plistUrl);
+                if (!resp.ok) throw new Error(`Could not fetch ${plistUrl}: ${resp.status}`);
+                const text = await resp.text();
+                const file = new File([text], 'web_0015_ef_dust.plist', { type: 'text/xml' });
+                await loadAndDisplay([file]);
+            } catch (err) {
+                console.error(err);
+                info.textContent = `Error loading preset: ${err.message || err}`;
+            }
+        });
+
+        btnPresetArmature.addEventListener('click', async () => {
+            try {
+                info.textContent = 'Fetching preset armature...';
+                const files = [
+                    { url: 'bg/web/web_0015.ExportJson', name: 'web_0015.ExportJson' },
+                    { url: 'bg/web/web_00150.plist', name: 'web_00150.plist' },
+                    { url: 'bg/web/web_00150.png', name: 'web_00150.png' },
+                    { url: 'bg/web/web_0015_ef_dust.plist', name: 'web_0015_ef_dust.plist' }
+                ];
+                const fileObjects = [];
+                for (const f of files) {
+                    const r = await fetch(f.url);
+                    if (!r.ok) throw new Error(`Could not fetch ${f.url}: ${r.status}`);
+                    const b = await r.blob();
+                    fileObjects.push(new File([b], f.name, { type: b.type }));
+                }
+                await loadAndDisplay(fileObjects);
+            } catch (err) {
+                console.error(err);
+                info.textContent = `Error loading preset: ${err.message || err}`;
+            }
+        });
+    </script>
+</body>
+</html>
