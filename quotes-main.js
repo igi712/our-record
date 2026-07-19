@@ -16,7 +16,7 @@ let bgArmature = null;
 
 async function initBackground() {
     const assets = await loadCocosStudioAssets('bg/web/web_0015.ExportJson');
-    bgArmature = new CocosStudioArmature(assets.json, assets.textures);
+    bgArmature = new CocosStudioArmature(assets.json, assets.textures, assets.particles);
 
     // Position so the 1024x768 bg content is vertically centered in the 1024x576 home16 view.
     // cameraMask clips to (0,0,1024,576); shifting the armature up by (768-576)/2 = 96px

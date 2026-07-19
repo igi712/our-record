@@ -553,7 +553,7 @@
         async function initBackground() {
             try {
                 const assets = await loadCocosStudioAssets('bg/web/web_0015.ExportJson');
-                bgArmature = new CocosStudioArmature(assets.json, assets.textures);
+                bgArmature = new CocosStudioArmature(assets.json, assets.textures, assets.particles);
 
                 bgApp.stage.addChild(bgArmature);
 
