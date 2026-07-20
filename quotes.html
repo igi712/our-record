@@ -299,6 +299,35 @@
             top: 8px;
             left: -32px;
         }
+
+        #cardDetail #charaVoice .outfitBtn {
+            height: 49px;
+            margin-right: 26px;
+            margin-bottom: 10px;
+            margin-left: 26px;
+            padding-left: 54px;
+            position: relative;
+            color: #864d16;
+            font-size: 20px;
+            line-height: 48px;
+            cursor: pointer;
+        }
+
+        #cardDetail #charaVoice .outfitBtn.current {
+            box-shadow: 0 0 0 2px #ff3b81, 0 0 5px #e1c08d inset !important;
+        }
+
+        #cardDetail #charaVoice .outfitBtn:before {
+            display: block;
+            position: absolute;
+            content: '';
+            width: 32px;
+            height: 32px;
+            background: url("assets/magica/resource/image_web/common/chara/icon_live2d.png") left top no-repeat;
+            background-size: 100% 100%;
+            top: 8px;
+            left: 10px;
+        }
     </style>
 
     <script src="lib/live2dcubismcore.min.js"></script>
@@ -329,8 +358,8 @@
 
                 <!-- Tabs -->
                 <ul id="detailTab" class="common_tab t_gold">
-                    <li data-type="status" class="TE se_tabs"><span>About</span></li>
-                    <li data-type="skill" class="TE se_tabs"><span>Skills</span></li>
+                    <li data-type="status" class="TE se_tabs off"><span>About</span></li>
+                    <li data-type="skill" class="TE se_tabs off"><span>Skills</span></li>
                     <li data-type="voice" class="TE se_tabs current"><span>Voices</span></li>
                     <li data-type="illust" class="TE se_tabs"><span>Settings</span></li>
                 </ul>
@@ -340,70 +369,107 @@
                     <div id="hiddenWrap" class="hiddenWrap">
                         <div class="scrollInner">
                             <div id="charaVoice">
-                                <div class="voiceDisplaySwitch">
-                                    <span class="c_pink">◆&nbsp;Playback Settings&nbsp;◆</span>
-                                    <span class="voiceCheck"></span>
-                                    <span class="gemIcon"></span>&nbsp;&nbsp;Full Screen
-                                </div>
+                                <div id="voicesTabContent">
+                                    <div class="voiceDisplaySwitch">
+                                        <span class="c_pink">◆&nbsp;Playback Settings&nbsp;◆</span>
+                                        <span class="voiceCheck"></span>
+                                        <span class="gemIcon"></span>&nbsp;&nbsp;Full Screen
+                                    </div>
 
-                                <div class="commonFrame3 chara">
-                                    <p class="common_title_frame">Magical Girl</p>
-                                    <div class="commonFrame4 voiceBtn" data-voice="01">Self Introduction 1</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="02">Self Introduction 2</div>
-                                </div>
+                                    <div class="commonFrame3 chara">
+                                        <p class="common_title_frame">Magical Girl</p>
+                                        <div class="commonFrame4 voiceBtn" data-voice="01">Self Introduction 1</div>
+                                        <div class="commonFrame4 voiceBtn" data-voice="02">Self Introduction 2</div>
+                                    </div>
 
-                                <div class="commonFrame3 compose">
-                                    <p class="common_title_frame">Development</p>
-                                    <div class="commonFrame4 voiceBtn" data-voice="13">Enhance</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="14">Enhance (Max Lvl.)</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="15">Episode Lvl. UP</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="16">Unlock Magic 1</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="17">Unlock Magic 2</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="18">Unlock Magic 3</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="19">Magia Lvl. UP</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="20">Magical Girl Awaken 1</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="21">Magical Girl Awaken 2</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="22">Magical Girl Awaken 3</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="23">Magical Girl Awaken 4</div>
-                                </div>
+                                    <div class="commonFrame3 compose">
+                                         <p class="common_title_frame">Development</p>
+                                         <div class="commonFrame4 voiceBtn" data-voice="13">Enhance</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="14">Enhance (Max Lvl.)</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="15">Episode Lvl. UP</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="16">Unlock Magic 1</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="17">Unlock Magic 2</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="18">Unlock Magic 3</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="19">Magia Lvl. UP</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="20">Magical Girl Awaken 1</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="21">Magical Girl Awaken 2</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="22">Magical Girl Awaken 3</div>
+                                     </div>
 
-                                <div class="commonFrame3 home">
-                                    <p class="common_title_frame">Home</p>
-                                    <div class="commonFrame4 voiceBtn" data-voice="24">Login 1 (First Login)</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="25">Login 2 (Morning)</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="26">Login 3 (Midday)</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="27">Login 4 (Night)</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="28">Login 5 (Late-Night)</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="29">Login 6 (Other)</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="30">Login 7 (Max AP)</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="31">Login 8 (Max BP)</div>
+                                     <div class="commonFrame3 home">
+                                         <p class="common_title_frame">Home</p>
+                                         <div class="commonFrame4 voiceBtn" data-voice="24">Login 1 (First Login)</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="25">Login 2 (Morning)</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="26">Login 3 (Midday)</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="27">Login 4 (Night)</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="28">Login 5 (Late-Night)</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="29">Login 6 (Other)</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="30">Login 7 (Max AP)</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="31">Login 8 (Max BP)</div>
 
-                                    <div class="commonFrame4 voiceBtn" data-voice="33">Magical Girl Tap 1</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="34">Magical Girl Tap 2</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="35">Magical Girl Tap 3</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="36">Magical Girl Tap 4</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="37">Magical Girl Tap 5</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="38">Magical Girl Tap 6</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="39">Magical Girl Tap 7</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="40">Magical Girl Tap 8</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="41">Magical Girl Tap 9</div>
-                                </div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="33">Magical Girl Tap 1</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="34">Magical Girl Tap 2</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="35">Magical Girl Tap 3</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="36">Magical Girl Tap 4</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="37">Magical Girl Tap 5</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="38">Magical Girl Tap 6</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="39">Magical Girl Tap 7</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="40">Magical Girl Tap 8</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="41">Magical Girl Tap 9</div>
+                                     </div>
 
-                                <div class="commonFrame3 quest">
-                                    <p class="common_title_frame">Quests</p>
-                                    <div class="commonFrame4 voiceBtn" data-voice="42">Start Quest</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="43">Quest Victory 1</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="44">Quest Victory 2</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="45">Quest Victory 3</div>
-                                    <div class="commonFrame4 voiceBtn" data-voice="46">Quest Victory 4</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="subtitle" aria-live="polite" hidden></div>
-            </div>
-        </div>
+                                     <div class="commonFrame3 quest">
+                                         <p class="common_title_frame">Quests</p>
+                                         <div class="commonFrame4 voiceBtn" data-voice="42">Start Quest</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="43">Quest Victory 1</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="44">Quest Victory 2</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="45">Quest Victory 3</div>
+                                     </div>
+
+                                     <div class="commonFrame3 storyChapterEnd">
+                                         <p class="common_title_frame">Story Chapter End</p>
+                                         <div class="commonFrame4 voiceBtn" data-voice="03">Story Chapter End 1</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="04">Story Chapter End 2</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="05">Story Chapter End 3</div>
+                                     </div>
+
+                                     <div class="commonFrame3 unused">
+                                         <p class="common_title_frame">Unused</p>
+                                         <div class="commonFrame4 voiceBtn" data-voice="23">Unused 2</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="32">Unused 3</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="46">Unused 4</div>
+                                     </div>
+
+                                     <div class="commonFrame3 magia">
+                                         <p class="common_title_frame">Magia</p>
+                                         <div class="commonFrame4 voiceBtn" data-voice="63">Magia 1</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="64">Magia 2</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="65">Magia 3</div>
+                                         <div class="commonFrame4 voiceBtn" data-voice="66">Magia 4</div>
+                                     </div>
+                                 </div>
+
+                                 <div id="outfitsTabContent" style="display: none;">
+                                     <div class="commonFrame3 homePageOutfits" style="display: none;">
+                                         <p class="common_title_frame">Home Page Outfits</p>
+                                         <div class="live2dBtns homeOutfits" style="padding-bottom: 10px;">
+                                             <!-- Outfits will be populated here -->
+                                         </div>
+                                     </div>
+                                     <div class="commonFrame3 storyOutfits" style="display: none;">
+                                         <p class="common_title_frame">Story Outfits</p>
+                                         <div class="live2dBtns storyOutfitsList" style="padding-bottom: 10px;">
+                                             <!-- Outfits will be populated here -->
+                                         </div>
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+                 <div id="subtitle" aria-live="polite" hidden></div>
+             </div>
+         </div>
 
         <!-- Config MUST be set before viewer.js loads -->
         <script>window.__QUOTES_CONFIG = { viewMode: 'home16', noGameBg: true, xOffset: -260 };</script>

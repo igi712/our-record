@@ -7,7 +7,7 @@
     <style>
         body {
             margin: 0;
-            background: #000;
+            background: #222;
             color: #ccc;
             font-family: monospace;
             display: flex;
@@ -34,7 +34,7 @@
         }
         canvas {
             display: block;
-            background: #000;
+            background: #222;
         }
         select, input, button {
             background: #151515;
@@ -65,6 +65,7 @@
         <button id="btnPresetParticle">Preset: 1013_ef01 (Particle)</button>
         <button id="btnPresetDust">Preset: web_0015 Dust (Particle)</button>
         <button id="btnPresetArmature">Preset: web_0015 (Armature)</button>
+        <button id="btnPresetEfAdv05">Preset: ef_adv_05 (Armature)</button>
         <select id="animSelect" style="display: none;"></select>
         <label style="display: inline-flex; align-items: center; gap: 5px; font-size: 11px; cursor: pointer; color: #eee; background: #151515; border: 1px solid #333; padding: 4px 8px;">
             <input type="checkbox" id="chkHighVisibility" style="margin: 0; cursor: pointer;"> High Visibility Particles
@@ -86,7 +87,7 @@
             view: canvas,
             width: container.clientWidth,
             height: container.clientHeight,
-            backgroundColor: 0x000000,
+            backgroundColor: 0x222222,
             antialias: true
         });
 
@@ -105,6 +106,7 @@
         const btnPresetParticle = document.getElementById('btnPresetParticle');
         const btnPresetDust = document.getElementById('btnPresetDust');
         const btnPresetArmature = document.getElementById('btnPresetArmature');
+        const btnPresetEfAdv05 = document.getElementById('btnPresetEfAdv05');
         const chkHighVisibility = document.getElementById('chkHighVisibility');
 
         window.highVisibilityParticles = false;
@@ -151,6 +153,28 @@
                         info.textContent = `Loaded particle system: (max: ${result.config.maxParticles || 100})`;
                     }
                 } else if (result.type === 'armature') {
+                    // Check for missing assets
+                    const missingFiles = [];
+                    const configPaths = result.json.config_file_path || [];
+                    for (const plist of configPaths) {
+                        const hasPlist = files.some(f => f.name.toLowerCase() === plist.toLowerCase());
+                        if (!hasPlist) {
+                            missingFiles.push(plist);
+                        }
+                    }
+                    const pngPaths = result.json.config_png_path || [];
+                    for (const png of pngPaths) {
+                        const hasPng = files.some(f => f.name.toLowerCase() === png.toLowerCase());
+                        if (!hasPng) {
+                            missingFiles.push(png);
+                        }
+                    }
+                    if (missingFiles.length > 0) {
+                        info.innerHTML = `Loaded JSON structure, but <span style="color: #ff4444; font-weight: bold;">missing ${missingFiles.length} required assets from selection:</span> ${missingFiles.join(', ')}. Please select all these files together!`;
+                    } else {
+                        info.textContent = `Loaded armature with ${Object.keys(result.textures).length} texture frames.`;
+                    }
+
                     const armature = new CocosStudioArmature(result.json, result.textures, result.particles);
                     armature.x = container.clientWidth / 2;
                     armature.y = container.clientHeight / 2;
@@ -232,6 +256,30 @@
                     { url: 'bg/web/web_00150.plist', name: 'web_00150.plist' },
                     { url: 'bg/web/web_00150.png', name: 'web_00150.png' },
                     { url: 'bg/web/web_0015_ef_dust.plist', name: 'web_0015_ef_dust.plist' }
+                ];
+                const fileObjects = [];
+                for (const f of files) {
+                    const r = await fetch(f.url);
+                    if (!r.ok) throw new Error(`Could not fetch ${f.url}: ${r.status}`);
+                    const b = await r.blob();
+                    fileObjects.push(new File([b], f.name, { type: b.type }));
+                }
+                await loadAndDisplay(fileObjects);
+            } catch (err) {
+                console.error(err);
+                info.textContent = `Error loading preset: ${err.message || err}`;
+            }
+        });
+
+        btnPresetEfAdv05.addEventListener('click', async () => {
+            try {
+                info.textContent = 'Fetching preset ef_adv_05...';
+                const files = [
+                    { url: 'assets/ma-re-data/resource/image_native/effect/story/ef_adv_05.ExportJson', name: 'ef_adv_05.ExportJson' },
+                    { url: 'assets/ma-re-data/resource/image_native/effect/story/ef_adv_050.plist', name: 'ef_adv_050.plist' },
+                    { url: 'assets/ma-re-data/resource/image_native/effect/story/ef_adv_050.png', name: 'ef_adv_050.png' },
+                    { url: 'assets/ma-re-data/resource/image_native/effect/story/ef_adv_05_particle.plist', name: 'ef_adv_05_particle.plist' },
+                    { url: 'assets/ma-re-data/resource/image_native/effect/story/ef_adv_05_line.plist', name: 'ef_adv_05_line.plist' }
                 ];
                 const fileObjects = [];
                 for (const f of files) {
