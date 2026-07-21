@@ -183,9 +183,13 @@ async function loadCharaMetadata(charaId) {
     }
 }
 
-// ---- Scenario base resolution (primary: en-download remote, fallback: local ma-re-data) ----
+// ---- Scenario base resolution ----
+// Order: en-download remote (primary) → local ma-re-data → remote ma-re-data
+const SCENARIO_REMOTE_MARE_BASE = 'https://raw.githubusercontent.com/igi712/ma-re-data/main/resource/scenario/json/general';
+const SCENARIO_LOCAL_MARE_BASE = 'assets/ma-re-data/resource/scenario/json/general';
+
 let _scenarioPrimaryBase = null;
-let _scenarioFallbackBase = null;
+let _scenarioLocalMareAvailable = null;
 
 async function resolveScenarioBase() {
     if (!_scenarioPrimaryBase) {
@@ -194,25 +198,33 @@ async function resolveScenarioBase() {
     return _scenarioPrimaryBase;
 }
 
-async function resolveFallbackScenarioBase() {
-    if (_scenarioFallbackBase) return _scenarioFallbackBase;
-    const localBase = 'assets/ma-re-data/resource/scenario/json/general';
-    try {
-        const probeUrl = `${localBase}/100100.json`;
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 2000);
-        const resp = await fetch(probeUrl, { method: 'HEAD', cache: 'no-store', signal: controller.signal });
-        clearTimeout(timer);
-        if (resp.ok) {
-            _scenarioFallbackBase = localBase;
-            return _scenarioFallbackBase;
+async function resolveMaReScenarioBases() {
+    const bases = [];
+
+    // 1) Local ma-re-data (fast, no network needed) — probe once, cache result
+    if (_scenarioLocalMareAvailable === null) {
+        try {
+            const probeUrl = `${SCENARIO_LOCAL_MARE_BASE}/100100.json`;
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 2000);
+            const resp = await fetch(probeUrl, { method: 'HEAD', cache: 'no-store', signal: controller.signal });
+            clearTimeout(timer);
+            _scenarioLocalMareAvailable = resp.ok;
+        } catch (e) {
+            _scenarioLocalMareAvailable = false;
         }
-    } catch (e) { /* ignore */ }
-    _scenarioFallbackBase = null;
-    return null;
+    }
+    if (_scenarioLocalMareAvailable) {
+        bases.push(SCENARIO_LOCAL_MARE_BASE);
+    }
+
+    // 2) Remote ma-re-data (always included as a network fallback)
+    bases.push(SCENARIO_REMOTE_MARE_BASE);
+
+    return bases;
 }
 
-// Try primary (en-download) first, then fallback to local ma-re-data
+// Try primary (en-download) first, then iterate through ma-re-data fallbacks
 async function fetchScenarioJson(pathSuffix) {
     const primaryBase = await resolveScenarioBase();
     const primaryUrl = `${primaryBase}/${pathSuffix}`;
@@ -222,10 +234,10 @@ async function fetchScenarioJson(pathSuffix) {
         return { json: await resp.json(), url: primaryUrl };
     }
 
-    // Fallback to local ma-re-data
-    const fallbackBase = await resolveFallbackScenarioBase();
-    if (fallbackBase) {
-        const fallbackUrl = `${fallbackBase}/${pathSuffix}`;
+    // Iterate through ma-re-data fallbacks (local then remote)
+    const fallbackBases = await resolveMaReScenarioBases();
+    for (const base of fallbackBases) {
+        const fallbackUrl = `${base}/${pathSuffix}`;
         console.info(`[quotes] Scenario not found at en-download, trying ma-re-data fallback: ${fallbackUrl}`);
         resp = await fetch(fallbackUrl).catch(() => null);
         if (resp && resp.ok) {
@@ -236,16 +248,16 @@ async function fetchScenarioJson(pathSuffix) {
     return { json: null, url: primaryUrl };
 }
 
-// Check if scenario exists at primary (en-download) or fallback (local ma-re-data)
+// Check if scenario exists at primary (en-download) or any ma-re-data fallback
 async function checkScenarioUrlExists(pathSuffix) {
     const primaryBase = await resolveScenarioBase();
     const primaryUrl = `${primaryBase}/${pathSuffix}`;
     if (await checkUrlExists(primaryUrl)) return { url: primaryUrl, source: 'primary' };
 
-    const fallbackBase = await resolveFallbackScenarioBase();
-    if (fallbackBase) {
-        const fallbackUrl = `${fallbackBase}/${pathSuffix}`;
-        if (await checkUrlExists(fallbackUrl)) return { url: fallbackUrl, source: 'fallback' };
+    const fallbackBases = await resolveMaReScenarioBases();
+    for (const base of fallbackBases) {
+        const fallbackUrl = `${base}/${pathSuffix}`;
+        if (await checkUrlExists(fallbackUrl)) return { url: fallbackUrl, source: 'ma-re-data' };
     }
 
     return null;

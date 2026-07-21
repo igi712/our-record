@@ -6,9 +6,6 @@ const HCA_JS_URL = new URL('./lib/hca.js', document.baseURI);
 const KEY1 = 0x01395C51;
 const KEY2 = 0x00000000;
 
-export const DEFAULT_SCENARIO_URL =
-    'https://raw.githubusercontent.com/Puella-Care/en-download/refs/heads/main/magica/resource/download/asset/master/resource/scenario/json/general/100100.json';
-
 function toMilliseconds(value) {
     const seconds = Number(value);
     return Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : 0;
