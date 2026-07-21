@@ -408,18 +408,19 @@ async function playTransformationEffect(x) {
     }
 }
 
-async function loadScenarioForOutfit(charaId, live2dId) {
+async function loadScenarioForOutfit(charaId, live2dId, changeToken) {
     const live2dIdStr = String(live2dId).padStart(2, '0');
     const pathSuffix = `${charaId}${live2dIdStr}.json`;
 
     let scenarioUrl = null;
     let scenarioJson = null;
+    let voicePrefix = null;
 
     if (live2dIdStr !== '00') {
         // Check if a specific outfit scenario exists (en-download first, then ma-re-data)
         const result = await checkScenarioUrlExists(pathSuffix);
         if (result) {
-            activeVoicePrefix = live2dIdStr;
+            voicePrefix = live2dIdStr;
             scenarioUrl = result.url;
             // Load it (from cache or fetch with fallback)
             const cached = scenarioCache.get(scenarioUrl);
@@ -438,7 +439,7 @@ async function loadScenarioForOutfit(charaId, live2dId) {
 
     if (!scenarioJson) {
         // Fall back to base outfit (00) — use fetchScenarioJson for fallback support
-        activeVoicePrefix = '00';
+        voicePrefix = '00';
         const fetchResult = await fetchScenarioJson(`${charaId}00.json`);
         if (fetchResult.json) {
             scenarioJson = fetchResult.json;
@@ -447,6 +448,10 @@ async function loadScenarioForOutfit(charaId, live2dId) {
         }
     }
 
+    // Guard: if a newer outfit change has occurred, discard this result to avoid races
+    if (changeToken !== undefined && changeToken !== outfitChangeToken) return;
+
+    activeVoicePrefix = voicePrefix;
     activeScenarioUrl = scenarioUrl;
 
     if (scenarioJson) {
@@ -491,15 +496,19 @@ function setupOutfitButtons(charaId) {
             const newLive2dId = outfit.live2dId;
             state.currentLive2dId = newLive2dId;
 
-            // 1. Stop any currently playing voice/sequence
+            // 1. Stop any currently playing voice/sequence and clear stale highlight
             if (scenarioPlayer) {
                 scenarioPlayer.stop();
             }
+            document.querySelectorAll('.voiceBtn.current').forEach(b => b.classList.remove('current'));
 
             const modelId = buildModelId(charaId, newLive2dId);
 
             // Guard token to prevent race conditions during rapid clicking
             const token = ++outfitChangeToken;
+
+            // 1b. Start loading scenario voice mappings early (parallel with model preloading/transformation)
+            const scenarioPromise = loadScenarioForOutfit(charaId, newLive2dId, token);
 
             // 2. Preload the model into RAM first (shows "Connecting" loader/overlay if not already cached)
             try {
@@ -572,8 +581,8 @@ function setupOutfitButtons(charaId) {
             }
 
             if (token !== outfitChangeToken) return;
-            // 5. Load/apply scenario voice mappings
-            await loadScenarioForOutfit(charaId, newLive2dId);
+            // 5. Ensure scenario voice mappings have loaded (started in parallel above)
+            await scenarioPromise;
         });
 
         // Determine if it is a Home Page Outfit (in live2dList.json) or Story Outfit (in missingLive2dList.json)
@@ -777,6 +786,14 @@ async function init() {
     // Load character attributes from assets/charaAttributes.json
     await loadCharaAttributes();
 
+    // Apply attribute to DOM immediately (local JSON, no network needed)
+    const attribute = charaAttributes[charaId] || 'light';
+    const attEl = document.getElementById('att');
+    if (attEl) attEl.className = attribute;
+
+    // Start fetching character name/kana early (runs concurrently with preloading)
+    const metadataPromise = initMetadata(charaId);
+
     // Parse scenario to find unique models, expressions, motions, and voices
     const allowedModels = new Set();
     const allowedExpressions = new Set();
@@ -841,11 +858,8 @@ async function init() {
         // Set the active controller on our scenario player
         scenarioPlayer.controller = state.currentController;
 
-        const attribute = charaAttributes[charaId] || 'light';
-        const attEl = document.getElementById('att');
-        if (attEl) attEl.className = attribute;
-
-        await initMetadata(charaId);
+        // Ensure name metadata has been loaded (started early above)
+        await metadataPromise;
         setupOutfitButtons(charaId);
         setupVoiceButtons();
         setupBackBtn();
