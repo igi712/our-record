@@ -84,3 +84,63 @@ These likely correspond to battle/disc voice clips, connect attacks, damage soun
 
 - **group_15** (voice 23): The wiki labels this "Unused 2". Its position in the group numbering (right after Awaken 3/group_14)  suggest it was intended as a fourth Awaken quote that went unused in the final game.
 - **group_38** (voice 46): The wiki labels this "Unused 4". Its position (right after Quest Victory 3/group_37) suggest it was intended as a fourth Victory quote.
+
+## Cross-character & cross-outfit patterns
+
+Based on 78+ character/outfit scenario files in `temp/magica/resource/scenario/json/general/`.
+
+### Three group-count generations
+
+| Generation | Groups | Voice range | Characters |
+|-----------|--------|-------------|------------|
+| **Early** (43-group) | group_1 – group_43 | up to #66 | 1000–1018 range, all outfits |
+| **Transitional** (48-group) | group_1 – group_48 | up to #46 char + `vo_game_*` | 102400 (Juri), plus a few others |
+| **Newer** (39-group) | group_1 – group_39 | up to #46 | 1029+, 1301+, 1801+, and newer |
+
+The 39-group generation dropped the Magia voice range (63–66) present in the 43-group files.
+
+### Voice pattern within a character
+
+For a character with multiple outfits, the structure is:
+
+1. **groups 1–15**: "Introductory" lines — share the base `vo_char_XXXX_00_YY` voice from the Magical Girl outfit
+2. **groups 16–33**: "Active/home" dialogue — use outfit-specific `vo_char_XXXX_LL_YY` voices (LL = live2dId)
+3. **groups 34–43**: "Closing" lines — share the base `vo_char_XXXX_00_YY` voice
+
+The Magical Girl outfit (outfit `00`) uses `vo_char_XXXX_00_YY` across all 43 groups.
+
+**Exception:** Some outfits have entirely unique voice lines across all groups (e.g., Alina Gray's Atelier outfit, 100851, uses `vo_char_1008_51_YY` for every group).
+
+### Entry counts differ between outfits
+
+The **number of steps per group** (entry count) always differs between outfits. The MG outfit consistently has the most entries per group; seasonal variants have fewer. The dialogue text (`textHome`), motion sequences (`motion`), and expression data (`cheek`, `face`) are completely rewritten per outfit.
+
+### Some outfits are stripped to "home only"
+
+A few seasonal outfits only contain groups 16–33 (the "active/home" zone), skipping the intro/closing blocks:
+
+- **Sana Futaba (1004) — New Year's Outfit (100452)**: only 18 groups (16–33)
+- **Sudachi Sawa (1039) — outfit 51 (103951)**: only 18 groups (16–33)
+- **Uwasa Sana (1104) — outfit 01 (110401)**: only 18 groups (16–33)
+
+### Paired/duo characters are structurally distinct
+
+- Use **multi-chara arrays** (2 characters per step) with `pos: 0` (left) and `pos: 1` (right)
+- Have expanded motion sets (101, 201, 301, 401 in addition to the base set)
+- Some use bare chara objects (not wrapped in arrays) and `zOrder` for layering
+- Examples: 130100 (Iroha + Yachiyo), 180100 (Iroha + Kuroe)
+
+### Other structural differences across characters
+
+- **Face format**: `.exp.json` (early characters) → `.exp3.json` (105300, 180100) — different expression system
+- **New keys**: `eyeClose`, `lipSynch`, `tear` appear in newer/choreographed files
+- **`textHomeStatus` casing**: `"Clear"` (standard) → `"clear"` (lowercase in 104000.json)
+- **`cheek` values**: 0/1 (standard), but 103900 uses `cheek: 2` and 100900 uses `cheek: -1`
+- **Group anomalies**: Some files have unexpected counts — e.g., Touka Satomi (1007) has 52 groups vs the standard 43, while others have extra groups 40–43 (3047, 3052, 3058)
+
+### Impact on the quotes viewer
+
+- The current button layout in `quotes.html` assumes the 43-group pattern
+- For 39-group characters, the Magia voice buttons (63–66) simply won't exist in the scenario — the `loadAndPlayVoice` search will fail gracefully
+- For stripped outfits (only groups 16–33), intro and closing buttons will also fail
+- The Tap 9 button (voice 41) exists across all three generations

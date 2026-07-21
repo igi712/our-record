@@ -4,7 +4,7 @@
 import { loadCocosStudioAssets, CocosStudioArmature } from './lib/cocos-to-pixi.js';
 import { loadModel, state, getOutfitsForCharacter, buildModelId } from './model.js';
 import { preloadModelToRam, ramFolderCache } from './model-assets.js';
-import { DEFAULT_SCENARIO_URL, ScenarioSequencePlayer, preloadScenarioVoices, scenarioCache } from './quotes-sequence.js';
+import { ScenarioSequencePlayer, preloadScenarioVoices, scenarioCache } from './quotes-sequence.js';
 
 let activeVoicePrefix = '00';
 let activeScenarioUrl = '';
@@ -140,32 +140,19 @@ async function playTrack(fileName) {
     console.info(`[quotes] Now playing: ${fileName} (${_bgmBaseSource})`);
 }
 
-const CHARA_ATTRIBUTES = {
-    1001: 'light',  // Iroha
-    1002: 'light',  // Madoka
-    1003: 'dark',   // Homura
-    1004: 'water',  // Sayaka
-    1005: 'timber', // Mami
-    1006: 'fire',   // Kyoko
-    1007: 'water',  // Yachiyo
-    1008: 'fire',   // Tsuruno
-    1009: 'dark',   // Felicia
-    1010: 'timber', // Sana
-    1011: 'fire',   // Momoko
-    1012: 'timber', // Kaede
-    1013: 'water',  // Rena
-    1014: 'void',   // Mitama
-    1015: 'fire',   // Karin
-    1016: 'timber', // Alina
-    1017: 'dark',   // Mifuyu
-    1018: 'fire',   // Touka
-    1019: 'light',  // Nemu
-    1020: 'dark',   // Ui
-    1021: 'dark',   // Sakurako
-    1022: 'light',  // Iroha (Anime Ver.)
-    1023: 'water',  // Yachiyo (Anime Ver.)
-    1024: 'dark',   // Kuroe
-};
+const CHARA_ATTRIBUTES_URL = new URL('./assets/charaAttributes.json', document.baseURI).href;
+let charaAttributes = {};
+
+async function loadCharaAttributes() {
+    try {
+        const resp = await fetch(CHARA_ATTRIBUTES_URL);
+        if (resp.ok) {
+            charaAttributes = await resp.json();
+        }
+    } catch (e) {
+        console.warn('[quotes] failed to load charaAttributes.json, using fallback', e);
+    }
+}
 
 function updateUILayer() {
     const uiLayer = document.getElementById('ui-layer');
@@ -196,8 +183,72 @@ async function loadCharaMetadata(charaId) {
     }
 }
 
+// ---- Scenario base resolution (primary: en-download remote, fallback: local ma-re-data) ----
+let _scenarioPrimaryBase = null;
+let _scenarioFallbackBase = null;
+
 async function resolveScenarioBase() {
-    return 'https://raw.githubusercontent.com/Puella-Care/en-download/refs/heads/main/magica/resource/download/asset/master/resource/scenario/json/general';
+    if (!_scenarioPrimaryBase) {
+        _scenarioPrimaryBase = 'https://raw.githubusercontent.com/Puella-Care/en-download/refs/heads/main/magica/resource/download/asset/master/resource/scenario/json/general';
+    }
+    return _scenarioPrimaryBase;
+}
+
+async function resolveFallbackScenarioBase() {
+    if (_scenarioFallbackBase) return _scenarioFallbackBase;
+    const localBase = 'assets/ma-re-data/resource/scenario/json/general';
+    try {
+        const probeUrl = `${localBase}/100100.json`;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 2000);
+        const resp = await fetch(probeUrl, { method: 'HEAD', cache: 'no-store', signal: controller.signal });
+        clearTimeout(timer);
+        if (resp.ok) {
+            _scenarioFallbackBase = localBase;
+            return _scenarioFallbackBase;
+        }
+    } catch (e) { /* ignore */ }
+    _scenarioFallbackBase = null;
+    return null;
+}
+
+// Try primary (en-download) first, then fallback to local ma-re-data
+async function fetchScenarioJson(pathSuffix) {
+    const primaryBase = await resolveScenarioBase();
+    const primaryUrl = `${primaryBase}/${pathSuffix}`;
+
+    let resp = await fetch(primaryUrl).catch(() => null);
+    if (resp && resp.ok) {
+        return { json: await resp.json(), url: primaryUrl };
+    }
+
+    // Fallback to local ma-re-data
+    const fallbackBase = await resolveFallbackScenarioBase();
+    if (fallbackBase) {
+        const fallbackUrl = `${fallbackBase}/${pathSuffix}`;
+        console.info(`[quotes] Scenario not found at en-download, trying ma-re-data fallback: ${fallbackUrl}`);
+        resp = await fetch(fallbackUrl).catch(() => null);
+        if (resp && resp.ok) {
+            return { json: await resp.json(), url: fallbackUrl };
+        }
+    }
+
+    return { json: null, url: primaryUrl };
+}
+
+// Check if scenario exists at primary (en-download) or fallback (local ma-re-data)
+async function checkScenarioUrlExists(pathSuffix) {
+    const primaryBase = await resolveScenarioBase();
+    const primaryUrl = `${primaryBase}/${pathSuffix}`;
+    if (await checkUrlExists(primaryUrl)) return { url: primaryUrl, source: 'primary' };
+
+    const fallbackBase = await resolveFallbackScenarioBase();
+    if (fallbackBase) {
+        const fallbackUrl = `${fallbackBase}/${pathSuffix}`;
+        if (await checkUrlExists(fallbackUrl)) return { url: fallbackUrl, source: 'fallback' };
+    }
+
+    return null;
 }
 
 async function checkUrlExists(url) {
@@ -346,38 +397,46 @@ async function playTransformationEffect(x) {
 }
 
 async function loadScenarioForOutfit(charaId, live2dId) {
-    const scenarioBase = await resolveScenarioBase();
     const live2dIdStr = String(live2dId).padStart(2, '0');
-    
-    let scenarioUrl = `${scenarioBase}/${charaId}${live2dIdStr}.json`;
-    let exists = false;
-    
+    const pathSuffix = `${charaId}${live2dIdStr}.json`;
+
+    let scenarioUrl = null;
+    let scenarioJson = null;
+
     if (live2dIdStr !== '00') {
-        exists = await checkUrlExists(scenarioUrl);
-    }
-    
-    if (exists) {
-        activeVoicePrefix = live2dIdStr;
-        activeScenarioUrl = scenarioUrl;
-    } else {
-        activeVoicePrefix = '00';
-        activeScenarioUrl = `${scenarioBase}/${charaId}00.json`;
-    }
-    
-    let scenarioJson = scenarioCache.get(activeScenarioUrl);
-    if (!scenarioJson) {
-        try {
-            const resp = await fetch(activeScenarioUrl);
-            if (resp.ok) {
-                scenarioJson = await resp.json();
-                scenarioCache.set(activeScenarioUrl, scenarioJson);
-                console.info(`[quotes] Scenario loaded and cached: ${activeScenarioUrl}`);
+        // Check if a specific outfit scenario exists (en-download first, then ma-re-data)
+        const result = await checkScenarioUrlExists(pathSuffix);
+        if (result) {
+            activeVoicePrefix = live2dIdStr;
+            scenarioUrl = result.url;
+            // Load it (from cache or fetch with fallback)
+            const cached = scenarioCache.get(scenarioUrl);
+            if (cached) {
+                scenarioJson = cached;
+            } else {
+                const fetchResult = await fetchScenarioJson(pathSuffix);
+                if (fetchResult.json) {
+                    scenarioJson = fetchResult.json;
+                    scenarioUrl = fetchResult.url;
+                    scenarioCache.set(scenarioUrl, scenarioJson);
+                }
             }
-        } catch (e) {
-            console.error(`[quotes] Failed to fetch scenario: ${activeScenarioUrl}`, e);
         }
     }
-    
+
+    if (!scenarioJson) {
+        // Fall back to base outfit (00) — use fetchScenarioJson for fallback support
+        activeVoicePrefix = '00';
+        const fetchResult = await fetchScenarioJson(`${charaId}00.json`);
+        if (fetchResult.json) {
+            scenarioJson = fetchResult.json;
+            scenarioUrl = fetchResult.url;
+            scenarioCache.set(scenarioUrl, scenarioJson);
+        }
+    }
+
+    activeScenarioUrl = scenarioUrl;
+
     if (scenarioJson) {
         const availableKeys = getAvailableVoiceKeys(scenarioJson);
         updateVoiceButtonsVisibility(charaId, activeVoicePrefix, availableKeys);
@@ -690,23 +749,21 @@ async function init() {
         subtitleElement: document.getElementById('subtitle')
     });
 
-    // Load the scenario JSON first and cache it
-    const scenarioBase = await resolveScenarioBase();
+    // Load the scenario JSON first and cache it (try en-download, fallback to ma-re-data)
     activeVoicePrefix = '00';
-    activeScenarioUrl = `${scenarioBase}/${charaId}00.json`;
     let scenarioJson = null;
-    try {
-        const resp = await fetch(activeScenarioUrl);
-        if (resp.ok) {
-            scenarioJson = await resp.json();
-            scenarioCache.set(activeScenarioUrl, scenarioJson);
-            console.info(`[quotes] Scenario JSON loaded and cached: ${activeScenarioUrl}`);
-        } else {
-            console.warn(`[quotes] Failed to load scenario JSON from ${activeScenarioUrl}`);
-        }
-    } catch (e) {
-        console.warn(`[quotes] Error loading scenario JSON:`, e);
+    const scenarioResult = await fetchScenarioJson(`${charaId}00.json`);
+    if (scenarioResult.json) {
+        scenarioJson = scenarioResult.json;
+        activeScenarioUrl = scenarioResult.url;
+        scenarioCache.set(activeScenarioUrl, scenarioJson);
+        console.info(`[quotes] Scenario JSON loaded and cached: ${activeScenarioUrl}`);
+    } else {
+        console.warn(`[quotes] Failed to load scenario JSON for ${charaId}00`);
     }
+
+    // Load character attributes from assets/charaAttributes.json
+    await loadCharaAttributes();
 
     // Parse scenario to find unique models, expressions, motions, and voices
     const allowedModels = new Set();
@@ -772,7 +829,7 @@ async function init() {
         // Set the active controller on our scenario player
         scenarioPlayer.controller = state.currentController;
 
-        const attribute = CHARA_ATTRIBUTES[charaId] || 'light';
+        const attribute = charaAttributes[charaId] || 'light';
         const attEl = document.getElementById('att');
         if (attEl) attEl.className = attribute;
 
