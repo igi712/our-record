@@ -1,0 +1,475 @@
+Landscape 16:9
+
+Single unit (Konomi, 303000)
+
+Homescreen
+07-23 16:51:01.874  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fae29670]::setPosNum: posNum=1
+07-23 16:51:01.874  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fae29670]::setOffset: offset=(-132.00, -1.00) -> Home=(xGame=380.00, yGame=287.00), World=(xWorld=380.00, yWorld=385.00), est.height=-0.06
+07-23 16:51:01.874  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918acfcce0 draw Mat4: tx=512.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 16:51:01.875  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911acfa690 SetMvpMatrix(m=0x7f901aa276a0): tx=-0.2578 ty=-0.4352 sx=1.300000 sy=2.311111
+07-23 16:51:02.014  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (-120.000000, -300.000000) to (-135.000000, -330.000000).
+07-23 16:51:02.014  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 24.0.
+
+Homescreen (Camera Mode)
+
+Center
+
+07-23 16:51:27.281  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fae17af0]::setPosNum: posNum=1
+07-23 16:51:27.282  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fae17af0]::setOffset: offset=(0.00, -1.00) -> Home=(xGame=512.00, yGame=287.00), World=(xWorld=512.00, yWorld=385.00), est.height=-0.06
+07-23 16:51:27.283  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ace6110 SetMvpMatrix(m=0x7f901aa276a0): tx=0.0000 ty=-0.4352 sx=1.300000 sy=2.311111
+^[[F07-23 16:51:33.035  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (12.000000, -300.000000) to (-5.000000, -330.000000).
+07-23 16:51:33.035  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 22.0.
+
+Center-Right
+
+07-23 16:52:02.221  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fae2af30]::setOffset: offset=(162.00, -1.00) -> Home=(xGame=674.00, yGame=287.00), World=(xWorld=674.00, yWorld=385.00), est.height=-0.06
+07-23 16:52:02.223  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918acf9c20 draw Mat4: tx=512.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 16:52:02.224  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad21c90 SetMvpMatrix(m=0x7f901aa276a0): tx=0.3164 ty=-0.4352 sx=1.300000 sy=2.311111
+^[[F07-23 16:52:07.616  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (174.000000, -300.000000) to (157.000000, -330.000000).
+07-23 16:52:07.617  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 22.0.
+
+Right
+
+07-23 16:52:27.539  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fae0e0d0]::setPosNum: posNum=1
+07-23 16:52:27.540  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fae0e0d0]::setOffset: offset=(324.00, -1.00) -> Home=(xGame=836.00, yGame=287.00), World=(xWorld=836.00, yWorld=385.00), est.height=-0.06
+07-23 16:52:27.540  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918acfb480 draw Mat4: tx=512.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 16:52:27.541  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911acff390 SetMvpMatrix(m=0x7f901aa276a0): tx=0.6328 ty=-0.4352 sx=1.300000 sy=2.311111
+07-23 16:52:28.700  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (336.000000, -300.000000) to (157.000000, -330.000000).
+07-23 16:52:28.701  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 22.0.
+
+Left
+
+07-23 16:52:46.367  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fae248d0]::setPosNum: posNum=1
+07-23 16:52:46.367  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fae248d0]::setOffset: offset=(-324.00, -1.00) -> Home=(xGame=188.00, yGame=287.00), World=(xWorld=188.00, yWorld=385.00), est.height=-0.06
+07-23 16:52:46.370  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad180d0 SetMvpMatrix(m=0x7f901aa276a0): tx=-0.6328 ty=-0.4352 sx=1.300000 sy=2.311111
+07-23 16:52:47.503  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (-312.000000, -300.000000) to (-167.000000, -330.000000).
+07-23 16:52:47.504  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 22.0.
+
+Center-Left
+
+07-23 16:53:07.695  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fae1e810]::setOffset: offset=(-162.00, -1.00) -> Home=(xGame=350.00, yGame=287.00), World=(xWorld=350.00, yWorld=385.00), est.height=-0.06
+07-23 16:53:07.698  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad23350 SetMvpMatrix(m=0x7f901aa276a0): tx=-0.3164 ty=-0.4352 sx=1.300000 sy=2.311111
+07-23 16:53:08.669  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (-150.000000, -300.000000) to (-167.000000, -330.000000).
+07-23 16:53:08.675  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 22.0.
+
+Quotes
+
+07-23 16:55:01.629  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90face7950]::setPosNum: posNum=1
+07-23 16:55:01.631  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90face7950]::setOffset: offset=(-262.00, -1.00) -> Home=(xGame=250.00, yGame=287.00), World=(xWorld=250.00, yWorld=385.00), est.height=-0.06
+07-23 16:55:01.638  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad156d0 SetMvpMatrix(m=0x7f901aa276a0): tx=-0.5117 ty=-0.4352 sx=1.300000 sy=2.311111
+07-23 16:55:06.309  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (-250.000000, -300.000000) to (-280.000000, -330.000000).
+07-23 16:55:06.309  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 22.0.
+
+
+Dual unit (Ren & Rika Holiday, 35010x)
+
+Homescreen
+
+07-23 16:56:43.923  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb008b90]::setPosNum: posNum=1
+07-23 16:56:43.924  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb008b90]::setOffset: offset=(28.00, -1.00) -> Home=(xGame=540.00, yGame=287.00), World=(xWorld=540.00, yWorld=385.00), est.height=-0.06
+07-23 16:56:43.957  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918ad0b470 draw Mat4: tx=452.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 16:56:43.957  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad20b10 SetMvpMatrix(m=0x7f901aa276a0): tx=0.0547 ty=-0.5586 sx=1.300000 sy=2.311111
+07-23 16:56:44.005  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb003730]::setPosNum: posNum=0
+07-23 16:56:44.005  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb003730]::setOffset: offset=(28.00, -1.00) -> Home=(xGame=540.00, yGame=287.00), World=(xWorld=540.00, yWorld=385.00), est.height=-0.06
+07-23 16:56:44.007  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918ad0ccd0 draw Mat4: tx=216.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 16:56:44.007  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad1dd90 SetMvpMatrix(m=0x7f901aa276a0): tx=0.0547 ty=-0.4043 sx=1.300000 sy=2.311111
+07-23 16:56:44.412  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (40.000000, -300.000000) to (-150.000000, -330.000000).
+07-23 16:56:44.412  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 24.0.
+
+Homescreen (Camera Mode)
+
+Center
+
+07-23 16:59:22.503  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb022cf0]::setPosNum: posNum=0
+07-23 16:59:22.503  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb022cf0]::setOffset: offset=(180.00, -1.00) -> Home=(xGame=692.00, yGame=287.00), World=(xWorld=692.00, yWorld=385.00), est.height=-0.06
+07-23 16:59:22.503  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918ad0c0a0 draw Mat4: tx=216.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 16:59:22.504  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911acf1710 SetMvpMatrix(m=0x7f901aa276a0): tx=0.3516 ty=-0.4043 sx=1.300000 sy=2.311111
+07-23 16:59:22.562  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb0020b0]::setPosNum: posNum=1
+07-23 16:59:22.563  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb0020b0]::setOffset: offset=(180.00, -1.00) -> Home=(xGame=692.00, yGame=287.00), World=(xWorld=692.00, yWorld=385.00), est.height=-0.06
+07-23 16:59:22.564  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad15c10 SetMvpMatrix(m=0x7f901aa276a0): tx=0.3516 ty=-0.5586 sx=1.300000 sy=2.311111
+07-23 16:59:24.367  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (192.000000, -300.000000) to (-5.000000, -330.000000).
+07-23 16:59:24.367  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 22.0.
+
+Center-Right
+
+07-23 17:09:13.976  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb008b90]::setPosNum: posNum=0
+07-23 17:09:13.976  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb008b90]::setOffset: offset=(300.00, -1.00) -> Home=(xGame=812.00, yGame=287.00), World=(xWorld=812.00, yWorld=385.00), est.height=-0.06
+07-23 17:09:13.977  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918ad052f0 draw Mat4: tx=216.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:09:13.978  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad15dd0 SetMvpMatrix(m=0x7f901aa276a0): tx=0.5859 ty=-0.4043 sx=1.300000 sy=2.311111
+07-23 17:09:14.053  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb0061f0]::setPosNum: posNum=1
+07-23 17:09:14.054  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb0061f0]::setOffset: offset=(300.00, -1.00) -> Home=(xGame=812.00, yGame=287.00), World=(xWorld=812.00, yWorld=385.00), est.height=-0.06
+07-23 17:09:14.055  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad1b550 SetMvpMatrix(m=0x7f901aa276a0): tx=0.5859 ty=-0.5586 sx=1.300000 sy=2.311111
+07-23 17:09:15.645  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (312.000000, -300.000000) to (115.000000, -330.000000).
+07-23 17:09:15.646  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 22.0.
+
+Right
+
+007-23 17:09:36.761  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb007cf0]::setPosNum: posNum=0
+07-23 17:09:36.761  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb007cf0]::setOffset: offset=(420.00, -1.00) -> Home=(xGame=932.00, yGame=287.00), World=(xWorld=932.00, yWorld=385.00), est.height=-0.06
+07-23 17:09:36.762  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918acf83c0 draw Mat4: tx=216.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:09:36.763  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad20250 SetMvpMatrix(m=0x7f901aa276a0): tx=0.8203 ty=-0.4043 sx=1.300000 sy=2.311111
+07-23 17:09:36.821  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90faea7670]::setPosNum: posNum=1
+07-23 17:09:36.822  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90faea7670]::setOffset: offset=(420.00, -1.00) -> Home=(xGame=932.00, yGame=287.00), World=(xWorld=932.00, yWorld=385.00), est.height=-0.06
+07-23 17:09:36.823  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918acef180 draw Mat4: tx=452.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:09:36.825  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad1b710 SetMvpMatrix(m=0x7f901aa276a0): tx=0.8203 ty=-0.5586 sx=1.300000 sy=2.311111
+07-23 17:09:42.885  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (432.000000, -300.000000) to (235.000000, -330.000000).
+07-23 17:09:42.885  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 22.0.
+
+Left
+
+07-23 17:10:04.614  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fafdf610]::setPosNum: posNum=0
+07-23 17:10:04.614  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fafdf610]::setOffset: offset=(-60.00, -1.00) -> Home=(xGame=452.00, yGame=287.00), World=(xWorld=452.00, yWorld=385.00), est.height=-0.06
+07-23 17:10:04.617  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918ad009d0 draw Mat4: tx=216.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:10:04.618  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad1e490 SetMvpMatrix(m=0x7f901aa276a0): tx=-0.1172 ty=-0.4043 sx=1.300000 sy=2.311111
+07-23 17:10:04.671  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fafe06f0]::setPosNum: posNum=1
+07-23 17:10:04.671  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fafe06f0]::setOffset: offset=(-60.00, -1.00) -> Home=(xGame=452.00, yGame=287.00), World=(xWorld=452.00, yWorld=385.00), est.height=-0.06
+07-23 17:10:04.672  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad1eb90 SetMvpMatrix(m=0x7f901aa276a0): tx=-0.1172 ty=-0.5586 sx=1.300000 sy=2.311111
+07-23 17:10:11.282  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (-48.000000, -300.000000) to (-245.000000, -330.000000).
+07-23 17:10:11.282  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 22.0.
+
+07-23 10:56:35.258  3447  3495 D MagiaHook: Set live2d subtitle dimensions from (-48.000000, -300.000000) to (-245.000000, -330.000000).
+
+Center-Left
+
+07-23 17:10:37.828  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb004930]::setPosNum: posNum=0
+07-23 17:10:37.828  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb004930]::setOffset: offset=(60.00, -1.00) -> Home=(xGame=572.00, yGame=287.00), World=(xWorld=572.00, yWorld=385.00), est.height=-0.06
+07-23 17:10:37.829  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918ad0a840 draw Mat4: tx=216.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:10:37.829  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911acfa850 SetMvpMatrix(m=0x7f901aa276a0): tx=0.1172 ty=-0.4043 sx=1.300000 sy=2.311111
+07-23 17:10:37.895  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90faff1cd0]::setPosNum: posNum=1
+07-23 17:10:37.896  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90faff1cd0]::setOffset: offset=(60.00, -1.00) -> Home=(xGame=572.00, yGame=287.00), World=(xWorld=572.00, yWorld=385.00), est.height=-0.06
+07-23 17:10:37.897  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918acf9c20 draw Mat4: tx=452.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:10:37.898  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad21e50 SetMvpMatrix(m=0x7f901aa276a0): tx=0.1172 ty=-0.5586 sx=1.300000 sy=2.311111
+07-23 17:10:40.380  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (72.000000, -300.000000) to (-125.000000, -330.000000).
+07-23 17:10:40.380  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 22.0.
+
+Center (bigger gap)
+
+07-23 17:11:04.978  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fafe1470]::setPosNum: posNum=0
+07-23 17:11:04.978  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fafe1470]::setOffset: offset=(100.00, -1.00) -> Home=(xGame=612.00, yGame=287.00), World=(xWorld=612.00, yWorld=385.00), est.height=-0.06
+07-23 17:11:04.979  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911acfa690 SetMvpMatrix(m=0x7f901aa276a0): tx=0.1953 ty=-0.4043 sx=1.300000 sy=2.311111
+07-23 17:11:05.064  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb002e30]::setPosNum: posNum=1
+07-23 17:11:05.065  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb002e30]::setOffset: offset=(100.00, -1.00) -> Home=(xGame=612.00, yGame=287.00), World=(xWorld=612.00, yWorld=385.00), est.height=-0.06
+07-23 17:11:05.065  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918acec0c0 draw Mat4: tx=572.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:11:05.065  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad1be10 SetMvpMatrix(m=0x7f901aa276a0): tx=0.1953 ty=-0.5586 sx=1.300000 sy=2.311111
+07-23 17:11:07.218  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (112.000000, -300.000000) to (-5.000000, -330.000000).
+07-23 17:11:07.218  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 22.0.
+
+Center (2 bigger gap)
+
+07-23 17:11:40.830  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb002e30]::setPosNum: posNum=0
+07-23 17:11:40.833  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb002e30]::setOffset: offset=(70.00, -1.00) -> Home=(xGame=582.00, yGame=287.00), World=(xWorld=582.00, yWorld=385.00), est.height=-0.06
+07-23 17:11:40.835  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918ad03a90 draw Mat4: tx=216.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:11:40.839  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad1eb90 SetMvpMatrix(m=0x7f901aa276a0): tx=0.1367 ty=-0.4043 sx=1.300000 sy=2.311111
+07-23 17:11:40.882  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fafe29d0]::setPosNum: posNum=1
+07-23 17:11:40.883  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fafe29d0]::setOffset: offset=(70.00, -1.00) -> Home=(xGame=582.00, yGame=287.00), World=(xWorld=582.00, yWorld=385.00), est.height=-0.06
+07-23 17:11:40.883  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918acf9c20 draw Mat4: tx=672.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:11:40.884  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad16690 SetMvpMatrix(m=0x7f901aa276a0): tx=0.1367 ty=-0.5586 sx=1.300000 sy=2.311111
+07-23 17:11:42.522  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (82.000000, -300.000000) to (-5.000000, -330.000000).
+07-23 17:11:42.522  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 22.0.
+
+Center (biggest gap)
+
+07-23 17:12:27.415  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb008290]::setPosNum: posNum=0
+07-23 17:12:27.415  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb008290]::setOffset: offset=(0.00, -1.00) -> Home=(xGame=512.00, yGame=287.00), World=(xWorld=512.00, yWorld=385.00), est.height=-0.06
+07-23 17:12:27.416  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918ad146b0 draw Mat4: tx=216.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:12:27.416  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad1b710 SetMvpMatrix(m=0x7f901aa276a0): tx=0.0000 ty=-0.4043 sx=1.300000 sy=2.311111
+07-23 17:12:27.471  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fad129d0]::setPosNum: posNum=1
+07-23 17:12:27.472  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fad129d0]::setOffset: offset=(0.00, -1.00) -> Home=(xGame=512.00, yGame=287.00), World=(xWorld=512.00, yWorld=385.00), est.height=-0.06
+07-23 17:12:27.472  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918ad152e0 draw Mat4: tx=808.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:12:27.472  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911acfa690 SetMvpMatrix(m=0x7f901aa276a0): tx=0.0000 ty=-0.5586 sx=1.300000 sy=2.311111
+07-23 17:12:29.074  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (12.000000, -300.000000) to (-5.000000, -330.000000).
+07-23 17:12:29.074  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 22.0.
+
+Quotes (duo version)
+07-23 17:13:00.929  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90facdf7f0]::setPosNum: posNum=1
+07-23 17:13:00.929  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90facdf7f0]::setOffset: offset=(-192.00, -1.00) -> Home=(xGame=320.00, yGame=287.00), World=(xWorld=320.00, yWorld=385.00), est.height=-0.06
+07-23 17:13:00.932  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918ad0b470 draw Mat4: tx=512.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:13:00.932  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad19410 SetMvpMatrix(m=0x7f901aa276a0): tx=-0.3750 ty=-0.5278 sx=1.300000 sy=2.311111
+07-23 17:13:18.991  3528  3574 I MagiaHook: Scene layer changed to: StorySceneLayer
+07-23 17:13:19.152  3528  3574 D MagiaHook: LOG MESSAGE: 512.00 288.00
+07-23 17:13:19.152  3528  3574 D MagiaHook: Difference: 0x5dfda0
+07-23 17:13:19.488  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90faff2a50]::setPosNum: posNum=0
+07-23 17:13:19.489  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90faff2a50]::setOffset: offset=(-112.00, -1.00) -> Home=(xGame=400.00, yGame=287.00), World=(xWorld=400.00, yWorld=385.00), est.height=-0.06
+07-23 17:13:19.489  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918acfd910 draw Mat4: tx=216.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:13:19.491  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad1e9d0 SetMvpMatrix(m=0x7f901aa276a0): tx=-0.2188 ty=-0.4043 sx=1.300000 sy=2.311111
+07-23 17:13:19.589  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb004270]::setPosNum: posNum=1
+07-23 17:13:19.589  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb004270]::setOffset: offset=(-112.00, -1.00) -> Home=(xGame=400.00, yGame=287.00), World=(xWorld=400.00, yWorld=385.00), est.height=-0.06
+07-23 17:13:19.590  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918ad0d900 draw Mat4: tx=432.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:13:19.591  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad1cf90 SetMvpMatrix(m=0x7f901aa276a0): tx=-0.2188 ty=-0.5586 sx=1.300000 sy=2.311111
+07-23 17:13:40.939  3528  3574 D MagiaHook: Set live2d subtitle dimensions from (-100.000000, -300.000000) to (-280.000000, -330.000000).
+07-23 17:13:40.939  3528  3574 D MagiaHook: Label created at 0x3c017dc (0x8c57dc), size 22.0.
+
+Story (Iroha's Magical Girl Story 1, scenario/adv/scenario_3/310011)
+
+Right (Iroha, 100100)
+
+07-23 17:16:27.322  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb00bf50]::setPosNum: posNum=2
+07-23 17:16:27.323  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918ad146b0 draw Mat4: tx=808.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:16:27.325  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad244d0 SetMvpMatrix(m=0x7f901aa276a0): tx=0.0000 ty=-0.4938 sx=1.300000 sy=2.311111
+07-23 17:16:27.542  3528  3574 D MagiaHook: LOG MESSAGE: -20.00 nan
+07-23 17:16:27.542  3528  3574 D MagiaHook: Difference: 0x6bfdd0
+07-23 17:16:27.543  3528  3574 D MagiaHook: LOG MESSAGE: -20.00 nan
+07-23 17:16:27.543  3528  3574 D MagiaHook: Difference: 0x6bfdd0
+07-23 17:16:27.543  3528  3574 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 17:16:27.543  3528  3574 D MagiaHook: Difference: 0x6c26a4
+07-23 17:16:27.543  3528  3574 D MagiaHook: LOG MESSAGE: 1004.00 20.00
+07-23 17:16:27.543  3528  3574 D MagiaHook: Difference: 0x6bfdd0
+07-23 17:16:27.543  3528  3574 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 17:16:27.544  3528  3574 D MagiaHook: Difference: 0x6c26a4
+07-23 17:16:27.544  3528  3574 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 17:16:27.544  3528  3574 D MagiaHook: Difference: 0x6c26a4
+07-23 17:16:27.570  3528  3574 D MagiaHook: Moving story name.
+07-23 17:16:27.570  3528  3574 D MagiaHook: LOG MESSAGE: 512.00 115.00
+07-23 17:16:27.570  3528  3574 D MagiaHook: Difference: 0x4cf4
+07-23 17:16:27.570  3528  3574 D MagiaHook: Label created at 0x4024988 (0xce8988), size 27.0.
+07-23 17:16:27.570  3528  3574 D MagiaHook: Setting new text font for main story text.
+07-23 17:16:27.603  3528  3574 D MagiaHook: Set line length from 410.0 to 810.0
+07-23 17:16:27.603  3528  3574 D MagiaHook: Label created at 0x4024a64 (0xce8a64), size 16.0.
+07-23 17:16:27.603  3528  3574 D MagiaHook: Setting new name font for main story.
+07-23 17:16:27.603  3528  3574 D MagiaHook: Moving story name.
+07-23 17:16:27.606  3528  3574 D MagiaHook: Moving story text.
+07-23 17:16:27.615  3528  3574 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 17:16:27.615  3528  3574 D MagiaHook: Difference: 0x5b6cc8
+07-23 17:16:27.624  3528  3574 D MagiaHook: LOG MESSAGE: 642.00 -18.00
+07-23 17:16:27.624  3528  3574 D MagiaHook: Difference: 0x5dfda0
+07-23 17:16:27.625  3528  3574 D MagiaHook: Label created at 0x401fd54 (0xce3d54), size 26.0.
+07-23 17:16:27.625  3528  3574 D MagiaHook: Setting new log text font. Difference: 0x154
+07-23 17:16:27.625  3528  3574 D MagiaHook: LOG MESSAGE: 500.00 132.00
+07-23 17:16:27.625  3528  3574 D MagiaHook: Difference: 0x1a8
+07-23 17:16:27.625  3528  3574 D MagiaHook: Moving name further to the right in log.
+07-23 17:16:27.625  3528  3574 D MagiaHook: Label created at 0x4020110 (0xce4110), size 26.0.
+07-23 17:16:27.625  3528  3574 D MagiaHook: Setting new log text font. Difference: 0x510
+07-23 17:16:27.632  3528  3574 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 17:16:27.632  3528  3574 D MagiaHook: Difference: 0x5b6cc8
+07-23 17:16:27.634  3528  3574 D MagiaHook: Set dimensions for log from 410.0 to 710.0.
+07-23 17:16:27.634  3528  3574 D MagiaHook: LOG MESSAGE: 272.00 38.50
+07-23 17:16:27.634  3528  3574 D MagiaHook: Difference: 0x5e4
+07-23 17:16:27.634  3528  3574 D MagiaHook: Moved log text from 272.00 to 397.00
+
+Left (Mitama, 101700)
+
+07-23 17:17:21.756  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fb005e90]::setPosNum: posNum=0
+07-23 17:17:21.757  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ad17110 SetMvpMatrix(m=0x7f901aa276a0): tx=0.0000 ty=-0.3704 sx=1.300000 sy=2.311111
+07-23 17:17:21.968  3528  3574 D MagiaHook: Moving story name.
+07-23 17:17:21.968  3528  3574 D MagiaHook: LOG MESSAGE: 512.00 115.00
+07-23 17:17:21.968  3528  3574 D MagiaHook: Difference: 0x4cf4
+07-23 17:17:21.968  3528  3574 D MagiaHook: Label created at 0x4024988 (0xce8988), size 27.0.
+07-23 17:17:21.968  3528  3574 D MagiaHook: Setting new text font for main story text.
+07-23 17:17:21.968  3528  3574 D MagiaHook: Set line length from 410.0 to 810.0
+07-23 17:17:21.969  3528  3574 D MagiaHook: Label created at 0x4024a64 (0xce8a64), size 16.0.
+07-23 17:17:21.969  3528  3574 D MagiaHook: Setting new name font for main story.
+07-23 17:17:21.969  3528  3574 D MagiaHook: Moving story name.
+07-23 17:17:21.969  3528  3574 D MagiaHook: Moving story text.
+07-23 17:17:21.978  3528  3574 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 17:17:21.978  3528  3574 D MagiaHook: Difference: 0x5b6cc8
+07-23 17:17:22.001  3528  3574 D MagiaHook: LOG MESSAGE: 382.00 135.00
+07-23 17:17:22.001  3528  3574 D MagiaHook: Difference: 0x5dfda0
+07-23 17:17:22.001  3528  3574 D MagiaHook: Label created at 0x401fd54 (0xce3d54), size 26.0.
+07-23 17:17:22.001  3528  3574 D MagiaHook: Setting new log text font. Difference: 0x154
+07-23 17:17:22.004  3528  3574 D MagiaHook: LOG MESSAGE: 70.00 132.00
+07-23 17:17:22.004  3528  3574 D MagiaHook: Difference: 0x1a8
+07-23 17:17:22.004  3528  3574 D MagiaHook: Moving left-aligned name down in the log.
+07-23 17:17:22.004  3528  3574 D MagiaHook: Label created at 0x4020110 (0xce4110), size 26.0.
+07-23 17:17:22.004  3528  3574 D MagiaHook: Setting new log text font. Difference: 0x510
+07-23 17:17:22.010  3528  3574 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 17:17:22.010  3528  3574 D MagiaHook: Difference: 0x5b6cc8
+07-23 17:17:22.016  3528  3574 D MagiaHook: Set dimensions for log from 410.0 to 710.0.
+07-23 17:17:22.016  3528  3574 D MagiaHook: LOG MESSAGE: 310.00 38.50
+07-23 17:17:22.016  3528  3574 D MagiaHook: Difference: 0x5e4
+07-23 17:17:22.016  3528  3574 D MagiaHook: Moved log text from 310.00 to 435.00
+
+(Skip a bunch)
+
+Center (Momoko, 101000)
+
+07-23 17:19:59.476  3528  3574 I MagiaHook: [Live2D Pos Log] StoryCharaLive2DSprite[0x7f90fafef7b0]::setPosNum: posNum=1
+07-23 17:19:59.476  3528  3574 I MagiaHook: [Live2D] LAppViewCustom 0x7f918ad15f10 draw Mat4: tx=512.00 ty=288.00 sx=1.0000 sy=1.0000 flags=3
+07-23 17:19:59.477  3528  3574 I MagiaHook: [Live2D] CubismRenderer 0x7f911ace6110 SetMvpMatrix(m=0x7f901aa276a0): tx=0.0000 ty=-0.4012 sx=1.300000 sy=2.311111
+07-23 17:19:59.715  3528  3574 D MagiaHook: Moving story name.
+07-23 17:19:59.715  3528  3574 D MagiaHook: LOG MESSAGE: 512.00 115.00
+07-23 17:19:59.715  3528  3574 D MagiaHook: Difference: 0x4cf4
+07-23 17:19:59.715  3528  3574 D MagiaHook: Label created at 0x4024988 (0xce8988), size 27.0.
+07-23 17:19:59.716  3528  3574 D MagiaHook: Setting new text font for main story text.
+07-23 17:19:59.717  3528  3574 D MagiaHook: Set line length from 410.0 to 810.0
+07-23 17:19:59.717  3528  3574 D MagiaHook: Label created at 0x4024a64 (0xce8a64), size 16.0.
+07-23 17:19:59.717  3528  3574 D MagiaHook: Setting new name font for main story.
+07-23 17:19:59.718  3528  3574 D MagiaHook: Moving story name.
+07-23 17:19:59.718  3528  3574 D MagiaHook: Moving story text.
+07-23 17:19:59.729  3528  3574 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 17:19:59.730  3528  3574 D MagiaHook: Difference: 0x5b6cc8
+07-23 17:19:59.748  3528  3574 D MagiaHook: LOG MESSAGE: 512.00 4934.00
+07-23 17:19:59.749  3528  3574 D MagiaHook: Difference: 0x5dfda0
+07-23 17:19:59.749  3528  3574 D MagiaHook: Label created at 0x401fd54 (0xce3d54), size 26.0.
+07-23 17:19:59.750  3528  3574 D MagiaHook: Setting new log text font. Difference: 0x154
+07-23 17:19:59.751  3528  3574 D MagiaHook: LOG MESSAGE: 280.00 135.00
+07-23 17:19:59.751  3528  3574 D MagiaHook: Difference: 0x1a8
+07-23 17:19:59.751  3528  3574 D MagiaHook: Moving center name to the left in the log.
+07-23 17:19:59.751  3528  3574 D MagiaHook: Label created at 0x4020110 (0xce4110), size 26.0.
+07-23 17:19:59.751  3528  3574 D MagiaHook: Setting new log text font. Difference: 0x510
+07-23 17:19:59.754  3528  3574 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 17:19:59.754  3528  3574 D MagiaHook: Difference: 0x5b6cc8
+07-23 17:19:59.755  3528  3574 D MagiaHook: Set dimensions for log from 410.0 to 710.0.
+07-23 17:19:59.756  3528  3574 D MagiaHook: LOG MESSAGE: 290.00 55.50
+07-23 17:19:59.756  3528  3574 D MagiaHook: Difference: 0x5e4
+07-23 17:19:59.756  3528  3574 D MagiaHook: Moved log text from 290.00 to 415.00
+
+Story (Arc 2 Prologue, scenario/adv/scenario_1/102101)
+
+Narration
+07-23 11:06:43.988  3447  3495 D MagiaHook: LOG MESSAGE: -20.00 -nan
+07-23 11:06:43.988  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:06:43.988  3447  3495 D MagiaHook: LOG MESSAGE: -20.00 -nan
+07-23 11:06:43.988  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:06:43.988  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:06:43.988  3447  3495 D MagiaHook: Difference: 0x6c26a4
+07-23 11:06:43.989  3447  3495 D MagiaHook: LOG MESSAGE: 1004.00 20.00
+07-23 11:06:43.989  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:06:43.989  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:06:43.989  3447  3495 D MagiaHook: Difference: 0x6c26a4
+07-23 11:06:43.989  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:06:43.989  3447  3495 D MagiaHook: Difference: 0x6c26a4
+07-23 11:06:44.251  3447  3495 D MagiaHook: Label created at 0x40e2b68 (0xceeb68), size 32.0.
+07-23 11:06:44.251  3447  3495 D MagiaHook: Setting new narration text font. Difference: 0xc0
+07-23 11:06:44.351  3447  3495 D MagiaHook: Label created at 0x40d75a0 (0xce35a0), size 26.0.
+07-23 11:06:44.351  3447  3495 D MagiaHook: Setting new log text font (narration). Difference: 0x380
+07-23 11:06:44.357  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:06:44.357  3447  3495 D MagiaHook: Difference: 0x5b6cc8
+07-23 11:06:44.358  3447  3495 D MagiaHook: LOG MESSAGE: 512.00 20.00
+07-23 11:06:44.358  3447  3495 D MagiaHook: Difference: 0x5dfda0
+07-23 11:06:44.358  3447  3495 D MagiaHook: Label created at 0x40d7798 (0xce3798), size 26.0.
+07-23 11:06:44.358  3447  3495 D MagiaHook: Setting new log text font (narration). Difference: 0x578
+07-23 11:06:44.358  3447  3495 D MagiaHook: LOG MESSAGE: 1004.00 20.00
+07-23 11:06:44.359  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:06:44.359  3447  3495 D MagiaHook: LOG MESSAGE: 1004.00 20.00
+07-23 11:06:44.359  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:06:44.389  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:06:44.389  3447  3495 D MagiaHook: Difference: 0x5b6cc8
+07-23 11:06:55.761  1069  5272 D nemuinit: 07-23 11:06:43.988  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:06:55.761  1069  5272 D nemuinit: 07-23 11:06:43.988  3447  3495 D MagiaHook: LOG MESSAGE: -20.00 -nan
+07-23 11:06:55.761  1069  5272 D nemuinit: 07-23 11:06:43.988  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:06:55.761  1069  5272 D nemuinit: 07-23 11:06:43.988  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:06:55.761  1069  5272 D nemuinit: 07-23 11:06:43.988  3447  3495 D MagiaHook: Difference: 0x6c26a4
+07-23 11:06:55.761  1069  5272 D nemuinit: 07-23 11:06:43.989  3447  3495 D MagiaHook: LOG MESSAGE: 1004.00 20.00
+07-23 11:06:55.761  1069  5272 D nemuinit: 07-23 11:06:43.989  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:06:55.761  1069  5272 D nemuinit: 07-23 11:06:43.989  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:06:55.761  1069  5272 D nemuinit: 07-23 11:06:43.989  3447  3495 D MagiaHook: Difference: 0x6c26a4
+07-23 11:06:55.761  1069  5272 D nemuinit: 07-23 11:06:43.989  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:06:55.761  1069  5272 D nemuinit: 07-23 11:06:43.989  3447  3495 D MagiaHook: Difference: 0x6c26a4
+07-23 11:06:55.761  1069  5272 D nemuinit: 07-23 11:06:44.251  3447  3495 D MagiaHook: Label created at 0x40e2b68 (0xceeb68), size 32.0.
+07-23 11:07:01.743  3447  3495 D MagiaHook: Label created at 0x40e2b68 (0xceeb68), size 32.0.
+07-23 11:07:01.744  3447  3495 D MagiaHook: Setting new narration text font. Difference: 0xc0
+07-23 11:07:01.872  3447  3495 D MagiaHook: Label created at 0x40d75a0 (0xce35a0), size 26.0.
+07-23 11:07:01.872  3447  3495 D MagiaHook: Setting new log text font (narration). Difference: 0x380
+07-23 11:07:01.877  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:07:01.878  3447  3495 D MagiaHook: Difference: 0x5b6cc8
+07-23 11:07:01.883  3447  3495 D MagiaHook: LOG MESSAGE: 512.00 154.00
+07-23 11:07:01.883  3447  3495 D MagiaHook: Difference: 0x5dfda0
+07-23 11:07:01.883  3447  3495 D MagiaHook: Label created at 0x40d7798 (0xce3798), size 26.0.
+07-23 11:07:01.884  3447  3495 D MagiaHook: Setting new log text font (narration). Difference: 0x578
+07-23 11:07:01.886  3447  3495 D MagiaHook: LOG MESSAGE: 1004.00 20.00
+07-23 11:07:01.887  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:07:01.887  3447  3495 D MagiaHook: LOG MESSAGE: 1004.00 20.00
+07-23 11:07:01.887  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:07:01.912  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:07:01.912  3447  3495 D MagiaHook: Difference: 0x5b6cc8
+07-23 11:07:02.797  3447  3495 D MagiaHook: Label created at 0x40e2b68 (0xceeb68), size 32.0.
+07-23 11:07:02.798  3447  3495 D MagiaHook: Setting new narration text font. Difference: 0xc0
+07-23 11:07:02.928  3447  3495 D MagiaHook: Label created at 0x40d75a0 (0xce35a0), size 26.0.
+07-23 11:07:02.929  3447  3495 D MagiaHook: Setting new log text font (narration). Difference: 0x380
+07-23 11:07:02.931  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:07:02.931  3447  3495 D MagiaHook: Difference: 0x5b6cc8
+07-23 11:07:02.932  3447  3495 D MagiaHook: LOG MESSAGE: 512.00 288.00
+07-23 11:07:02.932  3447  3495 D MagiaHook: Difference: 0x5dfda0
+07-23 11:07:02.932  3447  3495 D MagiaHook: Label created at 0x40d7798 (0xce3798), size 26.0.
+07-23 11:07:02.933  3447  3495 D MagiaHook: Setting new log text font (narration). Difference: 0x578
+07-23 11:07:02.935  3447  3495 D MagiaHook: LOG MESSAGE: 1004.00 20.00
+07-23 11:07:02.936  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:07:02.936  3447  3495 D MagiaHook: LOG MESSAGE: 1004.00 20.00
+07-23 11:07:02.936  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:07:02.965  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:07:02.965  3447  3495 D MagiaHook: Difference: 0x5b6cc8
+
+(Lots of skipping)
+
+Center (some witch familiar, but dialogue is exclamation and there's no name)
+
+07-23 11:08:55.501  3447  3495 D MagiaHook: LOG MESSAGE: -20.00 -nan
+07-23 11:08:55.502  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:08:55.502  3447  3495 D MagiaHook: LOG MESSAGE: -20.00 -nan
+07-23 11:08:55.502  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:08:55.502  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:08:55.502  3447  3495 D MagiaHook: Difference: 0x6c26a4
+07-23 11:08:55.502  3447  3495 D MagiaHook: LOG MESSAGE: 1004.00 20.00
+07-23 11:08:55.502  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:08:55.502  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:08:55.502  3447  3495 D MagiaHook: Difference: 0x6c26a4
+07-23 11:08:55.502  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:08:55.502  3447  3495 D MagiaHook: Difference: 0x6c26a4
+07-23 11:08:55.531  3447  3495 D MagiaHook: Moving story name.
+07-23 11:08:55.531  3447  3495 D MagiaHook: LOG MESSAGE: 512.00 115.00
+07-23 11:08:55.531  3447  3495 D MagiaHook: Difference: 0x4cf4
+07-23 11:08:55.531  3447  3495 D MagiaHook: Moving story name.
+07-23 11:08:55.531  3447  3495 D MagiaHook: LOG MESSAGE: 512.00 105.00
+07-23 11:08:55.531  3447  3495 D MagiaHook: Difference: 0x4d38
+07-23 11:08:55.531  3447  3495 D MagiaHook: Label created at 0x40dc988 (0xce8988), size 27.0.
+07-23 11:08:55.531  3447  3495 D MagiaHook: Setting new text font for main story text.
+07-23 11:08:55.548  3447  3495 D MagiaHook: Set line length from 410.0 to 810.0
+07-23 11:08:55.548  3447  3495 D MagiaHook: Label created at 0x40dca64 (0xce8a64), size 16.0.
+07-23 11:08:55.548  3447  3495 D MagiaHook: Setting new name font for main story.
+07-23 11:08:55.549  3447  3495 D MagiaHook: Moving story name.
+07-23 11:08:55.549  3447  3495 D MagiaHook: Moving story text.
+07-23 11:08:55.565  3447  3495 D MagiaHook: LOG MESSAGE: 512.00 0.00
+07-23 11:08:55.565  3447  3495 D MagiaHook: Difference: 0x5dfda0
+07-23 11:08:55.565  3447  3495 D MagiaHook: Label created at 0x40d7d54 (0xce3d54), size 26.0.
+07-23 11:08:55.566  3447  3495 D MagiaHook: Setting new log text font. Difference: 0x154
+07-23 11:08:55.568  3447  3495 D MagiaHook: LOG MESSAGE: 280.00 135.00
+07-23 11:08:55.568  3447  3495 D MagiaHook: Difference: 0x1a8
+07-23 11:08:55.568  3447  3495 D MagiaHook: Moving center name to the left in the log.
+07-23 11:08:55.568  3447  3495 D MagiaHook: Label created at 0x40d8110 (0xce4110), size 26.0.
+07-23 11:08:55.568  3447  3495 D MagiaHook: Setting new log text font. Difference: 0x510
+07-23 11:08:55.575  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:08:55.576  3447  3495 D MagiaHook: Difference: 0x5b6cc8
+07-23 11:08:55.577  3447  3495 D MagiaHook: Set dimensions for log from 410.0 to 710.0.
+07-23 11:08:55.577  3447  3495 D MagiaHook: LOG MESSAGE: 290.00 55.50
+07-23 11:08:55.577  3447  3495 D MagiaHook: Difference: 0x5e4
+07-23 11:08:55.577  3447  3495 D MagiaHook: Moved log text from 290.00 to 415.00
+07-23 11:08:55.577  3447  3495 D MagiaHook: LOG MESSAGE: 1004.00 20.00
+07-23 11:08:55.577  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:08:55.577  3447  3495 D MagiaHook: LOG MESSAGE: 1004.00 20.00
+07-23 11:08:55.577  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:08:55.599  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:08:55.599  3447  3495 D MagiaHook: Difference: 0x5b6cc8
+07-23 11:08:55.894  3447  3495 D MagiaHook: LOG MESSAGE: 894.00 50.00
+07-23 11:08:55.895  3447  3495 D MagiaHook: Difference: 0x36ac
+
+
+Story (Arc 2 Chapter 1 Part 1)
+
+(Some skipping, scenario/adv/scenario_1/102201)
+
+Kagome's Narration
+07-23 11:12:22.782  3447  3495 D MagiaHook: Label created at 0x40e2b68 (0xceeb68), size 32.0.
+07-23 11:12:22.782  3447  3495 D MagiaHook: Setting new narration text font. Difference: 0xc0
+07-23 11:12:22.783  3447  3495 D MagiaHook: Label created at 0x40e2b68 (0xceeb68), size 32.0.
+07-23 11:12:22.783  3447  3495 D MagiaHook: Setting new narration text font. Difference: 0xc0
+07-23 11:12:23.508  3447  3495 D MagiaHook: LOG MESSAGE: 512.00 288.00
+07-23 11:12:23.508  3447  3495 D MagiaHook: Difference: 0x5dfda0
+07-23 11:12:24.038  3447  3495 D MagiaHook: Label created at 0x40e2e20 (0xceee20), size 32.0.
+07-23 11:12:24.071  3447  3495 D MagiaHook: Label created at 0x40d75a0 (0xce35a0), size 26.0.
+07-23 11:12:24.071  3447  3495 D MagiaHook: Setting new log text font (narration). Difference: 0x380
+07-23 11:12:24.072  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:12:24.072  3447  3495 D MagiaHook: Difference: 0x5b6cc8
+07-23 11:12:24.076  3447  3495 D MagiaHook: LOG MESSAGE: 512.00 784.00
+07-23 11:12:24.076  3447  3495 D MagiaHook: Difference: 0x5dfda0
+07-23 11:12:24.077  3447  3495 D MagiaHook: Label created at 0x40d7798 (0xce3798), size 26.0.
+07-23 11:12:24.077  3447  3495 D MagiaHook: Setting new log text font (narration). Difference: 0x578
+07-23 11:12:24.077  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 -382.00
+07-23 11:12:24.077  3447  3495 D MagiaHook: Difference: 0x6c26a4
+07-23 11:12:24.077  3447  3495 D MagiaHook: LOG MESSAGE: 1004.00 233.73
+07-23 11:12:24.077  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:12:24.077  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:12:24.077  3447  3495 D MagiaHook: Difference: 0x6c26a4
+07-23 11:12:24.077  3447  3495 D MagiaHook: LOG MESSAGE: 1004.00 20.00
+07-23 11:12:24.077  3447  3495 D MagiaHook: Difference: 0x6bfdd0
+07-23 11:12:24.109  3447  3495 D MagiaHook: LOG MESSAGE: 0.00 0.00
+07-23 11:12:24.109  3447  3495 D MagiaHook: Difference: 0x5b6cc8
