@@ -168,6 +168,8 @@ export class ScenarioSequencePlayer {
         this.voice = new HcaVoicePlayer();
         this.timer = null;
         this.runToken = 0;
+        this.currentVoiceBtn = null;
+        this.btnHighlightTimeout = null;
     }
 
     async loadAndPlay(url, groupName) {
@@ -181,7 +183,13 @@ export class ScenarioSequencePlayer {
         return this.playGroup(scenario?.story?.[groupName], groupName);
     }
 
-    async loadAndPlayVoice(url, voiceKey, charaId) {
+    async loadAndPlayVoice(url, voiceKey, charaId, activeBtn) {
+        this.stop();
+        if (activeBtn) {
+            this.currentVoiceBtn = activeBtn;
+            activeBtn.classList.add('current');
+        }
+
         let scenario = scenarioCache.get(url);
         if (!scenario) {
             const response = await fetch(url).catch(() => null);
@@ -225,7 +233,6 @@ export class ScenarioSequencePlayer {
 
     playGroup(group, groupName = 'group') {
         if (!Array.isArray(group)) throw new Error(`Scenario ${groupName} is not an action list`);
-        this.stop();
         const token = this.runToken;
         const steps = group.slice();
 
@@ -233,8 +240,7 @@ export class ScenarioSequencePlayer {
             if (token !== this.runToken) return;
             const step = steps.shift();
             if (!step) return;
-            this.applyStep(step, token);
-            this.timer = setTimeout(runNext, toMilliseconds(step.autoTurnFirst));
+            this.applyStep(step, token, steps, runNext);
         };
         runNext();
     }
@@ -243,22 +249,33 @@ export class ScenarioSequencePlayer {
         ++this.runToken;
         if (this.timer) clearTimeout(this.timer);
         this.timer = null;
+        if (this.btnHighlightTimeout) {
+            clearTimeout(this.btnHighlightTimeout);
+            this.btnHighlightTimeout = null;
+        }
         this.voice.stop();
         this.controller?.setMic?.(false);
         this.controller?.setMouth?.(0, false);
         this.clearSubtitle();
+        try {
+            document.querySelectorAll('.voiceBtn.current').forEach(b => b.classList.remove('current'));
+        } catch (e) {}
+        this.currentVoiceBtn = null;
     }
 
     resumeAudio() {
         this.voice.resume();
     }
 
-    applyStep(step, token) {
+    applyStep(step, token, remainingSteps, runNext) {
         const action = Array.isArray(step?.chara) ? step.chara[0] : null;
         if (!action) return;
 
         if (action.textHomeStatus === 'Clear') {
             this.clearSubtitle();
+            if (remainingSteps && remainingSteps.length > 0 && typeof runNext === 'function') {
+                runNext();
+            }
             return;
         }
 
@@ -277,26 +294,63 @@ export class ScenarioSequencePlayer {
         if (typeof action.textHome === 'string') this.showSubtitle(action.textHome);
 
         const voiceFile = normaliseVoiceFile(action.voice);
-        if (!voiceFile) return;
-        this.voice.play(voiceFile, {
-            onAnalyserReady: (analyser, buffer) => {
-                if (token === this.runToken) this.controller?.setMic?.(true, analyser, buffer, 1);
-            },
-            onEnded: () => {
-                if (token !== this.runToken) return;
-                this.controller?.setMic?.(false);
-                this.controller?.setMouth?.(0, false);
+        const scheduleNext = () => {
+            if (step.autoTurnFirst && remainingSteps && remainingSteps.length > 0 && typeof runNext === 'function') {
+                const delay = toMilliseconds(step.autoTurnFirst);
+                if (delay > 0) {
+                    this.timer = setTimeout(() => {
+                        if (token === this.runToken) runNext();
+                    }, delay);
+                }
             }
-        }).catch((error) => console.warn('[quotes] voice playback error:', error));
+        };
+
+        if (voiceFile) {
+            this.voice.play(voiceFile, {
+                onAnalyserReady: (analyser, buffer) => {
+                    if (token !== this.runToken) return;
+                    this.controller?.setMic?.(true, analyser, buffer, 1);
+                    scheduleNext();
+                },
+                onEnded: () => {
+                    if (token !== this.runToken) return;
+                    this.controller?.setMic?.(false);
+                    this.controller?.setMouth?.(0, false);
+                    if (this.currentVoiceBtn) {
+                        const btnToClear = this.currentVoiceBtn;
+                        if (this.btnHighlightTimeout) clearTimeout(this.btnHighlightTimeout);
+                        this.btnHighlightTimeout = setTimeout(() => {
+                            if (token === this.runToken) {
+                                btnToClear.classList.remove('current');
+                            }
+                        }, 2000);
+                    }
+                    if (!step.autoTurnFirst && remainingSteps && remainingSteps.length > 0 && typeof runNext === 'function') {
+                        runNext();
+                    }
+                }
+            }).catch((error) => {
+                console.warn('[quotes] voice playback error:', error);
+                scheduleNext();
+            });
+        } else {
+            scheduleNext();
+        }
     }
 
     showSubtitle(text) {
+        if (!this.subtitleElement) {
+            this.subtitleElement = document.getElementById('subtitle');
+        }
         if (!this.subtitleElement) return;
         this.subtitleElement.textContent = String(text).replace(/@/g, '\n');
         this.subtitleElement.hidden = false;
     }
 
     clearSubtitle() {
+        if (!this.subtitleElement) {
+            this.subtitleElement = document.getElementById('subtitle');
+        }
         if (!this.subtitleElement) return;
         this.subtitleElement.textContent = '';
         this.subtitleElement.hidden = true;

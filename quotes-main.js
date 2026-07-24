@@ -5,6 +5,7 @@ import { loadCocosStudioAssets, CocosStudioArmature } from './lib/cocos-to-pixi.
 import { loadModel, state, getOutfitsForCharacter, buildModelId } from './model.js';
 import { preloadModelToRam, ramFolderCache } from './model-assets.js';
 import { ScenarioSequencePlayer, preloadScenarioVoices, scenarioCache } from './quotes-sequence.js';
+import { renderCharaCollectionGrid } from './chara-collection.js';
 
 let activeVoicePrefix = '00';
 let activeScenarioUrl = '';
@@ -353,7 +354,7 @@ let activeEffectTick = null;
 
 async function playTransformationEffect(x) {
     try {
-        const assets = await loadCocosStudioAssets('assets/magica/resource/image_native/effect/story/ef_adv_05.ExportJson');
+        const assets = await loadCocosStudioAssets('magica/resource/image_native/effect/story/ef_adv_05.ExportJson');
         const effectArmature = new CocosStudioArmature(assets.json, assets.textures, assets.particles);
 
         if (activeEffectArmature) {
@@ -407,6 +408,33 @@ async function playTransformationEffect(x) {
         console.error('[quotes] Transformation effect play failed:', e);
     }
 }
+
+async function stopTransformationEffects() {
+    if (sfxPlayer) {
+        try { await sfxPlayer.stop(); } catch (e) {}
+        sfxPlayer = null;
+    }
+    if (activeEffectArmature) {
+        if (activeEffectTick) {
+            try { window.app?.ticker?.remove(activeEffectTick); } catch (e) {}
+            activeEffectTick = null;
+        }
+        try {
+            if (activeEffectArmature.parent) {
+                activeEffectArmature.parent.removeChild(activeEffectArmature);
+            }
+            activeEffectArmature.destroy({ children: true });
+        } catch (e) {}
+        activeEffectArmature = null;
+    }
+}
+window.stopTransformationEffects = stopTransformationEffects;
+
+export function cancelOutfitChanges() {
+    outfitChangeToken++;
+    stopTransformationEffects();
+}
+window.cancelOutfitChanges = cancelOutfitChanges;
 
 async function loadScenarioForOutfit(charaId, live2dId, changeToken) {
     const live2dIdStr = String(live2dId).padStart(2, '0');
@@ -521,7 +549,7 @@ function setupOutfitButtons(charaId) {
 
             // 3. Play transformation sound and visual effect after connecting ends
             const modelX = state.currentModel ? state.currentModel.x : 252;
-            playSfx('assets/magica/resource/sound_native/jingle/7205_magic_girl_hca.hca');
+            playSfx('magica/resource/sound_native/jingle/7205_magic_girl_hca.hca');
             playTransformationEffect(modelX);
 
             // Wait 0.5s (500ms) so the model change matches the transformation effect timing
@@ -603,11 +631,14 @@ function setupOutfitButtons(charaId) {
 }
 
 function setupTabs() {
-    const tabs = document.querySelectorAll('#detailTab li');
+    const detailTab = document.getElementById('detailTab');
+    if (!detailTab) return;
+    const tabs = detailTab.querySelectorAll('li');
     tabs.forEach(tab => {
         const type = tab.getAttribute('data-type');
         if (type === 'voice' || type === 'illust') {
-            tab.addEventListener('click', (e) => {
+            tab.style.cursor = 'pointer';
+            tab.onclick = (e) => {
                 e.preventDefault();
                 tabs.forEach(t => t.classList.remove('current'));
                 tab.classList.add('current');
@@ -622,7 +653,27 @@ function setupTabs() {
                     if (voicesContent) voicesContent.style.display = 'none';
                     if (outfitsContent) outfitsContent.style.display = 'block';
                 }
-            });
+            };
+        }
+    });
+}
+
+function setupVoiceDisplaySwitch() {
+    const displaySwitch = document.querySelector('#cardDetail .voiceDisplaySwitch');
+    if (!displaySwitch || displaySwitch.getAttribute('data-has-listener')) return;
+    displaySwitch.setAttribute('data-has-listener', 'true');
+    displaySwitch.style.cursor = 'pointer';
+
+    displaySwitch.addEventListener('click', (e) => {
+        e.preventDefault();
+        const checkIcon = displaySwitch.querySelector('.voiceCheck');
+        if (checkIcon) {
+            checkIcon.classList.toggle('on');
+            const isFullScreen = checkIcon.classList.contains('on');
+            const cardDetail = document.getElementById('cardDetail');
+            if (cardDetail) {
+                cardDetail.classList.toggle('showLive2dFullscreen', isFullScreen);
+            }
         }
     });
 }
@@ -685,9 +736,6 @@ function setupVoiceButtons() {
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
 
-            document.querySelectorAll('.voiceBtn.current').forEach(b => b.classList.remove('current'));
-            btn.classList.add('current');
-
             const voiceId = btn.getAttribute('data-voice');
             const charaId = state.currentCharacterId || 1001;
 
@@ -698,7 +746,7 @@ function setupVoiceButtons() {
             try {
                 if (scenarioPlayer) {
                     scenarioPlayer.controller = state.currentController;
-                    await scenarioPlayer.loadAndPlayVoice(activeScenarioUrl, voiceKey, charaId);
+                    await scenarioPlayer.loadAndPlayVoice(activeScenarioUrl, voiceKey, charaId, btn);
                 }
             } catch (err) {
                 console.error('[quotes] Error playing voice button:', err);
@@ -707,27 +755,146 @@ function setupVoiceButtons() {
     });
 }
 
+let currentLoadedCharaId = null;
+
+async function loadCharacterDetail(charaId) {
+    if (currentLoadedCharaId === charaId && state.currentModel) {
+        if (state.currentModel) state.currentModel.visible = true;
+        return;
+    }
+
+    currentLoadedCharaId = charaId;
+    state.currentCharacterId = charaId;
+
+    // Instantly update header name & attribute from list card without waiting for network JSON
+    const cardEl = document.querySelector(`.chara[data-chara-id="${charaId}"]`);
+    if (cardEl) {
+        const cardName = cardEl.getAttribute('data-name');
+        const cardAtt = cardEl.getAttribute('data-att');
+        const nameEl = document.getElementById('charaNameText');
+        const attEl = document.getElementById('att');
+        if (nameEl && cardName) nameEl.textContent = cardName;
+        if (attEl && cardAtt) attEl.className = cardAtt.toLowerCase();
+    }
+
+    document.body.classList.add('connecting');
+    const token = ++outfitChangeToken;
+
+    const defaultModelId = String(charaId) + '00';
+
+    activeVoicePrefix = '00';
+    let scenarioJson = null;
+    const scenarioResult = await fetchScenarioJson(`${charaId}00.json`);
+    if (token !== outfitChangeToken) return;
+
+    if (scenarioResult.json) {
+        scenarioJson = scenarioResult.json;
+        activeScenarioUrl = scenarioResult.url;
+        scenarioCache.set(activeScenarioUrl, scenarioJson);
+        console.info(`[quotes] Scenario JSON loaded and cached: ${activeScenarioUrl}`);
+    } else {
+        console.warn(`[quotes] Failed to load scenario JSON for ${charaId}00`);
+    }
+
+    await loadCharaAttributes();
+    if (token !== outfitChangeToken) return;
+
+    const attribute = charaAttributes[charaId] || 'light';
+    const attEl = document.getElementById('att');
+    if (attEl) attEl.className = attribute;
+
+    const metadataPromise = initMetadata(charaId);
+
+    const allowedModels = new Set([defaultModelId]);
+    const allowedExpressions = new Set();
+    const allowedMotions = new Set();
+    const allowedVoices = new Set();
+
+    if (scenarioJson && scenarioJson.story) {
+        Object.values(scenarioJson.story).forEach(steps => {
+            if (Array.isArray(steps)) {
+                steps.forEach(step => {
+                    if (Array.isArray(step.chara)) {
+                        step.chara.forEach(c => {
+                            if (c.id) allowedModels.add(String(c.id));
+                            if (c.face) {
+                                const normFace = c.face.replace(/\.exp3\.json$/, '').replace(/\.exp\.json$/, '').replace(/\.json$/, '');
+                                allowedExpressions.add(normFace);
+                            }
+                            if (typeof c.motion === 'number') allowedMotions.add(c.motion);
+                            if (c.voice) allowedVoices.add(c.voice);
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    const modelPreloadPromises = Array.from(allowedModels).map(modelId =>
+        preloadModelToRam(modelId, { allowedExpressions, allowedMotions })
+    );
+    const voicePreloadPromise = preloadScenarioVoices(Array.from(allowedVoices), scenarioPlayer.voice);
+
+    await Promise.all([
+        ...modelPreloadPromises.map(p => p.catch(e => console.warn('[quotes] model preload error:', e))),
+        voicePreloadPromise.catch(e => console.warn('[quotes] voice preload error:', e))
+    ]);
+
+    if (token !== outfitChangeToken) return;
+    document.body.classList.remove('connecting');
+
+    try {
+        state.currentLive2dId = '00';
+        await loadModel(defaultModelId, {
+            interactive: false,
+            allowedExpressions,
+            allowedMotions
+        });
+
+        if (token !== outfitChangeToken) {
+            if (state.currentModel) {
+                if (state.currentModel.parent) state.currentModel.parent.removeChild(state.currentModel);
+                try { state.currentModel.destroy({ children: true }); } catch (e) {}
+                state.currentModel = null;
+                state.currentController = null;
+            }
+            return;
+        }
+
+        if (state.currentModel) state.currentModel.visible = true;
+        scenarioPlayer.controller = state.currentController;
+        await metadataPromise;
+        if (token !== outfitChangeToken) return;
+        setupOutfitButtons(charaId);
+        setupVoiceButtons();
+        await loadScenarioForOutfit(charaId, '00', token);
+        if (token !== outfitChangeToken) return;
+        setupTabs();
+        setupVoiceDisplaySwitch();
+    } catch (e) {
+        console.error('[quotes] Model load failed:', e);
+    }
+}
+
 function setupBackBtn() {
-    const backBtn = document.getElementById('backBtn');
-    if (backBtn) {
-        backBtn.addEventListener('click', (e) => {
-            e.preventDefault();
+    const handleBack = (e) => {
+        if (e) e.preventDefault();
+        const hash = window.location.hash;
+        if (hash.startsWith('#/CharaCollectionDetail')) {
+            window.location.hash = '#/CharaCollection';
+        } else {
             window.location.href = 'index.html';
-        });
-    }
+        }
+    };
+
+    const globalBackBtn = document.getElementById('globalBackBtn');
+    const backBtn = document.getElementById('backBtn');
+    if (globalBackBtn) globalBackBtn.onclick = handleBack;
+    if (backBtn) backBtn.onclick = handleBack;
 }
 
-function setupVoiceSettings() {
-    const voiceCheck = document.querySelector('.voiceCheck');
-    if (voiceCheck) {
-        voiceCheck.addEventListener('click', () => {
-            voiceCheck.classList.toggle('on');
-        });
-    }
-}
+import { handleRoute } from './magica/js/router.js';
 
-// Chrome autoplay policy: AudioContext created before a user gesture stays suspended.
-// Try to autoplay; if suspended, resume on the first pointer interaction anywhere.
 function setupAudioAutoResume() {
     const resume = () => {
         if (player?.audioCtx && player.audioCtx.state === 'suspended') {
@@ -755,124 +922,31 @@ async function init() {
         uiLayer.style.display = 'block';
     }
 
-    // Parse the character ID dynamically from URL parameters
-    const params = new URLSearchParams(window.location.search);
-    const charaIdParam = params.get('charaId') || params.get('id');
-    if (charaIdParam) {
-        state.currentCharacterId = Number(charaIdParam);
-    }
-    const charaId = state.currentCharacterId || 1001;
-    const defaultModelId = String(charaId) + '00';
-
     // Instantiate scenario player early
     scenarioPlayer = new ScenarioSequencePlayer({
         controller: null,
         subtitleElement: document.getElementById('subtitle')
     });
+    window.scenarioPlayer = scenarioPlayer;
 
-    // Load the scenario JSON first and cache it (try en-download, fallback to ma-re-data)
-    activeVoicePrefix = '00';
-    let scenarioJson = null;
-    const scenarioResult = await fetchScenarioJson(`${charaId}00.json`);
-    if (scenarioResult.json) {
-        scenarioJson = scenarioResult.json;
-        activeScenarioUrl = scenarioResult.url;
-        scenarioCache.set(activeScenarioUrl, scenarioJson);
-        console.info(`[quotes] Scenario JSON loaded and cached: ${activeScenarioUrl}`);
-    } else {
-        console.warn(`[quotes] Failed to load scenario JSON for ${charaId}00`);
-    }
-
-    // Load character attributes from assets/charaAttributes.json
     await loadCharaAttributes();
 
-    // Apply attribute to DOM immediately (local JSON, no network needed)
-    const attribute = charaAttributes[charaId] || 'light';
-    const attEl = document.getElementById('att');
-    if (attEl) attEl.className = attribute;
-
-    // Start fetching character name/kana early (runs concurrently with preloading)
-    const metadataPromise = initMetadata(charaId);
-
-    // Parse scenario to find unique models, expressions, motions, and voices
-    const allowedModels = new Set();
-    const allowedExpressions = new Set();
-    const allowedMotions = new Set();
-    const allowedVoices = new Set();
-
-    allowedModels.add(defaultModelId);
-
-    if (scenarioJson && scenarioJson.story) {
-        Object.values(scenarioJson.story).forEach(steps => {
-            if (Array.isArray(steps)) {
-                steps.forEach(step => {
-                    if (Array.isArray(step.chara)) {
-                        step.chara.forEach(c => {
-                            if (c.id) allowedModels.add(String(c.id));
-                            if (c.face) {
-                                const normFace = c.face.replace(/\.exp3\.json$/, '').replace(/\.exp\.json$/, '').replace(/\.json$/, '');
-                                allowedExpressions.add(normFace);
-                            }
-                            if (typeof c.motion === 'number') {
-                                allowedMotions.add(c.motion);
-                            }
-                            if (c.voice) {
-                                allowedVoices.add(c.voice);
-                            }
-                        });
-                    }
-                });
-            }
-        });
-    }
-
-    // Setup parallel preloading promises
-    const modelPreloadPromises = Array.from(allowedModels).map(modelId =>
-        preloadModelToRam(modelId, { allowedExpressions, allowedMotions })
-    );
-    const voicePreloadPromise = preloadScenarioVoices(Array.from(allowedVoices), scenarioPlayer.voice);
-
-    // Load background, BGM, required model files, and voice lines in parallel.
-    // Keep loading indicator showing until all are complete.
     await Promise.all([
         initBackground().catch((e) => console.warn('[quotes] background error:', e)),
-        playTrack('bgm02_anime11_hca.hca').catch((e) => console.warn('[quotes] bgm error:', e)),
-        ...modelPreloadPromises.map(p => p.catch((e) => console.warn('[quotes] model preload error:', e))),
-        voicePreloadPromise.catch((e) => console.warn('[quotes] voice preload error:', e))
+        playTrack('bgm02_anime11_hca.hca').catch((e) => console.warn('[quotes] bgm error:', e))
     ]);
-
-    document.body.classList.remove('connecting');
 
     // Resume audio on first user interaction if Chrome suspended the context.
     setupAudioAutoResume();
+    setupBackBtn();
 
-    // Render the default model (from RAM cache, instantly!)
-    try {
-        state.currentLive2dId = '00';
-        await loadModel(defaultModelId, {
-            interactive: false,
-            allowedExpressions,
-            allowedMotions
-        });
-
-        // Set the active controller on our scenario player
-        scenarioPlayer.controller = state.currentController;
-
-        // Ensure name metadata has been loaded (started early above)
-        await metadataPromise;
-        setupOutfitButtons(charaId);
-        setupVoiceButtons();
-        setupBackBtn();
-        setupVoiceSettings();
-        await loadScenarioForOutfit(charaId, '00');
-        setupTabs();
-    } catch (e) {
-        console.error('[quotes] model load failed:', e);
-    }
+    window.addEventListener('hashchange', () => handleRoute(loadCharacterDetail, state));
+    await handleRoute(loadCharacterDetail, state);
 
     // Tap effect interaction
     window.addEventListener('pointerdown', showTapEffect, true);
 }
+
 
 let activeTapEffect = null;
 let activeTapTimeout = null;
