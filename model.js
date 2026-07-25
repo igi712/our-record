@@ -13,8 +13,24 @@ export const state = {
     currentModel: null,
     currentController: null,
     currentModelId: '100100', // Default: Iroha Tamaki - Magical Girl
-    desiredFollowState: false // current follow state (true while pressed)
+    desiredFollowState: false, // current follow state (true while pressed)
+    dualMode: false,
+    currentModels: new Map() // Map<string|number, { model, controller, modelId, pos }>
 };
+
+export function destroyCurrentModels() {
+    if (state.currentModels && state.currentModels.size > 0) {
+        state.currentModels.forEach(({ model, controller }) => {
+            if (model) {
+                cleanupOldModelHandlers(model);
+                if (model.parent) model.parent.removeChild(model);
+                try { model.destroy({ children: true }); } catch (e) {}
+            }
+        });
+        state.currentModels.clear();
+    }
+    state.dualMode = false;
+}
 
 
 
@@ -567,7 +583,7 @@ export async function loadModel(modelId, opts = {}) {
     const performFadeOut = createFadeOut(app);
     beginTransition(ctx, performFadeOut);
 
-    positionModel(model, params, modelId);
+    positionModel(model, params, modelId, opts.xOverride);
 
     const { controller, lastMotionStart } = await createAndConfigureController(
         model, modelJson, ctx.preservedState, ctx.isStaleLoad
@@ -582,6 +598,22 @@ export async function loadModel(modelId, opts = {}) {
     }
 
     await transitionIn(model, ctx, performFadeOut, lastMotionStart);
+}
+
+// Non-destructive model loading for secondary/dual-unit models without clearing state/transitions
+export async function loadAdditionalModel(modelId, opts = {}) {
+    const { model, params, modelJson } = await fetchAndCreateModel(modelId, opts);
+    positionModel(model, params, modelId, opts.xOverride);
+
+    const controller = window.createMagirecoStyleControllerV2(model, modelJson);
+    installFollowDebugInstrumentation(model);
+
+    if (opts.interactive !== false) {
+        setupFollowForModel(model);
+    }
+
+    model.visible = true;
+    return { model, controller, params, modelJson };
 }
 
 // Phase 1: capture load context (stale-token, preserved state, old model/controller refs).
@@ -625,6 +657,9 @@ async function fetchAndCreateModel(modelId, opts) {
 
 // Phase 3: transition bookkeeping for the OLD model (cleanup + fade-out on character change).
 function beginTransition(ctx, performFadeOut) {
+    // Cleanup any active dual-unit secondary models first
+    destroyCurrentModels();
+
     // Cleanup per-model follow handlers from the OLD model immediately
     cleanupOldModelHandlers(ctx.oldModel);
 
@@ -645,7 +680,7 @@ function beginTransition(ctx, performFadeOut) {
 }
 
 // Phase 4: placement math (16:9 home / 4:3 / portrait profiles).
-function positionModel(model, params, modelId) {
+function positionModel(model, params, modelId, xOverride) {
     // Placement profiles.
     // Keep the original 16:9 home placement math intact for future use.
     const HOME16_OFFSET_X = -132;
@@ -699,7 +734,10 @@ function positionModel(model, params, modelId) {
     let yGame;
     let scaleMult = 1.0;
 
-    if (viewMode === 'home16') {
+    if (xOverride != null) {
+        xGame = xOverride;
+        yGameFromHeight = HOME16_Y_INTERCEPT + (heightParam * HOME16_Y_PER_HEIGHT);
+    } else if (viewMode === 'home16') {
         const home16OffsetX = (window.__QUOTES_CONFIG?.xOffset ?? HOME16_OFFSET_X);
         xGame = (HOME16_W / 2) + home16OffsetX;
         yGameFromHeight = HOME16_Y_INTERCEPT + (heightParam * HOME16_Y_PER_HEIGHT);

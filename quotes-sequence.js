@@ -162,13 +162,46 @@ class HcaVoicePlayer {
 }
 
 export class ScenarioSequencePlayer {
-    constructor({ controller, subtitleElement }) {
-        this.controller = controller;
+    constructor({ controller, controllers, subtitleElement }) {
+        this.controller = controller || null;
+        this.controllers = controllers || new Map();
         this.subtitleElement = subtitleElement;
         this.voice = new HcaVoicePlayer();
         this.timer = null;
         this.buttonResetTimeout = null;
         this.runToken = 0;
+        this.activeAnalyser = null;
+        this.activeBuffer = null;
+    }
+
+    setControllers(controllersMap, primaryController = null) {
+        this.controllers = controllersMap || new Map();
+        if (primaryController) {
+            this.controller = primaryController;
+        } else if (this.controllers.size > 0) {
+            this.controller = this.controllers.values().next().value;
+        } else {
+            this.controller = null;
+        }
+    }
+
+    getControllerForAction(action) {
+        if (!action) return this.controller;
+        if (this.controllers.size > 0) {
+            if (action.id != null && this.controllers.has(String(action.id))) {
+                return this.controllers.get(String(action.id));
+            }
+            if (action.id != null && this.controllers.has(Number(action.id))) {
+                return this.controllers.get(Number(action.id));
+            }
+            if (action.pos != null && this.controllers.has(`pos_${action.pos}`)) {
+                return this.controllers.get(`pos_${action.pos}`);
+            }
+            if (action.pos != null && this.controllers.has(action.pos)) {
+                return this.controllers.get(action.pos);
+            }
+        }
+        return this.controller;
     }
 
     async loadAndPlay(url, groupName) {
@@ -247,9 +280,18 @@ export class ScenarioSequencePlayer {
             clearTimeout(this.buttonResetTimeout);
             this.buttonResetTimeout = null;
         }
+        this.activeAnalyser = null;
+        this.activeBuffer = null;
         this.voice.stop();
-        this.controller?.setMic?.(false);
-        this.controller?.setMouth?.(0, false);
+        if (this.controllers.size > 0) {
+            this.controllers.forEach(ctrl => {
+                ctrl?.setMic?.(false);
+                ctrl?.setMouth?.(0, false);
+            });
+        } else {
+            this.controller?.setMic?.(false);
+            this.controller?.setMouth?.(0, false);
+        }
         this.clearSubtitle();
         try {
             document.querySelectorAll('.voiceBtn.current').forEach(b => b.classList.remove('current'));
@@ -260,11 +302,27 @@ export class ScenarioSequencePlayer {
         this.voice.resume();
     }
 
-    applyStep(step, token, remainingSteps, runNext) {
-        const action = Array.isArray(step?.chara) ? step.chara[0] : null;
-        if (!action) return;
+    updateLipSyncForStep(actions) {
+        if (!this.activeAnalyser) return;
+        actions.forEach(action => {
+            const ctrl = this.getControllerForAction(action);
+            if (!ctrl) return;
+            const isSpeaking = action.lipSynch === 1 || (action.lipSynch !== 0 && action.voice);
+            if (isSpeaking) {
+                ctrl.setMic?.(true, this.activeAnalyser, this.activeBuffer, 1);
+            } else {
+                ctrl.setMic?.(false);
+                ctrl.setMouth?.(0, false);
+            }
+        });
+    }
 
-        if (action.textHomeStatus === 'Clear') {
+    applyStep(step, token, remainingSteps, runNext) {
+        const actions = Array.isArray(step?.chara) ? step.chara : [];
+        if (actions.length === 0) return;
+
+        const firstAction = actions[0];
+        if (firstAction.textHomeStatus === 'Clear') {
             this.clearSubtitle();
             if (remainingSteps && remainingSteps.length > 0 && typeof runNext === 'function') {
                 runNext();
@@ -273,36 +331,52 @@ export class ScenarioSequencePlayer {
         }
 
         const applyVisuals = () => {
-            if (typeof action.cheek === 'number') this.controller?.setCheek?.(action.cheek, false);
-            if (action.face) this.controller?.setExpressionByName?.(action.face);
+            actions.forEach(action => {
+                const ctrl = this.getControllerForAction(action);
+                if (!ctrl) return;
 
-            if (typeof action.motion === 'number') {
-                const motionIndex = this.controller?.motionIndexByNumber?.get(action.motion);
-                if (typeof motionIndex === 'number') {
-                    this.controller.startMotion(this.controller.defaultMotionGroup, motionIndex);
-                } else {
-                    console.warn('[quotes] Scenario motion is not available on this model:', action.motion);
-                }
-            }
-
-            if (typeof action.textHome === 'string') this.showSubtitle(action.textHome);
-
-            if (action.voice) {
-                const parts = String(action.voice).replace(/\.hca$/i, '').split('_');
-                const voiceId = parts[parts.length - 1];
-                if (voiceId) {
-                    if (this.buttonResetTimeout) {
-                        clearTimeout(this.buttonResetTimeout);
-                        this.buttonResetTimeout = null;
+                if (typeof action.cheek === 'number') ctrl.setCheek?.(action.cheek, false);
+                if (action.face) ctrl.setExpressionByName?.(action.face);
+                if (typeof action.eyeClose === 'number') {
+                    if (typeof ctrl.setEyeClosed === 'function') {
+                        ctrl.setEyeClosed(action.eyeClose === 1, false);
+                    } else if (typeof ctrl.setEyeClose === 'function') {
+                        ctrl.setEyeClose(action.eyeClose === 1, false);
                     }
-                    document.querySelectorAll('.voiceBtn.current').forEach(b => b.classList.remove('current'));
-                    const activeBtn = document.querySelector(`.voiceBtn[data-voice="${voiceId}"]`);
-                    if (activeBtn) activeBtn.classList.add('current');
                 }
-            }
+
+                if (typeof action.motion === 'number') {
+                    const motionIndex = ctrl.motionIndexByNumber?.get(action.motion);
+                    if (typeof motionIndex === 'number') {
+                        ctrl.startMotion(ctrl.defaultMotionGroup, motionIndex);
+                    } else {
+                        console.warn('[quotes] Scenario motion is not available on model:', action.motion);
+                    }
+                }
+
+                if (typeof action.textHome === 'string') this.showSubtitle(action.textHome);
+
+                if (action.voice) {
+                    const parts = String(action.voice).replace(/\.hca$/i, '').split('_');
+                    const voiceId = parts[parts.length - 1];
+                    if (voiceId) {
+                        if (this.buttonResetTimeout) {
+                            clearTimeout(this.buttonResetTimeout);
+                            this.buttonResetTimeout = null;
+                        }
+                        document.querySelectorAll('.voiceBtn.current').forEach(b => b.classList.remove('current'));
+                        const activeBtn = document.querySelector(`.voiceBtn[data-voice="${voiceId}"]`);
+                        if (activeBtn) activeBtn.classList.add('current');
+                    }
+                }
+            });
+
+            this.updateLipSyncForStep(actions);
         };
 
-        const voiceFile = normaliseVoiceFile(action.voice);
+        const voiceAction = actions.find(a => a.voice);
+        const voiceFile = normaliseVoiceFile(voiceAction?.voice);
+
         const scheduleNext = () => {
             if (step.autoTurnFirst && remainingSteps && remainingSteps.length > 0 && typeof runNext === 'function') {
                 const delay = toMilliseconds(step.autoTurnFirst);
@@ -318,14 +392,20 @@ export class ScenarioSequencePlayer {
             this.voice.play(voiceFile, {
                 onAnalyserReady: (analyser, buffer) => {
                     if (token !== this.runToken) return;
+                    this.activeAnalyser = analyser;
+                    this.activeBuffer = buffer;
                     applyVisuals();
-                    this.controller?.setMic?.(true, analyser, buffer, 1);
                     scheduleNext();
                 },
                 onEnded: () => {
                     if (token !== this.runToken) return;
-                    this.controller?.setMic?.(false);
-                    this.controller?.setMouth?.(0, false);
+                    this.activeAnalyser = null;
+                    this.activeBuffer = null;
+                    actions.forEach(action => {
+                        const ctrl = this.getControllerForAction(action);
+                        ctrl?.setMic?.(false);
+                        ctrl?.setMouth?.(0, false);
+                    });
 
                     // Keep active button highlighted for 2 seconds after voice finishes playing
                     if (this.buttonResetTimeout) clearTimeout(this.buttonResetTimeout);
@@ -343,6 +423,8 @@ export class ScenarioSequencePlayer {
                 }
             }).catch((error) => {
                 console.warn('[quotes] voice playback error:', error);
+                this.activeAnalyser = null;
+                this.activeBuffer = null;
                 applyVisuals();
                 scheduleNext();
             });

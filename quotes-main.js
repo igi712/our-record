@@ -2,7 +2,7 @@
 // Wires up: cocos-to-pixi background, HCA BGM loop, and the default Live2D model.
 // Differences from viewer.html: no controls, no follow-on-click.
 import { loadCocosStudioAssets, CocosStudioArmature } from './lib/cocos-to-pixi.js';
-import { loadModel, state, getOutfitsForCharacter, buildModelId } from './model.js';
+import { loadModel, loadAdditionalModel, destroyCurrentModels, state, getOutfitsForCharacter, buildModelId } from './model.js';
 import { preloadModelToRam, ramFolderCache } from './model-assets.js';
 import { ScenarioSequencePlayer, preloadScenarioVoices, scenarioCache } from './quotes-sequence.js';
 import { renderCharaCollectionGrid } from './chara-collection.js';
@@ -165,6 +165,18 @@ function updateUILayer() {
     uiLayer.style.transform = `scale(${camera.scale.x})`;
 }
 
+function updateHeaderName(nameEl, charaName, charaTitle) {
+    if (!nameEl || !charaName) return;
+    nameEl.innerHTML = '';
+    nameEl.appendChild(document.createTextNode(charaName + ' '));
+    if (charaTitle) {
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'title';
+        titleSpan.textContent = charaTitle;
+        nameEl.appendChild(titleSpan);
+    }
+}
+
 async function loadCharaMetadata(charaId) {
     try {
         const response = await fetch('https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/charaList.json');
@@ -174,7 +186,7 @@ async function loadCharaMetadata(charaId) {
         if (chara) {
             const nameEl = document.getElementById('charaNameText');
             const kanaEl = document.getElementById('charaKanaText');
-            if (nameEl) nameEl.textContent = chara.name;
+            updateHeaderName(nameEl, chara.name, chara.title);
             if (kanaEl) {
                 kanaEl.textContent = chara.kana || chara.name;
             }
@@ -548,7 +560,7 @@ function setupOutfitButtons(charaId) {
             if (token !== outfitChangeToken) return;
 
             // 3. Play transformation sound and visual effect after connecting ends
-            const modelX = state.currentModel ? state.currentModel.x : 252;
+            const modelX = 250; // Static single-model X position for Quotes page transformation VFX
             playSfx('magica/resource/sound_native/jingle/7205_magic_girl_hca.hca');
             playTransformationEffect(modelX);
 
@@ -558,13 +570,8 @@ function setupOutfitButtons(charaId) {
 
             // 4. Load the new model (instant since it's already preloaded in RAM)
             try {
-                await loadModel(modelId, { interactive: false });
-                if (token !== outfitChangeToken) return;
-
-                // Update controller reference on scenario player
-                if (scenarioPlayer) {
-                    scenarioPlayer.controller = state.currentController;
-                }
+                const loadedOk = await loadOutfitModels(charaId, newLive2dId, token);
+                if (!loadedOk || token !== outfitChangeToken) return;
 
                 // Retrieve modelJson for the loaded model to set default expression and motion
                 const fileList = ramFolderCache.get(modelId);
@@ -720,7 +727,7 @@ async function initMetadata(charaId) {
         if (chara) {
             const nameEl = document.getElementById('charaNameText');
             const kanaEl = document.getElementById('charaKanaText');
-            if (nameEl) nameEl.textContent = chara.name;
+            updateHeaderName(nameEl, chara.name, chara.title);
             if (kanaEl) {
                 kanaEl.textContent = chara.kana || chara.name;
             }
@@ -796,10 +803,122 @@ function resetDetailViewState() {
             if (child.scrollTop > 0) child.scrollTop = 0;
         });
     }
+    destroyCurrentModels();
 }
 window.resetDetailViewState = resetDetailViewState;
 
 let currentLoadedCharaId = null;
+
+async function loadOutfitModels(charaId, live2dId, token, allowedExpressions = new Set(), allowedMotions = new Set()) {
+    destroyCurrentModels();
+
+    const live2dIdStr = String(live2dId).padStart(2, '0');
+    const defaultModelId = buildModelId(charaId, live2dIdStr);
+
+    let scenarioJson = null;
+    if (live2dIdStr === '00') {
+        scenarioJson = scenarioCache.get(`${charaId}00.json`);
+        if (!scenarioJson) {
+            const fetchResult = await fetchScenarioJson(`${charaId}00.json`);
+            if (fetchResult.json) scenarioJson = fetchResult.json;
+        }
+    }
+
+    const detectedModels = new Set([defaultModelId]);
+    if (scenarioJson && scenarioJson.story) {
+        Object.values(scenarioJson.story).forEach(steps => {
+            if (Array.isArray(steps)) {
+                steps.forEach(step => {
+                    if (Array.isArray(step.chara)) {
+                        step.chara.forEach(c => {
+                            if (c.id) detectedModels.add(String(c.id));
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    const modelIdList = Array.from(detectedModels);
+    const isDual = (live2dIdStr === '00' && modelIdList.length > 1);
+    state.dualMode = isDual;
+
+    if (isDual) {
+        // Dual-unit mode (Quotes Duo preset):
+        // pos 0 (left) @ LAppView tx=216.0 + offset.x=-112.0 => x = 104.0px
+        // pos 1 (right) @ LAppView tx=432.0 + offset.x=-112.0 => x = 320.0px
+        const primaryId = modelIdList[0];
+        const secondaryId = modelIdList[1];
+
+        // Load Primary Model (pos 0)
+        await loadModel(primaryId, {
+            interactive: false,
+            allowedExpressions,
+            allowedMotions,
+            xOverride: 104.0
+        });
+
+        if (token !== undefined && token !== outfitChangeToken) {
+            destroyCurrentModels();
+            return false;
+        }
+
+        // Load Secondary Model (pos 1)
+        const secondaryResult = await loadAdditionalModel(secondaryId, {
+            interactive: false,
+            allowedExpressions,
+            allowedMotions,
+            xOverride: 320.0
+        });
+
+        if (token !== undefined && token !== outfitChangeToken) {
+            destroyCurrentModels();
+            return false;
+        }
+
+        // Build controller map for ScenarioSequencePlayer & state
+        const controllersMap = new Map();
+        controllersMap.set(String(primaryId), state.currentController);
+        controllersMap.set(Number(primaryId), state.currentController);
+        controllersMap.set(0, state.currentController);
+        controllersMap.set('pos_0', state.currentController);
+
+        controllersMap.set(String(secondaryId), secondaryResult.controller);
+        controllersMap.set(Number(secondaryId), secondaryResult.controller);
+        controllersMap.set(1, secondaryResult.controller);
+        controllersMap.set('pos_1', secondaryResult.controller);
+
+        state.currentModels.set(primaryId, { model: state.currentModel, controller: state.currentController, pos: 0 });
+        state.currentModels.set(secondaryId, { model: secondaryResult.model, controller: secondaryResult.controller, pos: 1 });
+
+        if (scenarioPlayer) {
+            scenarioPlayer.setControllers(controllersMap, state.currentController);
+        }
+    } else {
+        // Single-unit mode
+        await loadModel(defaultModelId, {
+            interactive: false,
+            allowedExpressions,
+            allowedMotions
+        });
+
+        if (token !== undefined && token !== outfitChangeToken) {
+            destroyCurrentModels();
+            return false;
+        }
+
+        state.currentModels.set(defaultModelId, { model: state.currentModel, controller: state.currentController, pos: 0 });
+        if (scenarioPlayer) {
+            const controllersMap = new Map();
+            controllersMap.set(String(defaultModelId), state.currentController);
+            controllersMap.set(Number(defaultModelId), state.currentController);
+            scenarioPlayer.setControllers(controllersMap, state.currentController);
+        }
+    }
+
+    if (state.currentModel) state.currentModel.visible = true;
+    return true;
+}
 
 async function loadCharacterDetail(charaId) {
     resetDetailViewState();
@@ -817,9 +936,10 @@ async function loadCharacterDetail(charaId) {
     if (cardEl) {
         const cardName = cardEl.getAttribute('data-name');
         const cardAtt = cardEl.getAttribute('data-att');
+        const cardTitle = cardEl.getAttribute('data-title') || (cardEl.querySelector('.title')?.textContent);
         const nameEl = document.getElementById('charaNameText');
         const attEl = document.getElementById('att');
-        if (nameEl && cardName) nameEl.textContent = cardName;
+        updateHeaderName(nameEl, cardName, cardTitle);
         if (attEl && cardAtt) attEl.className = cardAtt.toLowerCase();
     }
 
@@ -891,24 +1011,9 @@ async function loadCharacterDetail(charaId) {
 
     try {
         state.currentLive2dId = '00';
-        await loadModel(defaultModelId, {
-            interactive: false,
-            allowedExpressions,
-            allowedMotions
-        });
+        const loadedOk = await loadOutfitModels(charaId, '00', token, allowedExpressions, allowedMotions);
+        if (!loadedOk || token !== outfitChangeToken) return;
 
-        if (token !== outfitChangeToken) {
-            if (state.currentModel) {
-                if (state.currentModel.parent) state.currentModel.parent.removeChild(state.currentModel);
-                try { state.currentModel.destroy({ children: true }); } catch (e) {}
-                state.currentModel = null;
-                state.currentController = null;
-            }
-            return;
-        }
-
-        if (state.currentModel) state.currentModel.visible = true;
-        scenarioPlayer.controller = state.currentController;
         await metadataPromise;
         if (token !== outfitChangeToken) return;
         setupOutfitButtons(charaId);
