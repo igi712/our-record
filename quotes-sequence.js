@@ -304,17 +304,32 @@ export class ScenarioSequencePlayer {
 
     updateLipSyncForStep(actions) {
         if (!this.activeAnalyser) return;
-        actions.forEach(action => {
-            const ctrl = this.getControllerForAction(action);
-            if (!ctrl) return;
-            const isSpeaking = action.lipSynch === 1 || (action.lipSynch !== 0 && action.voice);
-            if (isSpeaking) {
-                ctrl.setMic?.(true, this.activeAnalyser, this.activeBuffer, 1);
+
+        if (this.controllers.size > 1) {
+            // Dual-unit mode: evaluate per-model controller independently
+            actions.forEach(action => {
+                const ctrl = this.getControllerForAction(action);
+                if (!ctrl) return;
+                const isSpeaking = action.lipSynch === 1 || (action.lipSynch !== 0 && action.voice);
+                if (isSpeaking) {
+                    ctrl.setMic?.(true, this.activeAnalyser, this.activeBuffer, 1);
+                } else {
+                    ctrl.setMic?.(false);
+                    ctrl.setMouth?.(0, false);
+                }
+            });
+        } else {
+            // Single-unit mode: check if ANY action in the step is speaking for the single model
+            const singleCtrl = this.controller;
+            if (!singleCtrl) return;
+            const anySpeaking = actions.some(action => action.lipSynch === 1 || (action.lipSynch !== 0 && action.voice));
+            if (anySpeaking) {
+                singleCtrl.setMic?.(true, this.activeAnalyser, this.activeBuffer, 1);
             } else {
-                ctrl.setMic?.(false);
-                ctrl.setMouth?.(0, false);
+                singleCtrl.setMic?.(false);
+                singleCtrl.setMouth?.(0, false);
             }
-        });
+        }
     }
 
     applyStep(step, token, remainingSteps, runNext) {
