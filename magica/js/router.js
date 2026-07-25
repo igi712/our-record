@@ -60,7 +60,7 @@ export async function handleRoute(loadCharacterDetail, state) {
 
         setupBackBtn();
 
-        // Cancel any pending outfit change/model load, stop transformation SFX/VFX, and clear subtitles
+        // Cancel any pending outfit change/model load, stop transformation SFX/VFX, clear subtitles, and reset detail view state
         if (window.cancelOutfitChanges) {
             window.cancelOutfitChanges();
         }
@@ -69,6 +69,9 @@ export async function handleRoute(loadCharacterDetail, state) {
         }
         if (window.stopTransformationEffects) {
             window.stopTransformationEffects();
+        }
+        if (window.resetDetailViewState) {
+            window.resetDetailViewState();
         }
 
         // Destroy Live2D model instance when returning to collection

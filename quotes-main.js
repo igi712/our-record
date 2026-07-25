@@ -736,6 +736,9 @@ function setupVoiceButtons() {
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
 
+            document.querySelectorAll('.voiceBtn.current').forEach(b => b.classList.remove('current'));
+            btn.classList.add('current');
+
             const voiceId = btn.getAttribute('data-voice');
             const charaId = state.currentCharacterId || 1001;
 
@@ -746,7 +749,7 @@ function setupVoiceButtons() {
             try {
                 if (scenarioPlayer) {
                     scenarioPlayer.controller = state.currentController;
-                    await scenarioPlayer.loadAndPlayVoice(activeScenarioUrl, voiceKey, charaId, btn);
+                    await scenarioPlayer.loadAndPlayVoice(activeScenarioUrl, voiceKey, charaId);
                 }
             } catch (err) {
                 console.error('[quotes] Error playing voice button:', err);
@@ -755,9 +758,52 @@ function setupVoiceButtons() {
     });
 }
 
+function resetDetailViewState() {
+    const detailTab = document.getElementById('detailTab');
+    if (detailTab) {
+        const tabs = detailTab.querySelectorAll('li');
+        tabs.forEach(tab => {
+            const type = tab.getAttribute('data-type');
+            if (type === 'voice') {
+                tab.classList.add('current');
+            } else {
+                tab.classList.remove('current');
+            }
+        });
+    }
+
+    const voicesContent = document.getElementById('voicesTabContent');
+    const outfitsContent = document.getElementById('outfitsTabContent');
+    if (voicesContent) voicesContent.style.display = 'block';
+    if (outfitsContent) outfitsContent.style.display = 'none';
+
+    const scrollContainers = [
+        document.getElementById('cardDetail'),
+        document.getElementById('hiddenWrap'),
+        document.getElementById('voicesTabContent'),
+        document.getElementById('outfitsTabContent'),
+        document.querySelector('#cardDetail .scrollInner'),
+        document.getElementById('cardDetailWrap')
+    ];
+    scrollContainers.forEach(el => {
+        if (el) el.scrollTop = 0;
+    });
+
+    const cardDetail = document.getElementById('cardDetail');
+    if (cardDetail) {
+        const allChildren = cardDetail.querySelectorAll('*');
+        allChildren.forEach(child => {
+            if (child.scrollTop > 0) child.scrollTop = 0;
+        });
+    }
+}
+window.resetDetailViewState = resetDetailViewState;
+
 let currentLoadedCharaId = null;
 
 async function loadCharacterDetail(charaId) {
+    resetDetailViewState();
+
     if (currentLoadedCharaId === charaId && state.currentModel) {
         if (state.currentModel) state.currentModel.visible = true;
         return;

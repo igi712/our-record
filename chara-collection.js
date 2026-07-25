@@ -100,7 +100,39 @@ function resolveCardIconUrl(cardId) {
 }
 
 function resolveFrameAssetUrl(filename) {
-    return `assets/ma-re-data/resource/image_native/card/frame/${filename}`;
+    return `https://raw.githubusercontent.com/igi712/ma-re-data/main/resource/image_native/card/frame/${filename}`;
+}
+
+let cardIntersectionObserver = null;
+
+function setupCardIntersectionObserver(scrollContainer) {
+    if (cardIntersectionObserver) {
+        cardIntersectionObserver.disconnect();
+    }
+
+    cardIntersectionObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const cardRow = entry.target;
+                if (cardRow.getAttribute('data-loaded') === 'true') {
+                    observer.unobserve(cardRow);
+                    return;
+                }
+                cardRow.setAttribute('data-loaded', 'true');
+                observer.unobserve(cardRow);
+
+                const loadIconsFn = cardRow._loadIcons;
+                if (typeof loadIconsFn === 'function') {
+                    loadIconsFn();
+                    delete cardRow._loadIcons;
+                }
+            }
+        });
+    }, {
+        root: scrollContainer || document.getElementById('charaHiddenWrap'),
+        rootMargin: '250px 0px 250px 0px',
+        threshold: 0
+    });
 }
 
 function appendCardIconIfValid(iconWrap, chara, charaId, rank, rawAtt, upperAtt) {
@@ -163,6 +195,9 @@ function appendCardIconIfValid(iconWrap, chara, charaId, rank, rawAtt, upperAtt)
 export async function renderCharaCollectionGrid() {
     const wrapInner = document.getElementById('charaWrapInner');
     if (!wrapInner) return;
+
+    const scrollContainer = document.getElementById('charaHiddenWrap');
+    setupCardIntersectionObserver(scrollContainer);
 
     await loadCharaAttributes();
     if (!state.charaListData || state.charaListData.length === 0) {
@@ -236,9 +271,18 @@ export async function renderCharaCollectionGrid() {
             }
         }
 
-        validRanks.forEach(rank => {
-            appendCardIconIfValid(iconWrap, chara, charaId, rank, rawAtt, upperAtt);
-        });
+        const loadIcons = () => {
+            validRanks.forEach(rank => {
+                appendCardIconIfValid(iconWrap, chara, charaId, rank, rawAtt, upperAtt);
+            });
+        };
+
+        if ('IntersectionObserver' in window && scrollContainer) {
+            cardRow._loadIcons = loadIcons;
+            cardIntersectionObserver.observe(cardRow);
+        } else {
+            loadIcons();
+        }
 
         cardRow.appendChild(nameWrap);
         cardRow.appendChild(iconWrap);
