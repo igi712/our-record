@@ -35,9 +35,15 @@ CubismRenderer SetMvpMatrix
     sx, sy = scale factors          (aspect-dependent)
 ```
 
-### 1.3 CubismRenderer tx Formula
+### 1.3 CubismRenderer tx & Absolute Stage X Formula
 
 $$\text{CubismRenderer } tx = \frac{\text{offset.x}}{512.0}$$
+
+$$\text{Final Stage / World } X = \text{LAppView } tx + \text{offset.x}$$
+
+> [!IMPORTANT]
+> **Combining Transforms**: `LAppViewCustom tx` sets the base canvas anchor, while `offset.x` (`CubismRenderer tx × 512.0`) translates the Live2D model inside that canvas. 
+> To compute the actual design-space X coordinate (`xGame`), both matrices must be summed. Using `LAppView tx` alone without adding `offset.x` results in models being shifted too far right whenever `offset.x` is negative (e.g. Quotes Duo mode where `offset.x = -112.0px`).
 
 Verified across every logged sample:
 
@@ -160,18 +166,24 @@ The distance between the two canvas origins varies by camera preset:
 
 ### 3.3 Full Dual-Unit Coordinate Table
 
-| Mode | `offset.x` | `xGame` | posNum=0 `LAppView tx` | posNum=0 `Renderer tx, ty` | posNum=1 `LAppView tx` | posNum=1 `Renderer tx, ty` |
-|:-----|:----------:|:-------:|:-----------------------:|:--------------------------:|:-----------------------:|:--------------------------:|
-| **Homescreen** | 28.0 | 540.0 | 216.0 | (0.0547, -0.4043) | 452.0 | (0.0547, -0.5586) |
-| **Cam: Center** | 180.0 | 692.0 | 216.0 | (0.3516, -0.4043) | 216.0 | (0.3516, -0.5586) |
-| **Cam: Center-Right** | 300.0 | 812.0 | 216.0 | (0.5859, -0.4043) | 216.0 | (0.5859, -0.5586) |
-| **Cam: Right** | 420.0 | 932.0 | 216.0 | (0.8203, -0.4043) | 452.0 | (0.8203, -0.5586) |
-| **Cam: Left** | -60.0 | 452.0 | 216.0 | (-0.1172, -0.4043) | 216.0 | (-0.1172, -0.5586) |
-| **Cam: Center-Left** | 60.0 | 572.0 | 216.0 | (0.1172, -0.4043) | 452.0 | (0.1172, -0.5586) |
-| **Center (Bigger)** | 100.0 | 612.0 | 216.0 | (0.1953, -0.4043) | 572.0 | (0.1953, -0.5586) |
-| **Center (2 Bigger)** | 70.0 | 582.0 | 216.0 | (0.1367, -0.4043) | 672.0 | (0.1367, -0.5586) |
-| **Center (Biggest)** | 0.0 | 512.0 | 216.0 | (0.0000, -0.4043) | 808.0 | (0.0000, -0.5586) |
-| **Quotes (Duo)** | -112.0 | 400.0 | 216.0 | (-0.2188, -0.4043) | 432.0 | (-0.2188, -0.5586) |
+| Mode | `offset.x` | `xGame` | posNum=0 `LAppView tx` | posNum=0 `Renderer tx` | **posNum=0 Stage X** | posNum=1 `LAppView tx` | posNum=1 `Renderer tx` | **posNum=1 Stage X** |
+|:-----|:----------:|:-------:|:-----------------------:|:----------------------:|:--------------------:|:-----------------------:|:----------------------:|:--------------------:|
+| **Homescreen** | 28.0 | 540.0 | 216.0 | 0.0547 | **244.0 px** | 452.0 | 0.0547 | **480.0 px** |
+| **Cam: Center** | 180.0 | 692.0 | 216.0 | 0.3516 | **396.0 px** | 216.0 | 0.3516 | **396.0 px** |
+| **Cam: Center-Right** | 300.0 | 812.0 | 216.0 | 0.5859 | **516.0 px** | 216.0 | 0.5859 | **516.0 px** |
+| **Cam: Right** | 420.0 | 932.0 | 216.0 | 0.8203 | **636.0 px** | 452.0 | 0.8203 | **872.0 px** |
+| **Cam: Left** | -60.0 | 452.0 | 216.0 | -0.1172 | **156.0 px** | 216.0 | -0.1172 | **156.0 px** |
+| **Cam: Center-Left** | 60.0 | 572.0 | 216.0 | 0.1172 | **276.0 px** | 452.0 | 0.1172 | **512.0 px** |
+| **Center (Bigger)** | 100.0 | 612.0 | 216.0 | 0.1953 | **316.0 px** | 572.0 | 0.1953 | **672.0 px** |
+| **Center (2 Bigger)** | 70.0 | 582.0 | 216.0 | 0.1367 | **286.0 px** | 672.0 | 0.1367 | **742.0 px** |
+| **Center (Biggest)** | 0.0 | 512.0 | 216.0 | 0.0000 | **216.0 px** | 808.0 | 0.0000 | **808.0 px** |
+| **Quotes (Duo)** | -112.0 | 400.0 | 216.0 | -0.2188 | **104.0 px** | 432.0 | -0.2188 | **320.0 px** |
+
+> [!NOTE]
+> **Quotes Duo Position Derivation**:
+> - **posNum 0 (Left Model)**: `LAppView tx` (`216.0`) + `offset.x` (`-112.0`) = **`104.0px`**.
+> - **posNum 1 (Right Model)**: `LAppView tx` (`432.0`) + `offset.x` (`-112.0`) = **`320.0px`**.
+> - In `quotes.html`, setting `xOverride` directly to `104.0px` and `320.0px` places both models at the exact design-space X coordinates used in the game client.
 
 ### 3.4 Dual-Unit Subtitle Positions
 

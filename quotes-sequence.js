@@ -161,8 +161,15 @@ class HcaVoicePlayer {
     }
 }
 
+const OUTFIT_GROUP_STEP_DELAYS_MS = {
+    // Karin & Alina Halloween Self Introduction 1 (group_1) only
+    '111200_group_1': 100,
+    '111201_group_1': 100,
+    '111202_group_1': 100,
+};
+
 export class ScenarioSequencePlayer {
-    constructor({ controller, controllers, subtitleElement, stepDelayMs = 100 } = {}) {
+    constructor({ controller, controllers, subtitleElement, stepDelayMs = 0 } = {}) {
         this.controller = controller || null;
         this.controllers = controllers || new Map();
         this.subtitleElement = subtitleElement;
@@ -230,7 +237,7 @@ export class ScenarioSequencePlayer {
         let groupName = null;
         if (scenario?.story) {
             for (const [gName, steps] of Object.entries(scenario.story)) {
-                const hasVoice = steps.some(step => 
+                const hasVoice = steps.some(step =>
                     step.chara?.some(c => c.voice === voiceKey || c.voice === voiceKey + "_hca")
                 );
                 if (hasVoice) {
@@ -268,7 +275,7 @@ export class ScenarioSequencePlayer {
             if (token !== this.runToken) return;
             const step = steps.shift();
             if (!step) return;
-            this.applyStep(step, token, steps, runNext);
+            this.applyStep(step, token, steps, runNext, groupName);
         };
         runNext();
     }
@@ -331,7 +338,7 @@ export class ScenarioSequencePlayer {
         }
     }
 
-    applyStep(step, token, remainingSteps, runNext) {
+    applyStep(step, token, remainingSteps, runNext, groupName = 'group') {
         const actions = Array.isArray(step?.chara) ? step.chara : [];
         if (actions.length === 0) return;
 
@@ -399,13 +406,30 @@ export class ScenarioSequencePlayer {
         const voiceAction = actions.find(a => a.voice);
         const voiceFile = normaliseVoiceFile(voiceAction?.voice);
 
+        const autoTurnFirst = step.autoTurnFirst;
+        const autoTurnLast = step.autoTurnLast;
+
         const scheduleNext = () => {
-            if (step.autoTurnFirst && remainingSteps && remainingSteps.length > 0 && typeof runNext === 'function') {
-                const delay = toMilliseconds(step.autoTurnFirst) + (this.stepDelayMs || 0);
-                if (delay > 0) {
-                    this.timer = setTimeout(() => {
-                        if (token === this.runToken) runNext();
-                    }, delay);
+            if (remainingSteps && remainingSteps.length > 0 && typeof runNext === 'function') {
+                let extraDelay = this.stepDelayMs || 0;
+                if (firstAction?.id != null) {
+                    const outfitIdStr = String(firstAction.id);
+                    const key = groupName ? `${outfitIdStr}_${groupName}` : outfitIdStr;
+                    if (OUTFIT_GROUP_STEP_DELAYS_MS[key] != null) {
+                        extraDelay = OUTFIT_GROUP_STEP_DELAYS_MS[key];
+                    } else if (OUTFIT_GROUP_STEP_DELAYS_MS[outfitIdStr] != null) {
+                        extraDelay = OUTFIT_GROUP_STEP_DELAYS_MS[outfitIdStr];
+                    }
+                }
+
+                const rawTurn = autoTurnFirst || (!voiceFile ? autoTurnLast : null);
+                if (rawTurn) {
+                    const delay = toMilliseconds(rawTurn) + extraDelay;
+                    if (delay > 0) {
+                        this.timer = setTimeout(() => {
+                            if (token === this.runToken) runNext();
+                        }, delay);
+                    }
                 }
             }
         };
@@ -439,8 +463,15 @@ export class ScenarioSequencePlayer {
                         }
                     }, 2000);
 
-                    if (!step.autoTurnFirst && remainingSteps && remainingSteps.length > 0 && typeof runNext === 'function') {
-                        runNext();
+                    if (remainingSteps && remainingSteps.length > 0 && typeof runNext === 'function') {
+                        if (autoTurnLast) {
+                            const delay = toMilliseconds(autoTurnLast);
+                            this.timer = setTimeout(() => {
+                                if (token === this.runToken) runNext();
+                            }, delay);
+                        } else if (!autoTurnFirst) {
+                            runNext();
+                        }
                     }
                 }
             }).catch((error) => {
