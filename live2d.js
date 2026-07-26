@@ -598,6 +598,7 @@
         } catch (e) { }
 
         return {
+            model,
             get defaultMotionGroup() { return defaultMotionGroup; },
             get motionIndexByNumber() { return motionIndexByNumber; },
 

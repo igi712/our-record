@@ -574,6 +574,7 @@ function setupOutfitButtons(charaId) {
                 if (!loadedOk || token !== outfitChangeToken) return;
 
                 // Retrieve modelJson for the loaded model to set default expression and motion
+                let bestExpression = null;
                 const fileList = ramFolderCache.get(modelId);
                 if (fileList) {
                     const jsonFile = fileList.find(f => f.webkitRelativePath === 'model.model3.json');
@@ -581,7 +582,6 @@ function setupOutfitButtons(charaId) {
                         const modelJson = JSON.parse(await jsonFile.text());
                         const expressions = modelJson?.FileReferences?.Expressions ?? [];
 
-                        let bestExpression = null;
                         const mtnExMatches = [];
                         for (const expr of expressions) {
                             const fullName = String(expr.Name ?? expr.name ?? '');
@@ -598,19 +598,23 @@ function setupOutfitButtons(charaId) {
                         } else if (expressions.length > 0) {
                             bestExpression = expressions[0].Name ?? expressions[0].name;
                         }
-
-                        if (bestExpression && state.currentController) {
-                            state.currentController.setExpressionByName(bestExpression);
-                        }
                     }
                 }
 
-                if (state.currentController) {
-                    const motionIndex = state.currentController.motionIndexByNumber?.get(0);
-                    if (typeof motionIndex === 'number') {
-                        state.currentController.startMotion(state.currentController.defaultMotionGroup, motionIndex);
+                const activeControllers = scenarioPlayer?.controllers?.size > 0 
+                    ? Array.from(new Set(scenarioPlayer.controllers.values())) 
+                    : (state.currentController ? [state.currentController] : []);
+
+                activeControllers.forEach(ctrl => {
+                    if (!ctrl) return;
+                    if (bestExpression && typeof ctrl.setExpressionByName === 'function') {
+                        ctrl.setExpressionByName(bestExpression);
                     }
-                }
+                    const motionIndex = ctrl.motionIndexByNumber?.get(0) ?? 0;
+                    try {
+                        ctrl.startMotion(ctrl.defaultMotionGroup, motionIndex);
+                    } catch (e) {}
+                });
             } catch (e) {
                 console.error('[quotes] Model swap failed:', e);
             }
@@ -825,13 +829,23 @@ async function loadOutfitModels(charaId, live2dId, token, allowedExpressions = n
     }
 
     const detectedModels = new Set([defaultModelId]);
+    const zOrderMap = new Map();
     if (scenarioJson && scenarioJson.story) {
         Object.values(scenarioJson.story).forEach(steps => {
             if (Array.isArray(steps)) {
                 steps.forEach(step => {
                     if (Array.isArray(step.chara)) {
                         step.chara.forEach(c => {
-                            if (c.id) detectedModels.add(String(c.id));
+                            if (c.id != null) {
+                                const idStr = String(c.id);
+                                detectedModels.add(idStr);
+                                if (typeof c.zOrder === 'number') {
+                                    zOrderMap.set(idStr, c.zOrder);
+                                    if (typeof c.pos === 'number') {
+                                        zOrderMap.set(`pos_${c.pos}`, c.zOrder);
+                                    }
+                                }
+                            }
                         });
                     }
                 });
@@ -850,12 +864,16 @@ async function loadOutfitModels(charaId, live2dId, token, allowedExpressions = n
         const primaryId = modelIdList[0];
         const secondaryId = modelIdList[1];
 
+        const primaryZOrder = zOrderMap.get(String(primaryId)) ?? zOrderMap.get('pos_0') ?? 0;
+        const secondaryZOrder = zOrderMap.get(String(secondaryId)) ?? zOrderMap.get('pos_1') ?? 0;
+
         // Load Primary Model (pos 0)
         await loadModel(primaryId, {
             interactive: false,
             allowedExpressions,
             allowedMotions,
-            xOverride: 104.0
+            xOverride: 104.0,
+            zOrder: primaryZOrder
         });
 
         if (token !== undefined && token !== outfitChangeToken) {
@@ -868,7 +886,8 @@ async function loadOutfitModels(charaId, live2dId, token, allowedExpressions = n
             interactive: false,
             allowedExpressions,
             allowedMotions,
-            xOverride: 320.0
+            xOverride: 320.0,
+            zOrder: secondaryZOrder
         });
 
         if (token !== undefined && token !== outfitChangeToken) {

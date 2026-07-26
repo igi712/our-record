@@ -583,7 +583,7 @@ export async function loadModel(modelId, opts = {}) {
     const performFadeOut = createFadeOut(app);
     beginTransition(ctx, performFadeOut);
 
-    positionModel(model, params, modelId, opts.xOverride);
+    positionModel(model, params, modelId, opts.xOverride, opts.zOrder);
 
     const { controller, lastMotionStart } = await createAndConfigureController(
         model, modelJson, ctx.preservedState, ctx.isStaleLoad
@@ -603,13 +603,21 @@ export async function loadModel(modelId, opts = {}) {
 // Non-destructive model loading for secondary/dual-unit models without clearing state/transitions
 export async function loadAdditionalModel(modelId, opts = {}) {
     const { model, params, modelJson } = await fetchAndCreateModel(modelId, opts);
-    positionModel(model, params, modelId, opts.xOverride);
+    positionModel(model, params, modelId, opts.xOverride, opts.zOrder);
 
     const controller = window.createMagirecoStyleControllerV2(model, modelJson);
     installFollowDebugInstrumentation(model);
 
     if (opts.interactive !== false) {
         setupFollowForModel(model);
+    }
+
+    // Start default motion (motion 0 / idle) on secondary model controller
+    try {
+        const motionIndex = controller.motionIndexByNumber?.get(0) ?? 0;
+        controller.startMotion(controller.defaultMotionGroup, motionIndex);
+    } catch (e) {
+        console.warn('[model] Failed to start initial motion on additional model:', e);
     }
 
     model.visible = true;
@@ -680,7 +688,7 @@ function beginTransition(ctx, performFadeOut) {
 }
 
 // Phase 4: placement math (16:9 home / 4:3 / portrait profiles).
-function positionModel(model, params, modelId, xOverride) {
+function positionModel(model, params, modelId, xOverride, zOrder) {
     // Placement profiles.
     // Keep the original 16:9 home placement math intact for future use.
     const HOME16_OFFSET_X = -132;
@@ -705,7 +713,22 @@ function positionModel(model, params, modelId, xOverride) {
     // Hide initially so we can fade in
     model.visible = false;
 
-    worldContainer.addChild(model);
+    if (worldContainer) {
+        worldContainer.sortableChildren = true;
+        if (typeof zOrder === 'number') {
+            model.zIndex = zOrder;
+        } else {
+            model.zIndex = 0;
+        }
+        if (model.zIndex < 0) {
+            worldContainer.addChildAt(model, 0);
+        } else {
+            worldContainer.addChild(model);
+        }
+        try { worldContainer.sortChildren(); } catch(e) {}
+    } else {
+        worldContainer.addChild(model);
+    }
 
     // Positioning: keep existing math.
     model.anchor.set(0.5, 0.5);

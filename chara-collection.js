@@ -192,74 +192,40 @@ function appendCardIconIfValid(iconWrap, chara, charaId, rank, rawAtt, upperAtt)
     }
 }
 
-let savedCollectionScrollTop = 0;
-let savedCollectionAttribute = 'ALL';
-let savedCollectionSearchQuery = '';
+let lastCollectionScrollTop = 0;
 
-export function saveCharaCollectionState() {
+export function saveCollectionScrollPosition() {
     const scrollContainer = document.getElementById('charaHiddenWrap');
     if (scrollContainer) {
-        savedCollectionScrollTop = scrollContainer.scrollTop;
-    }
-
-    const activeTab = document.querySelector('#CharaCollection #tabArea .tabBtns li.current');
-    if (activeTab) {
-        savedCollectionAttribute = (activeTab.getAttribute('data-att') || 'ALL').toLowerCase();
-    }
-
-    const searchInput = document.getElementById('charaSearchInput');
-    if (searchInput) {
-        savedCollectionSearchQuery = searchInput.value;
+        lastCollectionScrollTop = scrollContainer.scrollTop;
     }
 }
 
-export function applySearchFilter(queryStr) {
+export function restoreCollectionScrollPosition() {
+    const scrollContainer = document.getElementById('charaHiddenWrap');
+    if (scrollContainer) {
+        scrollContainer.scrollTop = lastCollectionScrollTop;
+    }
+}
+
+export function applySearchFilter() {
     const searchInput = document.getElementById('charaSearchInput');
-    const query = (queryStr !== undefined ? queryStr : (searchInput?.value || '')).toLowerCase().trim();
+    if (!searchInput) return;
+
+    const query = searchInput.value.toLowerCase().trim();
     const cardRows = document.querySelectorAll('#charaWrapInner .chara');
 
     cardRows.forEach(row => {
         const charaId = row.getAttribute('data-chara-id') || '';
         const nameText = (row.querySelector('.name')?.textContent || '').toLowerCase();
+        const kanaText = (row.querySelector('.kana')?.textContent || '').toLowerCase();
 
-        if (!query || nameText.includes(query) || charaId.includes(query)) {
+        if (!query || nameText.includes(query) || kanaText.includes(query) || charaId.includes(query)) {
             row.classList.remove('search-hidden');
         } else {
             row.classList.add('search-hidden');
         }
     });
-}
-
-export function restoreCharaCollectionState() {
-    // Restore search box text & filter state
-    const searchInput = document.getElementById('charaSearchInput');
-    if (searchInput) {
-        searchInput.value = savedCollectionSearchQuery;
-    }
-    applySearchFilter(savedCollectionSearchQuery);
-
-    // Restore attribute tab selection
-    const tabBtns = document.querySelectorAll('#CharaCollection #tabArea .tabBtns li');
-    const charaWrap = document.getElementById('charaWrap');
-    if (tabBtns && tabBtns.length > 0 && charaWrap) {
-        tabBtns.forEach(btn => {
-            const att = (btn.getAttribute('data-att') || 'ALL').toLowerCase();
-            if (att === savedCollectionAttribute) {
-                btn.classList.add('current');
-            } else {
-                btn.classList.remove('current');
-            }
-        });
-        charaWrap.className = `commonFrame2 ${savedCollectionAttribute}`;
-    }
-
-    // Restore scroll position
-    const scrollContainer = document.getElementById('charaHiddenWrap');
-    if (scrollContainer) {
-        requestAnimationFrame(() => {
-            scrollContainer.scrollTop = savedCollectionScrollTop;
-        });
-    }
 }
 
 export async function renderCharaCollectionGrid() {
@@ -269,23 +235,37 @@ export async function renderCharaCollectionGrid() {
     const scrollContainer = document.getElementById('charaHiddenWrap');
     setupCardIntersectionObserver(scrollContainer);
 
+    if (scrollContainer && !scrollContainer.getAttribute('data-has-scroll-listener')) {
+        scrollContainer.setAttribute('data-has-scroll-listener', 'true');
+        scrollContainer.addEventListener('scroll', () => {
+            lastCollectionScrollTop = scrollContainer.scrollTop;
+        });
+    }
+
     await loadCharaAttributes();
     if (!state.charaListData || state.charaListData.length === 0) {
         await fetchCharacterCatalog();
     }
 
-    const charaList = (state.charaListData || []).filter(c => !state.missingCharIds?.has(Number(c.id)));
+    setupTabAreaListeners();
+    setupSearchFilter();
 
-    // If grid items are already built, restore view state without destroying existing DOM nodes
-    if (wrapInner.children.length === charaList.length && charaList.length > 0) {
-        setupTabAreaListeners();
-        setupSearchFilter();
-        restoreCharaCollectionState();
+    if (wrapInner.children.length > 0) {
+        if (cardIntersectionObserver) {
+            Array.from(wrapInner.children).forEach(cardRow => {
+                if (cardRow.getAttribute('data-loaded') !== 'true') {
+                    cardIntersectionObserver.observe(cardRow);
+                }
+            });
+        }
+        applySearchFilter();
+        restoreCollectionScrollPosition();
         return;
     }
 
     wrapInner.innerHTML = '';
 
+    const charaList = (state.charaListData || []).filter(c => !state.missingCharIds?.has(Number(c.id)));
     charaList.forEach(chara => {
         const charaId = chara.id;
         const rawAtt = (charaAttributes[charaId] || 'light').toLowerCase();
@@ -368,16 +348,15 @@ export async function renderCharaCollectionGrid() {
 
         // Click event on card row navigates to CharaCollectionDetail
         cardRow.addEventListener('click', () => {
-            saveCharaCollectionState();
+            saveCollectionScrollPosition();
             window.location.hash = `#/CharaCollectionDetail?id=${charaId}`;
         });
 
         wrapInner.appendChild(cardRow);
     });
 
-    setupTabAreaListeners();
-    setupSearchFilter();
-    restoreCharaCollectionState();
+    applySearchFilter();
+    restoreCollectionScrollPosition();
 }
 
 function setupTabAreaListeners() {
@@ -386,13 +365,14 @@ function setupTabAreaListeners() {
     if (!tabBtns || !charaWrap) return;
 
     tabBtns.forEach(btn => {
+        if (btn.getAttribute('data-has-listener')) return;
+        btn.setAttribute('data-has-listener', 'true');
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             tabBtns.forEach(b => b.classList.remove('current'));
             btn.classList.add('current');
 
             const att = (btn.getAttribute('data-att') || 'ALL').toLowerCase();
-            savedCollectionAttribute = att;
             charaWrap.className = `commonFrame2 ${att}`;
         });
     });
@@ -404,7 +384,6 @@ function setupSearchFilter() {
 
     searchInput.setAttribute('data-has-listener', 'true');
     searchInput.addEventListener('input', () => {
-        savedCollectionSearchQuery = searchInput.value;
-        applySearchFilter(searchInput.value);
+        applySearchFilter();
     });
 }

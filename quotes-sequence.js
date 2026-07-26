@@ -306,28 +306,26 @@ export class ScenarioSequencePlayer {
         if (!this.activeAnalyser) return;
 
         if (this.controllers.size > 1) {
-            // Dual-unit mode: evaluate per-model controller independently
-            actions.forEach(action => {
-                const ctrl = this.getControllerForAction(action);
-                if (!ctrl) return;
-                const isSpeaking = action.lipSynch === 1 || (action.lipSynch !== 0 && action.voice);
-                if (isSpeaking) {
-                    ctrl.setMic?.(true, this.activeAnalyser, this.activeBuffer, 1);
-                } else {
-                    ctrl.setMic?.(false);
-                    ctrl.setMouth?.(0, false);
-                }
-            });
+            // Dual-unit mode: check if step explicitly specifies speaker changes (lipSynch === 1 or 0)
+            const hasExplicitSpeakerSetting = actions.some(a => a.lipSynch === 1 || a.lipSynch === 0 || a.voice);
+            if (hasExplicitSpeakerSetting) {
+                actions.forEach(action => {
+                    const ctrl = this.getControllerForAction(action);
+                    if (!ctrl) return;
+                    const isSpeaking = action.lipSynch === 1 || (action.lipSynch !== 0 && action.voice);
+                    if (isSpeaking) {
+                        ctrl.setMic?.(true, this.activeAnalyser, this.activeBuffer, 1);
+                    } else if (action.lipSynch === 0) {
+                        ctrl.setMic?.(false);
+                        ctrl.setMouth?.(0, false);
+                    }
+                });
+            }
         } else {
-            // Single-unit mode: check if ANY action in the step is speaking for the single model
+            // Single-unit mode: as long as voice audio is playing (activeAnalyser is present), keep mic active on the model!
             const singleCtrl = this.controller;
-            if (!singleCtrl) return;
-            const anySpeaking = actions.some(action => action.lipSynch === 1 || (action.lipSynch !== 0 && action.voice));
-            if (anySpeaking) {
+            if (singleCtrl) {
                 singleCtrl.setMic?.(true, this.activeAnalyser, this.activeBuffer, 1);
-            } else {
-                singleCtrl.setMic?.(false);
-                singleCtrl.setMouth?.(0, false);
             }
         }
     }
@@ -349,6 +347,14 @@ export class ScenarioSequencePlayer {
             actions.forEach(action => {
                 const ctrl = this.getControllerForAction(action);
                 if (!ctrl) return;
+
+                if (typeof action.zOrder === 'number' && ctrl.model) {
+                    ctrl.model.zIndex = action.zOrder;
+                    if (window.worldContainer) {
+                        window.worldContainer.sortableChildren = true;
+                        try { window.worldContainer.sortChildren(); } catch (e) {}
+                    }
+                }
 
                 if (typeof action.cheek === 'number') ctrl.setCheek?.(action.cheek, false);
                 if (action.face) ctrl.setExpressionByName?.(action.face);

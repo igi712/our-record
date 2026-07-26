@@ -1,7 +1,7 @@
 // js/router.js — Hash router for quotes SPA
 
 import { loadViewTemplate } from './view-loader.js';
-import { renderCharaCollectionGrid, saveCharaCollectionState } from '../../chara-collection.js';
+import { renderCharaCollectionGrid } from '../../chara-collection.js';
 
 export async function handleRoute(loadCharacterDetail, state) {
     const hash = window.location.hash || '#/CharaCollection';
@@ -26,7 +26,6 @@ export async function handleRoute(loadCharacterDetail, state) {
     };
 
     if (hash.startsWith('#/CharaCollectionDetail')) {
-        saveCharaCollectionState();
         let charaDetailEl = document.getElementById('cardDetail');
         if (!charaDetailEl) {
             await loadViewTemplate('magica/template/collection/CharaCollectionDetail.html', 'ui-layer');
