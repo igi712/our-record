@@ -162,10 +162,11 @@ class HcaVoicePlayer {
 }
 
 export class ScenarioSequencePlayer {
-    constructor({ controller, controllers, subtitleElement }) {
+    constructor({ controller, controllers, subtitleElement, stepDelayMs = 100 } = {}) {
         this.controller = controller || null;
         this.controllers = controllers || new Map();
         this.subtitleElement = subtitleElement;
+        this.stepDelayMs = stepDelayMs;
         this.voice = new HcaVoicePlayer();
         this.timer = null;
         this.buttonResetTimeout = null;
@@ -400,7 +401,7 @@ export class ScenarioSequencePlayer {
 
         const scheduleNext = () => {
             if (step.autoTurnFirst && remainingSteps && remainingSteps.length > 0 && typeof runNext === 'function') {
-                const delay = toMilliseconds(step.autoTurnFirst);
+                const delay = toMilliseconds(step.autoTurnFirst) + (this.stepDelayMs || 0);
                 if (delay > 0) {
                     this.timer = setTimeout(() => {
                         if (token === this.runToken) runNext();
