@@ -22,7 +22,11 @@ export const state = {
     secondaryModel: null,
     secondaryController: null,
     secondaryModelJson: null,
-    currentModels: new Map() // Map<string|number, { model, controller, modelId, pos }>
+    currentModels: new Map(), // Map<string|number, { model, controller, modelId, pos }>
+    unitControlStates: {
+        primary: { motionValue: null, expressionValue: null, cheek: "-1", eyeClose: false, mouthOpen: false, tear: false, soulGem: false },
+        secondary: { motionValue: null, expressionValue: null, cheek: "-1", eyeClose: false, mouthOpen: false, tear: false, soulGem: false }
+    }
 };
 
 export function destroyCurrentModels() {
@@ -56,6 +60,10 @@ export function destroyCurrentModels() {
     state.currentController = null;
     state.dualMode = false;
     state.activeTarget = 'primary';
+    state.unitControlStates = {
+        primary: { motionValue: null, expressionValue: null, cheek: "-1", eyeClose: false, mouthOpen: false, tear: false, soulGem: false },
+        secondary: { motionValue: null, expressionValue: null, cheek: "-1", eyeClose: false, mouthOpen: false, tear: false, soulGem: false }
+    };
 }
 
 
@@ -129,6 +137,46 @@ export function swapDualPositions() {
     }
 }
 
+export function updateSavedUnitState(updater) {
+    const target = state.activeTarget || 'primary';
+    if (target === 'both') {
+        updater(state.unitControlStates.primary);
+        updater(state.unitControlStates.secondary);
+    } else if (target === 'secondary') {
+        updater(state.unitControlStates.secondary);
+    } else {
+        updater(state.unitControlStates.primary);
+    }
+}
+
+export function syncUIControlsWithTargetState() {
+    const currentTarget = state.activeTarget === 'secondary' ? 'secondary' : 'primary';
+    const saved = state.unitControlStates[currentTarget];
+    if (!saved) return;
+
+    const motionSelect = document.getElementById('motionSelect');
+    const expressionSelect = document.getElementById('expressionSelect');
+    const eyeClose = document.getElementById('eyeClose');
+    const mouthOpen = document.getElementById('mouthOpen');
+    const tear = document.getElementById('tear');
+    const soulGem = document.getElementById('soulGem');
+
+    if (motionSelect && saved.motionValue != null) {
+        setSelectValue(motionSelect, saved.motionValue);
+    }
+    if (expressionSelect && saved.expressionValue != null) {
+        setSelectValue(expressionSelect, saved.expressionValue);
+    }
+
+    const cheekRadio = document.querySelector(`input[name="cheek"][value="${saved.cheek}"]`);
+    if (cheekRadio) cheekRadio.checked = true;
+
+    if (eyeClose) eyeClose.checked = !!saved.eyeClose;
+    if (mouthOpen) mouthOpen.checked = !!saved.mouthOpen;
+    if (tear) tear.checked = !!saved.tear;
+    if (soulGem) soulGem.checked = !!saved.soulGem;
+}
+
 export function refreshControlDropdowns(target) {
     if (target) state.activeTarget = target;
     const currentTarget = state.activeTarget || 'primary';
@@ -144,6 +192,7 @@ export function refreshControlDropdowns(target) {
     if (json && dummyModel) {
         setupControlsForModel(dummyModel, json);
     }
+    syncUIControlsWithTargetState();
 }
 
 export function playRandomMotion() {
@@ -158,12 +207,14 @@ export function getSelectedCheekValue() {
 }
 
 export function applyCheek(value) {
+    updateSavedUnitState(s => s.cheek = String(value));
     const controllers = getTargetControllers();
     controllers.forEach(c => c?.setCheek?.(value, false));
 }
 
 // scenario_adv.json name: eyeClose (0/1)
 export function applyEyeClose(isClosed) {
+    updateSavedUnitState(s => s.eyeClose = !!isClosed);
     const controllers = getTargetControllers();
     controllers.forEach(c => {
         if (!c) return;
@@ -174,6 +225,7 @@ export function applyEyeClose(isClosed) {
 
 // scenario_adv.json name: mouthOpen (0/1)
 export function applyMouthOpen(isOpen) {
+    updateSavedUnitState(s => s.mouthOpen = !!isOpen);
     const controllers = getTargetControllers();
     const v = isOpen ? 1 : 0;
     controllers.forEach(c => {
@@ -185,6 +237,7 @@ export function applyMouthOpen(isOpen) {
 
 // scenario_adv.json name: tear (0/1)
 export function applyTear(enabled) {
+    updateSavedUnitState(s => s.tear = !!enabled);
     const controllers = getTargetControllers();
     const v = enabled ? 1 : 0;
     controllers.forEach(c => c?.setTear?.(v, false));
@@ -192,6 +245,7 @@ export function applyTear(enabled) {
 
 // scenario_adv.json name: soulGem (0/1)
 export function applySoulGem(enabled) {
+    updateSavedUnitState(s => s.soulGem = !!enabled);
     const controllers = getTargetControllers();
     const v = enabled ? 1 : 0;
     controllers.forEach(c => c?.setSoulGem?.(v, false));
@@ -257,6 +311,7 @@ function setupControlsForModel(model, modelJson) {
         motionSelect.onchange = () => {
             const controllers = getTargetControllers();
             if (!controllers.length) return;
+            updateSavedUnitState(s => s.motionValue = motionSelect.value);
             const { group, index } = JSON.parse(motionSelect.value);
             controllers.forEach(c => c?.startMotion?.(group, index));
         };
@@ -299,6 +354,7 @@ function setupControlsForModel(model, modelJson) {
         expressionSelect.onchange = () => {
             const controllers = getTargetControllers();
             if (!controllers.length) return;
+            updateSavedUnitState(s => s.expressionValue = expressionSelect.value);
             controllers.forEach(c => {
                 const ok = c?.setExpressionByName?.(expressionSelect.value);
                 if (!ok) console.warn('Could not set expression', { name: expressionSelect.value });
@@ -738,6 +794,7 @@ export async function loadAdditionalModel(modelId, opts = {}) {
     }
 
     model.visible = true;
+    state.dualMode = true;
     return { model, controller, params, modelJson };
 }
 

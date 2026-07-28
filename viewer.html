@@ -75,6 +75,7 @@
             #controls select, #controls input[type="range"] { font-size: 11px; }
             #controls button { font-size: 12px; padding: 5px 6px; }
         }
+
     </style>
 
     <script src="lib/live2dcubismcore.min.js"></script>
@@ -101,6 +102,19 @@
 
             <label for="outfitSelect">Outfit</label>
             <select id="outfitSelect"></select>
+
+            <!-- Target selector: only shown in dual unit mode -->
+            <div id="dualTargetRow" style="display:none;margin-top:6px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                    <div style="font-size:12px;">Target</div>
+                    <button id="swapBtn" type="button" class="small" style="padding:2px 8px;font-size:11px;">⇄ Swap</button>
+                </div>
+                <div style="display:flex;gap:8px;font-size:11px;">
+                    <label><input type="radio" name="dualTarget" id="targetUnit1" value="primary" checked> Unit 1</label>
+                    <label><input type="radio" name="dualTarget" id="targetUnit2" value="secondary"> Unit 2</label>
+                    <label><input type="radio" name="dualTarget" id="targetBoth" value="both"> Both</label>
+                </div>
+            </div>
 
             <label for="motionSelect">Motion</label>
             <select id="motionSelect"></select>

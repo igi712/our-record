@@ -13,12 +13,16 @@ import {
     downloadModelSnapshot,
     getOutfitsForCharacter,
     getSelectedCheekValue,
+    getTargetControllers,
     loadModel,
     loadAdditionalModel,
     persistAssetsBaseOverride,
+    playRandomMotion,
+    refreshControlDropdowns,
     resolveMaReAssetsBase,
     setFollowEnabledGlobal,
-    showToast
+    showToast,
+    swapDualPositions
 } from './model.js';
 import { getDualUnitConfig } from './model-scenario.js';
 
@@ -174,9 +178,21 @@ export async function initializeApp() {
             (async () => { try { await refreshAssetsInput(); } catch (e) {} })();
         } catch (e) {}
 
+        function updateDualControlVisibility(isDual) {
+            const dualTargetRow = document.getElementById('dualTargetRow');
+            if (dualTargetRow) {
+                dualTargetRow.style.display = isDual ? '' : 'none';
+            }
+            // Reset target to Unit 1 on model load
+            const u1Radio = document.getElementById('targetUnit1');
+            if (u1Radio) u1Radio.checked = true;
+            state.activeTarget = 'primary';
+        }
+
         async function loadSelectedModel(charaId, live2dId) {
             try {
                 const dualConfig = await getDualUnitConfig(charaId, live2dId);
+                updateDualControlVisibility(dualConfig.isDual);
                 if (dualConfig.isDual) {
                     state.dualMode = true;
                     await loadModel(dualConfig.primaryId, {
@@ -298,6 +314,23 @@ export function setupManualControls() {
     const micToggle = document.getElementById('micToggle');
     const micSensitivityInput = document.getElementById('micSensitivity');
 
+    const dualTargetRadios = Array.from(document.querySelectorAll('input[name="dualTarget"]'));
+    const swapBtn = document.getElementById('swapBtn');
+
+    dualTargetRadios.forEach(radio => {
+        radio.onchange = (e) => {
+            if (!e.target.checked) return;
+            refreshControlDropdowns(e.target.value);
+            if (micStream && micAnalyzer) {
+                const sens = Number(micSensitivityInput?.value) || 1;
+                const controllers = getTargetControllers();
+                controllers.forEach(c => c?.setMic?.(true, micAnalyzer, micBuf, sens));
+            }
+        };
+    });
+
+    if (swapBtn) swapBtn.onclick = () => swapDualPositions();
+
     cheekRadios.forEach(el => {
         el.onchange = (e) => applyCheek(e.target.value);
     });
@@ -345,9 +378,9 @@ export function setupManualControls() {
                 micSensitivityInput.style.opacity = '';
             }
 
-            if (state.currentController) {
-                state.currentController.setMic(true, micAnalyzer, micBuf, Number(micSensitivityInput?.value) || 1);
-            }
+            const sens = Number(micSensitivityInput?.value) || 1;
+            const controllers = getTargetControllers();
+            controllers.forEach(c => c?.setMic?.(true, micAnalyzer, micBuf, sens));
 
             if (micToggle) micToggle.textContent = 'Stop Mic Lipsync';
         } catch (e) {
@@ -373,10 +406,12 @@ export function setupManualControls() {
         micAnalyzer = null;
         micBuf = null;
 
-        if (state.currentController) {
-            state.currentController.setMic(false, null, null, Number(micSensitivityInput?.value) || 1);
-            state.currentController.clearMouthManualIfUnlocked();
-        }
+        const sens = Number(micSensitivityInput?.value) || 1;
+        const controllers = getTargetControllers();
+        controllers.forEach(c => {
+            c?.setMic?.(false, null, null, sens);
+            c?.clearMouthManualIfUnlocked?.();
+        });
 
         if (mouthOpen) { mouthOpen.disabled = false; mouthOpen.style.pointerEvents = ''; mouthOpen.style.opacity = ''; }
 
@@ -395,8 +430,9 @@ export function setupManualControls() {
         micSensitivityInput.style.pointerEvents = 'none';
         micSensitivityInput.style.opacity = '0.5';
         micSensitivityInput.oninput = (e) => {
-            if (!state.currentController) return;
-            state.currentController.setMicSensitivity(Number(e.target.value) || 1);
+            const sens = Number(e.target.value) || 1;
+            const controllers = getTargetControllers();
+            controllers.forEach(c => c?.setMicSensitivity?.(sens));
         };
     }
 
@@ -439,7 +475,7 @@ export function setupManualControls() {
         const captureBtn = document.getElementById('captureBtn');
         const randomBtn = document.getElementById('randomBtn');
 
-        if (randomBtn) randomBtn.onclick = () => state.currentController?.clickPlayRandom?.();
+        if (randomBtn) randomBtn.onclick = () => playRandomMotion();
         if (captureBtn) captureBtn.onclick = () => downloadModelSnapshot();
     } catch {}
 }
