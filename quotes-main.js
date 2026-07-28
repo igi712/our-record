@@ -5,6 +5,7 @@ import { loadCocosStudioAssets, CocosStudioArmature } from './lib/cocos-to-pixi.
 import { loadModel, loadAdditionalModel, destroyCurrentModels, state, getOutfitsForCharacter, buildModelId } from './model.js';
 import { preloadModelToRam, ramFolderCache } from './model-assets.js';
 import { ScenarioSequencePlayer, preloadScenarioVoices, scenarioCache } from './quotes-sequence.js';
+import { fetchScenarioJson, checkScenarioUrlExists, getDualUnitConfig } from './model-scenario.js';
 import { renderCharaCollectionGrid } from './chara-collection.js';
 
 let activeVoicePrefix = '00';
@@ -196,99 +197,7 @@ async function loadCharaMetadata(charaId) {
     }
 }
 
-// ---- Scenario base resolution ----
-// Order: en-download remote (primary) → local ma-re-data → remote ma-re-data
-const SCENARIO_REMOTE_MARE_BASE = 'https://raw.githubusercontent.com/igi712/ma-re-data/main/resource/scenario/json/general';
-const SCENARIO_LOCAL_MARE_BASE = 'assets/ma-re-data/resource/scenario/json/general';
 
-let _scenarioPrimaryBase = null;
-let _scenarioLocalMareAvailable = null;
-
-async function resolveScenarioBase() {
-    if (!_scenarioPrimaryBase) {
-        _scenarioPrimaryBase = 'https://raw.githubusercontent.com/Puella-Care/en-download/refs/heads/main/magica/resource/download/asset/master/resource/scenario/json/general';
-    }
-    return _scenarioPrimaryBase;
-}
-
-async function resolveMaReScenarioBases() {
-    const bases = [];
-
-    // 1) Local ma-re-data (fast, no network needed) — probe once, cache result
-    if (_scenarioLocalMareAvailable === null) {
-        try {
-            const probeUrl = `${SCENARIO_LOCAL_MARE_BASE}/100100.json`;
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 2000);
-            const resp = await fetch(probeUrl, { method: 'HEAD', cache: 'no-store', signal: controller.signal });
-            clearTimeout(timer);
-            _scenarioLocalMareAvailable = resp.ok;
-        } catch (e) {
-            _scenarioLocalMareAvailable = false;
-        }
-    }
-    if (_scenarioLocalMareAvailable) {
-        bases.push(SCENARIO_LOCAL_MARE_BASE);
-    }
-
-    // 2) Remote ma-re-data (always included as a network fallback)
-    bases.push(SCENARIO_REMOTE_MARE_BASE);
-
-    return bases;
-}
-
-// Try primary (en-download) first, then iterate through ma-re-data fallbacks
-async function fetchScenarioJson(pathSuffix) {
-    const primaryBase = await resolveScenarioBase();
-    const primaryUrl = `${primaryBase}/${pathSuffix}`;
-
-    let resp = await fetch(primaryUrl).catch(() => null);
-    if (resp && resp.ok) {
-        return { json: await resp.json(), url: primaryUrl };
-    }
-
-    // Iterate through ma-re-data fallbacks (local then remote)
-    const fallbackBases = await resolveMaReScenarioBases();
-    for (const base of fallbackBases) {
-        const fallbackUrl = `${base}/${pathSuffix}`;
-        console.info(`[quotes] Scenario not found at en-download, trying ma-re-data fallback: ${fallbackUrl}`);
-        resp = await fetch(fallbackUrl).catch(() => null);
-        if (resp && resp.ok) {
-            return { json: await resp.json(), url: fallbackUrl };
-        }
-    }
-
-    return { json: null, url: primaryUrl };
-}
-
-// Check if scenario exists at primary (en-download) or any ma-re-data fallback
-async function checkScenarioUrlExists(pathSuffix) {
-    const primaryBase = await resolveScenarioBase();
-    const primaryUrl = `${primaryBase}/${pathSuffix}`;
-    if (await checkUrlExists(primaryUrl)) return { url: primaryUrl, source: 'primary' };
-
-    const fallbackBases = await resolveMaReScenarioBases();
-    for (const base of fallbackBases) {
-        const fallbackUrl = `${base}/${pathSuffix}`;
-        if (await checkUrlExists(fallbackUrl)) return { url: fallbackUrl, source: 'ma-re-data' };
-    }
-
-    return null;
-}
-
-async function checkUrlExists(url) {
-    try {
-        const response = await fetch(url, { method: 'HEAD' });
-        return response.ok;
-    } catch (e) {
-        try {
-            const resp = await fetch(url);
-            return resp.ok;
-        } catch {
-            return false;
-        }
-    }
-}
 
 function getAvailableVoiceKeys(scenarioJson) {
     const keys = new Set();
@@ -816,56 +725,17 @@ let currentLoadedCharaId = null;
 async function loadOutfitModels(charaId, live2dId, token, allowedExpressions = new Set(), allowedMotions = new Set()) {
     destroyCurrentModels();
 
-    const live2dIdStr = String(live2dId).padStart(2, '0');
-    const defaultModelId = buildModelId(charaId, live2dIdStr);
+    const dualConfig = await getDualUnitConfig(charaId, live2dId);
+    state.dualMode = dualConfig.isDual;
 
-    let scenarioJson = null;
-    if (live2dIdStr === '00') {
-        scenarioJson = scenarioCache.get(`${charaId}00.json`);
-        if (!scenarioJson) {
-            const fetchResult = await fetchScenarioJson(`${charaId}00.json`);
-            if (fetchResult.json) scenarioJson = fetchResult.json;
-        }
-    }
-
-    const detectedModels = new Set([defaultModelId]);
-    const zOrderMap = new Map();
-    if (scenarioJson && scenarioJson.story) {
-        Object.values(scenarioJson.story).forEach(steps => {
-            if (Array.isArray(steps)) {
-                steps.forEach(step => {
-                    if (Array.isArray(step.chara)) {
-                        step.chara.forEach(c => {
-                            if (c.id != null) {
-                                const idStr = String(c.id);
-                                detectedModels.add(idStr);
-                                if (typeof c.zOrder === 'number') {
-                                    zOrderMap.set(idStr, c.zOrder);
-                                    if (typeof c.pos === 'number') {
-                                        zOrderMap.set(`pos_${c.pos}`, c.zOrder);
-                                    }
-                                }
-                            }
-                        });
-                    }
-                });
-            }
-        });
-    }
-
-    const modelIdList = Array.from(detectedModels);
-    const isDual = (live2dIdStr === '00' && modelIdList.length > 1);
-    state.dualMode = isDual;
-
-    if (isDual) {
+    if (dualConfig.isDual) {
         // Dual-unit mode (Quotes Duo preset):
         // pos 0 (left) @ LAppView tx=216.0 + offset.x=-112.0 => x = 104.0px
         // pos 1 (right) @ LAppView tx=432.0 + offset.x=-112.0 => x = 320.0px
-        const primaryId = modelIdList[0];
-        const secondaryId = modelIdList[1];
-
-        const primaryZOrder = zOrderMap.get(String(primaryId)) ?? zOrderMap.get('pos_0') ?? 0;
-        const secondaryZOrder = zOrderMap.get(String(secondaryId)) ?? zOrderMap.get('pos_1') ?? 0;
+        const primaryId = dualConfig.primaryId;
+        const secondaryId = dualConfig.secondaryId;
+        const primaryZOrder = dualConfig.primaryZOrder;
+        const secondaryZOrder = dualConfig.secondaryZOrder;
 
         // Load Primary Model (pos 0)
         await loadModel(primaryId, {

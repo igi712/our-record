@@ -9,7 +9,7 @@ const path = require('path');
 const REPO = path.resolve(__dirname, '..');
 
 // Files to check
-const FILES = ['model.js', 'model-assets.js', 'model-follow.js', 'model-snapshot.js', 'ui.js'];
+const FILES = ['model.js', 'model-assets.js', 'model-follow.js', 'model-snapshot.js', 'model-scenario.js', 'quotes-sequence.js', 'ui.js'];
 
 // --------------------------------------------------------------------------
 // Parsing helpers

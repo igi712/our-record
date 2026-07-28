@@ -759,7 +759,11 @@ function positionModel(model, params, modelId, xOverride, zOrder) {
 
     if (xOverride != null) {
         xGame = xOverride;
-        yGameFromHeight = HOME16_Y_INTERCEPT + (heightParam * HOME16_Y_PER_HEIGHT);
+        if (viewMode === 'full43' || viewMode === 'portrait') {
+            yGameFromHeight = VIEW43_Y_INTERCEPT + (heightParam * VIEW43_Y_PER_HEIGHT);
+        } else {
+            yGameFromHeight = HOME16_Y_INTERCEPT + (heightParam * HOME16_Y_PER_HEIGHT);
+        }
     } else if (viewMode === 'home16') {
         const home16OffsetX = (window.__QUOTES_CONFIG?.xOffset ?? HOME16_OFFSET_X);
         xGame = (HOME16_W / 2) + home16OffsetX;

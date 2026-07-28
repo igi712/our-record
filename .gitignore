@@ -20,3 +20,4 @@ AGENTS.md
 
 .playwright-mcp/
 temp/
+.task/

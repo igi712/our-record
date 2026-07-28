@@ -9,15 +9,18 @@ import {
     applyTear,
     buildModelId,
     clearAssetsBaseOverride,
+    destroyCurrentModels,
     downloadModelSnapshot,
     getOutfitsForCharacter,
     getSelectedCheekValue,
     loadModel,
+    loadAdditionalModel,
     persistAssetsBaseOverride,
     resolveMaReAssetsBase,
     setFollowEnabledGlobal,
     showToast
 } from './model.js';
+import { getDualUnitConfig } from './model-scenario.js';
 
 function populateCharacterDropdown() {
     const characterSelect = document.getElementById('characterSelect');
@@ -171,6 +174,31 @@ export async function initializeApp() {
             (async () => { try { await refreshAssetsInput(); } catch (e) {} })();
         } catch (e) {}
 
+        async function loadSelectedModel(charaId, live2dId) {
+            try {
+                const dualConfig = await getDualUnitConfig(charaId, live2dId);
+                if (dualConfig.isDual) {
+                    state.dualMode = true;
+                    await loadModel(dualConfig.primaryId, {
+                        xOverride: 244.0,
+                        zOrder: dualConfig.primaryZOrder
+                    });
+                    await loadAdditionalModel(dualConfig.secondaryId, {
+                        xOverride: 480.0,
+                        zOrder: dualConfig.secondaryZOrder
+                    });
+                } else {
+                    state.dualMode = false;
+                    const modelId = buildModelId(charaId, live2dId);
+                    await loadModel(modelId);
+                }
+            } catch (e) {
+                console.error('Failed to load selected model:', e);
+                const modelId = buildModelId(charaId, live2dId);
+                await loadModel(modelId).catch((err) => console.error(err));
+            }
+        }
+
         // Setup event handlers
         const characterSelect = document.getElementById('characterSelect');
         const outfitSelect = document.getElementById('outfitSelect');
@@ -192,8 +220,7 @@ export async function initializeApp() {
                 populateOutfitDropdown(charaId);
 
                 // Load the model (character change: reset UI/controller state)
-                const modelId = buildModelId(charaId, state.currentLive2dId);
-                loadModel(modelId).catch((e) => console.error(e));
+                loadSelectedModel(charaId, state.currentLive2dId);
             };
         }
 
@@ -205,17 +232,17 @@ export async function initializeApp() {
                 state.currentLive2dId = live2dId;
 
                 // Load the model (outfit change: reset UI/controller state)
-                const modelId = buildModelId(state.currentCharacterId, live2dId);
-                loadModel(modelId).catch((e) => console.error(e));
+                loadSelectedModel(state.currentCharacterId, live2dId);
             };
         }
 
         // Load the default model
-        loadModel(state.currentModelId).catch((e) => console.error(e));
+        loadSelectedModel(state.currentCharacterId, state.currentLive2dId);
     } catch (error) {
         console.error('Failed to initialize app:', error);
         // Fallback: try to load default model anyway
-        loadModel(state.currentModelId).catch((e) => console.error(e));
+        const modelId = buildModelId(state.currentCharacterId, state.currentLive2dId);
+        loadModel(modelId).catch((e) => console.error(e));
     }
 }
 
