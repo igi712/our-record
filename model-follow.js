@@ -2,111 +2,135 @@
 
 import { state } from './model.js';
 
+function getAllActiveModels() {
+    const models = new Set();
+    if (state.currentModel) models.add(state.currentModel);
+    if (state.primaryModel) models.add(state.primaryModel);
+    if (state.secondaryModel) models.add(state.secondaryModel);
+    if (state.currentModels && state.currentModels.size > 0) {
+        state.currentModels.forEach(item => {
+            if (item && item.model) models.add(item.model);
+        });
+    }
+    return Array.from(models);
+}
+
+function getTargetModelsForFollow(targetModel) {
+    if (!state.dualMode) {
+        return [targetModel || state.currentModel || state.primaryModel].filter(Boolean);
+    }
+    const target = state.activeTarget || 'primary';
+    if (target === 'both') {
+        return [state.primaryModel || state.currentModel, state.secondaryModel].filter(Boolean);
+    } else if (target === 'secondary') {
+        return [state.secondaryModel || targetModel || state.currentModel].filter(Boolean);
+    } else {
+        return [state.primaryModel || targetModel || state.currentModel].filter(Boolean);
+    }
+}
+
+function disableFollowOnModel(activeModel) {
+    if (!activeModel) return;
+    try {
+        if (typeof activeModel.__mrSetFollowEnabled === 'function') activeModel.__mrSetFollowEnabled(false);
+    } catch (e) { console.warn('[v2 follow] disableFollowOnModel failed', e); }
+
+    try {
+        if (activeModel.__mrMoveHandler) {
+            try { window.removeEventListener('pointermove', activeModel.__mrMoveHandler, true); } catch {}
+            try { window.removeEventListener('touchmove', activeModel.__mrMoveHandler, true); } catch {}
+            try { delete activeModel.__mrMoveHandler; } catch {}
+        }
+
+        if (Array.isArray(activeModel.__mrMoveRetryTimers)) {
+            try { activeModel.__mrMoveRetryTimers.forEach(t => clearTimeout(t)); } catch {}
+            try { delete activeModel.__mrMoveRetryTimers; } catch {}
+        }
+    } catch (e) {}
+}
+
+function enableFollowOnModel(activeModel, initialEvent) {
+    if (!activeModel) return;
+    try {
+        if (typeof activeModel.__mrSetFollowEnabled === 'function') activeModel.__mrSetFollowEnabled(true);
+    } catch (e) { console.warn('[v2 follow] enableFollowOnModel failed', e); }
+
+    try {
+        if (!activeModel.__mrMoveHandler) {
+            const moveHandler = function(ev) {
+                try {
+                    const im = activeModel.internalModel;
+                    const fc = im && im.focusController;
+                    if (!fc) return;
+
+                    const rect = app?.view?.getBoundingClientRect?.();
+                    const clientX = ev.clientX ?? (ev.touches && ev.touches[0] && ev.touches[0].clientX);
+                    const clientY = ev.clientY ?? (ev.touches && ev.touches[0] && ev.touches[0].clientY);
+                    if (clientX == null || clientY == null || !rect) return;
+
+                    const canvasX = clientX - rect.left;
+                    const canvasY = clientY - rect.top;
+
+                    const pt = new PIXI.Point(canvasX, canvasY);
+                    try { activeModel.toModelPosition(pt, pt, true); } catch {}
+
+                    const origW = Number(im.originalWidth) || 1;
+                    const origH = Number(im.originalHeight) || 1;
+
+                    const rawNormX = (pt.x / origW) * 2 - 1;
+                    const rawNormY = (pt.y / origH) * 2 - 1;
+                    const eyeOffset = Number(activeModel.__mrEyeNormOffset) || 0;
+
+                    const sensitivity = Number(activeModel.__mrFollowSensitivity ?? window.__mrFollowSensitivity ?? 1) || 1;
+
+                    let finalNormX = rawNormX * sensitivity * 2;
+                    let finalNormY = (eyeOffset + rawNormY * sensitivity) * 2;
+
+                    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+                    finalNormX = clamp(finalNormX, -2, 2);
+                    finalNormY = clamp(finalNormY, -2, 2);
+
+                    try { fc.focus(finalNormX, -finalNormY, false); } catch {}
+                } catch (e) { console.warn('[v2 follow] moveHandler error', e); }
+            };
+
+            activeModel.__mrMoveHandler = moveHandler;
+            window.addEventListener('pointermove', moveHandler, true);
+            window.addEventListener('touchmove', moveHandler, true);
+        }
+
+        if (initialEvent && activeModel.__mrMoveHandler) {
+            try { activeModel.__mrMoveHandler(initialEvent); } catch (e) {}
+
+            try {
+                const retryDelays = [50, 150, 350];
+                if (!Array.isArray(activeModel.__mrMoveRetryTimers)) activeModel.__mrMoveRetryTimers = [];
+                for (const d of retryDelays) {
+                    const t = setTimeout(() => {
+                        try {
+                            if (!state.desiredFollowState) return;
+                            if (typeof activeModel.__mrMoveHandler === 'function') {
+                                try { activeModel.__mrMoveHandler(initialEvent); } catch {}
+                            }
+                        } catch (e) {}
+                    }, d);
+                    activeModel.__mrMoveRetryTimers.push(t);
+                }
+            } catch (e) { }
+        }
+    } catch (e) { console.warn('[v2 follow] enableFollowOnModel failed', e); }
+}
+
 // Centralized follow setter used by model press handlers and global release handlers
 export function setFollowEnabledGlobal(enabled, initialEvent, targetModel) {
     state.desiredFollowState = !!enabled;
-    // Use targetModel if provided (clicked instance), otherwise fallback to global current
-    const activeModel = targetModel || state.currentModel;
 
-    if (activeModel) {
-        try {
-            if (typeof activeModel.__mrSetFollowEnabled === 'function') activeModel.__mrSetFollowEnabled(state.desiredFollowState);
-        } catch (e) { console.warn('[v2 follow] setFollowEnabledGlobal failed', e); }
-
-        // manage per-model move handler lifecycle
-        try {
-            if (!state.desiredFollowState) {
-                // remove move handler if present
-                if (activeModel.__mrMoveHandler) {
-                    try { window.removeEventListener('pointermove', activeModel.__mrMoveHandler, true); } catch {}
-                    try { window.removeEventListener('touchmove', activeModel.__mrMoveHandler, true); } catch {}
-                    try { delete activeModel.__mrMoveHandler; } catch {}
-                }
-
-                // clear any pending initial-focus retries
-                if (Array.isArray(activeModel.__mrMoveRetryTimers)) {
-                    try { activeModel.__mrMoveRetryTimers.forEach(t => clearTimeout(t)); } catch {}
-                    try { delete activeModel.__mrMoveRetryTimers; } catch {}
-                }
-            } else {
-                // when enabling, ensure a move handler is attached
-                if (!activeModel.__mrMoveHandler) {
-                    const moveHandler = function(ev) {
-                        try {
-                            const im = activeModel.internalModel;
-                            const fc = im && im.focusController;
-                            if (!fc) return;
-
-                            const rect = app?.view?.getBoundingClientRect?.();
-                            const clientX = ev.clientX ?? (ev.touches && ev.touches[0] && ev.touches[0].clientX);
-                            const clientY = ev.clientY ?? (ev.touches && ev.touches[0] && ev.touches[0].clientY);
-                            if (clientX == null || clientY == null || !rect) return;
-
-                            const canvasX = clientX - rect.left;
-                            const canvasY = clientY - rect.top;
-
-                            // Convert to model coordinates
-                            // We do NOT call updateTransform here to avoid lag, assuming render loop handles it,
-                            // but for the initial press, we force updated it in loadModel.
-                            const pt = new PIXI.Point(canvasX, canvasY);
-                            try { activeModel.toModelPosition(pt, pt, true); } catch {}
-
-                            const origW = Number(im.originalWidth) || 1;
-                            const origH = Number(im.originalHeight) || 1;
-
-                            // Compute raw normalized coordinates (-1..1)
-                            const rawNormX = (pt.x / origW) * 2 - 1;
-                            const rawNormY = (pt.y / origH) * 2 - 1;
-                            const eyeOffset = Number(activeModel.__mrEyeNormOffset) || 0;
-
-                            // Sensitivity factor: per-model override or global override via window.__mrFollowSensitivity
-                            const sensitivity = Number(activeModel.__mrFollowSensitivity ?? window.__mrFollowSensitivity ?? 1) || 1;
-
-                            // Scale displacement: X relative to model center (0), Y relative to eye centroid (eyeOffset)
-                            let finalNormX = rawNormX * sensitivity * 2;
-                            let finalNormY = (eyeOffset + rawNormY * sensitivity) * 2;
-
-                            // Clamp to reasonable range to avoid extreme focus values
-                            const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-                            finalNormX = clamp(finalNormX, -2, 2);
-                            finalNormY = clamp(finalNormY, -2, 2);
-
-                            try { fc.focus(finalNormX, -finalNormY, false); } catch {}
-                        } catch (e) { console.warn('[v2 follow] moveHandler error', e); }
-                    };
-
-                    activeModel.__mrMoveHandler = moveHandler;
-                    window.addEventListener('pointermove', moveHandler, true);
-                    window.addEventListener('touchmove', moveHandler, true);
-                }
-
-                // Immediate trigger: update focus using the press event immediately.
-                // This ensures the eyes snap to cursor on the very first click.
-                if (initialEvent && activeModel.__mrMoveHandler) {
-                    try { activeModel.__mrMoveHandler(initialEvent); } catch (e) {}
-
-                    // In some cases (model just created / focusController not present yet), the
-                    // handler will return early. Schedule a few short retries so the initial
-                    // press reliably snaps gaze once internals are ready. These timers are
-                    // per-model and cleared when follow is disabled.
-                    try {
-                        const retryDelays = [50, 150, 350];
-                        if (!Array.isArray(activeModel.__mrMoveRetryTimers)) activeModel.__mrMoveRetryTimers = [];
-                        for (const d of retryDelays) {
-                            const t = setTimeout(() => {
-                                try {
-                                    if (!state.desiredFollowState) return;
-                                    if (typeof activeModel.__mrMoveHandler === 'function') {
-                                        try { activeModel.__mrMoveHandler(initialEvent); } catch {}
-                                    }
-                                } catch (e) {}
-                            }, d);
-                            activeModel.__mrMoveRetryTimers.push(t);
-                        }
-                    } catch (e) { }
-                }
-            }
-        } catch (e) { console.warn('[v2 follow] manage move handler failed', e); }
+    if (!state.desiredFollowState) {
+        const allModels = getAllActiveModels();
+        allModels.forEach(m => disableFollowOnModel(m));
+    } else {
+        const targetModels = getTargetModelsForFollow(targetModel);
+        targetModels.forEach(m => enableFollowOnModel(m, initialEvent));
     }
 }
 

@@ -15,12 +15,19 @@ export const state = {
     currentModelId: '100100', // Default: Iroha Tamaki - Magical Girl
     desiredFollowState: false, // current follow state (true while pressed)
     dualMode: false,
+    activeTarget: 'primary', // 'primary' | 'secondary' | 'both'
+    primaryModel: null,
+    primaryController: null,
+    primaryModelJson: null,
+    secondaryModel: null,
+    secondaryController: null,
+    secondaryModelJson: null,
     currentModels: new Map() // Map<string|number, { model, controller, modelId, pos }>
 };
 
 export function destroyCurrentModels() {
     if (state.currentModels && state.currentModels.size > 0) {
-        state.currentModels.forEach(({ model, controller }) => {
+        state.currentModels.forEach(({ model }) => {
             if (model) {
                 cleanupOldModelHandlers(model);
                 if (model.parent) model.parent.removeChild(model);
@@ -29,7 +36,26 @@ export function destroyCurrentModels() {
         });
         state.currentModels.clear();
     }
+    if (state.primaryModel && state.primaryModel !== state.currentModel) {
+        cleanupOldModelHandlers(state.primaryModel);
+        if (state.primaryModel.parent) state.primaryModel.parent.removeChild(state.primaryModel);
+        try { state.primaryModel.destroy({ children: true }); } catch (e) {}
+    }
+    if (state.secondaryModel) {
+        cleanupOldModelHandlers(state.secondaryModel);
+        if (state.secondaryModel.parent) state.secondaryModel.parent.removeChild(state.secondaryModel);
+        try { state.secondaryModel.destroy({ children: true }); } catch (e) {}
+    }
+    state.primaryModel = null;
+    state.primaryController = null;
+    state.primaryModelJson = null;
+    state.secondaryModel = null;
+    state.secondaryController = null;
+    state.secondaryModelJson = null;
+    state.currentModel = null;
+    state.currentController = null;
     state.dualMode = false;
+    state.activeTarget = 'primary';
 }
 
 
@@ -59,6 +85,72 @@ export function showToast(msg, ms = 3000) {
     // toasts removed per request; no-op
 }
 
+export function getTargetControllers() {
+    if (!state.dualMode) {
+        return [state.currentController || state.primaryController].filter(Boolean);
+    }
+    const target = state.activeTarget || 'primary';
+    if (target === 'both') {
+        return [state.primaryController, state.secondaryController].filter(Boolean);
+    } else if (target === 'secondary') {
+        return [state.secondaryController || state.currentController].filter(Boolean);
+    } else {
+        return [state.primaryController || state.currentController].filter(Boolean);
+    }
+}
+
+export function getTargetModels() {
+    if (!state.dualMode) {
+        return [state.currentModel || state.primaryModel].filter(Boolean);
+    }
+    const target = state.activeTarget || 'primary';
+    if (target === 'both') {
+        return [state.primaryModel, state.secondaryModel].filter(Boolean);
+    } else if (target === 'secondary') {
+        return [state.secondaryModel || state.currentModel].filter(Boolean);
+    } else {
+        return [state.primaryModel || state.currentModel].filter(Boolean);
+    }
+}
+
+export function swapDualPositions() {
+    if (!state.dualMode || !state.primaryModel || !state.secondaryModel) return;
+
+    const tempX = state.primaryModel.x;
+    state.primaryModel.x = state.secondaryModel.x;
+    state.secondaryModel.x = tempX;
+
+    const tempZ = state.primaryModel.zIndex;
+    state.primaryModel.zIndex = state.secondaryModel.zIndex;
+    state.secondaryModel.zIndex = tempZ;
+
+    if (worldContainer) {
+        try { worldContainer.sortChildren(); } catch {}
+    }
+}
+
+export function refreshControlDropdowns(target) {
+    if (target) state.activeTarget = target;
+    const currentTarget = state.activeTarget || 'primary';
+
+    let json = state.primaryModelJson;
+    if (currentTarget === 'secondary' && state.secondaryModelJson) {
+        json = state.secondaryModelJson;
+    } else if (!json) {
+        json = state.primaryModelJson;
+    }
+
+    const dummyModel = currentTarget === 'secondary' ? state.secondaryModel : state.primaryModel;
+    if (json && dummyModel) {
+        setupControlsForModel(dummyModel, json);
+    }
+}
+
+export function playRandomMotion() {
+    const controllers = getTargetControllers();
+    controllers.forEach(c => c?.clickPlayRandom?.());
+}
+
 export function getSelectedCheekValue() {
     const v = document.querySelector('input[name="cheek"]:checked')?.value;
     if (v != null) return v;
@@ -66,38 +158,43 @@ export function getSelectedCheekValue() {
 }
 
 export function applyCheek(value) {
-    if (!state.currentController) return;
-    state.currentController.setCheek(value, false);
+    const controllers = getTargetControllers();
+    controllers.forEach(c => c?.setCheek?.(value, false));
 }
 
 // scenario_adv.json name: eyeClose (0/1)
 export function applyEyeClose(isClosed) {
-    if (!state.currentController) return;
-    // Prefer scenario-style API if available; fall back for older controller versions.
-    if (typeof state.currentController.setEyeClose === 'function') state.currentController.setEyeClose(isClosed, false);
-    else state.currentController.setEyeClosed(isClosed, false);
+    const controllers = getTargetControllers();
+    controllers.forEach(c => {
+        if (!c) return;
+        if (typeof c.setEyeClose === 'function') c.setEyeClose(isClosed, false);
+        else if (typeof c.setEyeClosed === 'function') c.setEyeClosed(isClosed, false);
+    });
 }
 
 // scenario_adv.json name: mouthOpen (0/1)
 export function applyMouthOpen(isOpen) {
-    if (!state.currentController) return;
+    const controllers = getTargetControllers();
     const v = isOpen ? 1 : 0;
-    if (typeof state.currentController.setMouthOpen === 'function') state.currentController.setMouthOpen(v, false);
-    else state.currentController.setMouth(v, false);
+    controllers.forEach(c => {
+        if (!c) return;
+        if (typeof c.setMouthOpen === 'function') c.setMouthOpen(v, false);
+        else if (typeof c.setMouth === 'function') c.setMouth(v, false);
+    });
 }
 
 // scenario_adv.json name: tear (0/1)
 export function applyTear(enabled) {
-    if (!state.currentController) return;
+    const controllers = getTargetControllers();
     const v = enabled ? 1 : 0;
-    if (typeof state.currentController.setTear === 'function') state.currentController.setTear(v, false);
+    controllers.forEach(c => c?.setTear?.(v, false));
 }
 
 // scenario_adv.json name: soulGem (0/1)
 export function applySoulGem(enabled) {
-    if (!state.currentController) return;
+    const controllers = getTargetControllers();
     const v = enabled ? 1 : 0;
-    if (typeof state.currentController.setSoulGem === 'function') state.currentController.setSoulGem(v, false);
+    controllers.forEach(c => c?.setSoulGem?.(v, false));
 }
 
 export { downloadModelSnapshot } from './model-snapshot.js';
@@ -158,15 +255,17 @@ function setupControlsForModel(model, modelJson) {
         if (motionOptions.length > 0) motionSelect.value = motionOptions[0].value;
 
         motionSelect.onchange = () => {
-            if (!state.currentController) return;
+            const controllers = getTargetControllers();
+            if (!controllers.length) return;
             const { group, index } = JSON.parse(motionSelect.value);
-            state.currentController.startMotion(group, index);
+            controllers.forEach(c => c?.startMotion?.(group, index));
         };
         if (replayBtn) {
             replayBtn.onclick = () => {
-                if (!state.currentController) return;
+                const controllers = getTargetControllers();
+                if (!controllers.length) return;
                 const { group, index } = JSON.parse(motionSelect.value);
-                state.currentController.startMotion(group, index);
+                controllers.forEach(c => c?.startMotion?.(group, index));
             };
         }
     }
@@ -198,9 +297,12 @@ function setupControlsForModel(model, modelJson) {
         }
 
         expressionSelect.onchange = () => {
-            if (!state.currentController) return;
-            const ok = state.currentController.setExpressionByName(expressionSelect.value);
-            if (!ok) console.warn('Could not set expression', { name: expressionSelect.value });
+            const controllers = getTargetControllers();
+            if (!controllers.length) return;
+            controllers.forEach(c => {
+                const ok = c?.setExpressionByName?.(expressionSelect.value);
+                if (!ok) console.warn('Could not set expression', { name: expressionSelect.value });
+            });
         };
 
         // Reflect random choices from controller in the UI
@@ -589,6 +691,13 @@ export async function loadModel(modelId, opts = {}) {
         model, modelJson, ctx.preservedState, ctx.isStaleLoad
     );
 
+    state.primaryModel = model;
+    state.primaryController = controller;
+    state.primaryModelJson = modelJson;
+    if (!state.currentModels) state.currentModels = new Map();
+    state.currentModels.set(modelId, { model, controller, modelId, pos: 0 });
+    state.currentModels.set('primary', { model, controller, modelId, pos: 0 });
+
     // Debug instrumentation (opt-in via ?debugFollow=1)
     installFollowDebugInstrumentation(model);
 
@@ -606,6 +715,14 @@ export async function loadAdditionalModel(modelId, opts = {}) {
     positionModel(model, params, modelId, opts.xOverride, opts.zOrder);
 
     const controller = window.createMagirecoStyleControllerV2(model, modelJson);
+
+    state.secondaryModel = model;
+    state.secondaryController = controller;
+    state.secondaryModelJson = modelJson;
+    if (!state.currentModels) state.currentModels = new Map();
+    state.currentModels.set(modelId, { model, controller, modelId, pos: 1 });
+    state.currentModels.set('secondary', { model, controller, modelId, pos: 1 });
+
     installFollowDebugInstrumentation(model);
 
     if (opts.interactive !== false) {
