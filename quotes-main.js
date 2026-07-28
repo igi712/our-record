@@ -785,7 +785,8 @@ async function loadOutfitModels(charaId, live2dId, token, allowedExpressions = n
         }
     } else {
         // Single-unit mode
-        await loadModel(defaultModelId, {
+        const modelId = buildModelId(charaId, live2dId);
+        await loadModel(modelId, {
             interactive: false,
             allowedExpressions,
             allowedMotions
@@ -796,11 +797,11 @@ async function loadOutfitModels(charaId, live2dId, token, allowedExpressions = n
             return false;
         }
 
-        state.currentModels.set(defaultModelId, { model: state.currentModel, controller: state.currentController, pos: 0 });
+        state.currentModels.set(modelId, { model: state.currentModel, controller: state.currentController, pos: 0 });
         if (scenarioPlayer) {
             const controllersMap = new Map();
-            controllersMap.set(String(defaultModelId), state.currentController);
-            controllersMap.set(Number(defaultModelId), state.currentController);
+            controllersMap.set(String(modelId), state.currentController);
+            controllersMap.set(Number(modelId), state.currentController);
             scenarioPlayer.setControllers(controllersMap, state.currentController);
         }
     }
