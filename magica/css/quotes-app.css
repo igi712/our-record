@@ -363,6 +363,11 @@ canvas {
     z-index: 20;
 }
 
+/* Homescreen subtitle placement from notes/live2d_positioning_and_subtitles.md. */
+#ui-layer.home-mode #subtitle {
+    left: 377px;
+}
+
 /* Overrides to adapt game CardDetail.css to local scrolling and positioning */
 #cardDetail #cardDetailWrap {
     position: absolute !important;

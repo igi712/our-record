@@ -3,10 +3,14 @@
 import { loadViewTemplate } from './view-loader.js';
 import { renderCharaCollectionGrid } from '../../chara-collection.js';
 
-export async function handleRoute(loadCharacterDetail, state) {
+export async function handleRoute(loadCharacterDetail, state, loadHomeScreen) {
     const hash = window.location.hash || '#/CharaCollection';
     const uiLayer = document.getElementById('ui-layer');
     if (!uiLayer) return;
+
+    if (!hash.startsWith('#/MyPage') && window.stopHomeScreen) {
+        await window.stopHomeScreen();
+    }
 
     const setupBackBtn = () => {
         const handleBack = (e) => {
@@ -25,7 +29,24 @@ export async function handleRoute(loadCharacterDetail, state) {
         if (backBtn) backBtn.onclick = handleBack;
     };
 
-    if (hash.startsWith('#/CharaCollectionDetail')) {
+    if (hash.startsWith('#/MyPage')) {
+        let homeMenuEl = document.getElementById('globalMenu');
+        if (!homeMenuEl) {
+            await loadViewTemplate('magica/template/base/GlobalMenu.html', 'ui-layer');
+            homeMenuEl = document.getElementById('globalMenu');
+        }
+
+        const charaCollectionEl = document.getElementById('CharaCollection');
+        const cardDetailEl = document.getElementById('cardDetail');
+        if (charaCollectionEl) charaCollectionEl.style.display = 'none';
+        if (cardDetailEl) cardDetailEl.style.display = 'none';
+        if (homeMenuEl) homeMenuEl.style.display = 'block';
+
+        setupBackBtn();
+        if (typeof loadHomeScreen === 'function') {
+            await loadHomeScreen();
+        }
+    } else if (hash.startsWith('#/CharaCollectionDetail')) {
         let charaDetailEl = document.getElementById('cardDetail');
         if (!charaDetailEl) {
             await loadViewTemplate('magica/template/collection/CharaCollectionDetail.html', 'ui-layer');
@@ -56,6 +77,8 @@ export async function handleRoute(loadCharacterDetail, state) {
 
         const cardDetailEl = document.getElementById('cardDetail');
         if (cardDetailEl) cardDetailEl.style.display = 'none';
+        const homeMenuEl = document.getElementById('globalMenu');
+        if (homeMenuEl) homeMenuEl.style.display = 'none';
         if (charaCollectionEl) charaCollectionEl.style.display = 'block';
 
         setupBackBtn();

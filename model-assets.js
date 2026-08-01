@@ -83,6 +83,13 @@ function __mrSetConnecting(on) {
     } catch (e) {}
 }
 
+// Public scope for callers that preload several asset types together. The
+// internal counter keeps the indicator visible until every nested preload is
+// finished.
+export function setAssetPreloadConnecting(on) {
+    __mrSetConnecting(on);
+}
+
 // Keep indicator positioned when viewport changes
 try {
     window.addEventListener('resize', positionLoadingIndicator, true);

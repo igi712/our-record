@@ -3,7 +3,7 @@
 // Differences from viewer.html: no controls, no follow-on-click.
 import { loadCocosStudioAssets, CocosStudioArmature } from './lib/cocos-to-pixi.js';
 import { loadModel, loadAdditionalModel, destroyCurrentModels, state, getOutfitsForCharacter, buildModelId } from './model.js';
-import { preloadModelToRam, ramFolderCache } from './model-assets.js';
+import { preloadModelToRam, ramFolderCache, setAssetPreloadConnecting } from './model-assets.js';
 import { ScenarioSequencePlayer, preloadScenarioVoices, scenarioCache } from './quotes-sequence.js';
 import { fetchScenarioJson, checkScenarioUrlExists, getDualUnitConfig } from './model-scenario.js';
 import { renderCharaCollectionGrid } from './chara-collection.js';
@@ -11,17 +11,66 @@ import { renderCharaCollectionGrid } from './chara-collection.js';
 let activeVoicePrefix = '00';
 let activeScenarioUrl = '';
 let outfitChangeToken = 0;
+let homeLoadPromise = null;
+let homeGeneration = 0;
+let homeActive = false;
+let homeSceneMounted = false;
+let homeReady = false;
+let homeRevealed = false;
+let homeTapVoicePool = [];
+let previousQuotesXOffset = null;
 
 // ---- World constants (must match viewer.js) ----
 const WORLD_W = 1024;
 const WORLD_H = 768;
 const HOME16_H = 576;
+const HOME_CHARA_ID = 1001;
+const HOME_MODEL_ID = '100100';
+const HOME_SCENARIO_PATH = '100100.json';
+const HOME_BGM_FILE = 'bgm01_anime07_hca.hca';
+const HOME_BACKGROUND_FILE = 'bg/web/web_0011.ExportJson';
+const HOME_X_OFFSET = -132;
+const HOME_LOGIN_SESSION_KEY = 'mrHomeLoginSeen';
+const HOME_LOGIN_DELAY_MS = 100; // Half of model.js transitionIn's 200ms fade-in.
+const HOME_TAP_VOICE_IDS = [33, 34, 35, 36, 37, 38, 39, 40];
+const HOME_TAP9_VOICE_ID = 41;
+const HOME_OPENED_FROM_INDEX = (() => {
+    try {
+        const navigation = performance.getEntriesByType('navigation')[0];
+        if (navigation?.type === 'reload') return false;
+
+        const referrer = new URL(document.referrer);
+        if (referrer.origin !== window.location.origin) return false;
+        const path = referrer.pathname.replace(/\/+$/, '');
+        return path === '' || path.endsWith('/index.html');
+    } catch (e) {
+        return false;
+    }
+})();
+homeTapVoicePool = [...HOME_TAP_VOICE_IDS];
 
 // ---- Cocos-to-pixi background ----
 let bgArmature = null;
+let bgTicker = null;
 
-async function initBackground() {
-    const assets = await loadCocosStudioAssets('bg/web/web_0015.ExportJson');
+async function clearBackground() {
+    if (bgTicker && window.app?.ticker) {
+        window.app.ticker.remove(bgTicker);
+    }
+    bgTicker = null;
+
+    if (bgArmature) {
+        try {
+            if (bgArmature.parent) bgArmature.parent.removeChild(bgArmature);
+            bgArmature.destroy({ children: true });
+        } catch (e) {}
+        bgArmature = null;
+    }
+}
+
+async function initBackground(exportJsonPath = 'bg/web/web_0015.ExportJson', { visible = true, autoplay = true } = {}) {
+    await clearBackground();
+    const assets = await loadCocosStudioAssets(exportJsonPath);
     bgArmature = new CocosStudioArmature(assets.json, assets.textures, assets.particles);
 
     // Position so the 1024x768 bg content is vertically centered in the 1024x576 home16 view.
@@ -32,12 +81,31 @@ async function initBackground() {
 
     // Add behind the model (worldContainer is index 1; insert at 0).
     window.cameraContainer.addChildAt(bgArmature, 0);
+    bgArmature.visible = visible;
 
-    bgArmature.play('action', true);
+    if (autoplay) bgArmature.play('action', true);
 
-    window.app.ticker.add((delta) => {
+    bgTicker = (delta) => {
         if (bgArmature) bgArmature.update(delta / 60);
-    });
+    };
+    window.app.ticker.add(bgTicker);
+}
+
+function startBackgroundAndMusic() {
+    if (bgArmature) {
+        bgArmature.visible = true;
+        bgArmature.play('action', true);
+    }
+    if (player) player.play();
+}
+
+async function preloadOpenSansFont() {
+    if (!document.fonts?.load) return;
+    try {
+        await document.fonts.load('600 19px "Open Sans"');
+    } catch (error) {
+        console.warn('[quotes] Open Sans preload failed; continuing with fallback font.', error);
+    }
 }
 
 // ---- HCA BGM playback ----
@@ -53,7 +121,7 @@ let scenarioPlayer = null;
 let _bgmBase = null;
 let _bgmBaseSource = null;
 
-async function resolveBgmBase() {
+async function resolveBgmBase(probeFile = HOME_BGM_FILE) {
     if (_bgmBase) return _bgmBase;
 
     // 1) Override: window.MR_BGM_BASE, localStorage mrBgmBase, ?bgmBase= query param
@@ -84,7 +152,7 @@ async function resolveBgmBase() {
     // 2) Local probe
     const localBase = './assets/ma-re-data/resource/sound_native/bgm';
     try {
-        const probeUrl = `${localBase}/bgm02_anime11_hca.hca`;
+        const probeUrl = `${localBase}/${probeFile}`;
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 2000);
         const resp = await fetch(probeUrl, { method: 'HEAD', cache: 'no-store', signal: controller.signal });
@@ -119,9 +187,9 @@ async function initWorker() {
     return worker;
 }
 
-async function playTrack(fileName) {
+async function playTrack(fileName, { autoplay = true } = {}) {
     const activeWorker = await initWorker();
-    await resolveBgmBase();
+    await resolveBgmBase(fileName);
 
     const fileResponse = await fetch(`${_bgmBase}/${fileName}`);
     if (!fileResponse.ok) {
@@ -137,9 +205,9 @@ async function playTrack(fileName) {
     }
     player = newPlayer;
     player.playInBackground = true;
-    player.play();
+    if (autoplay) player.play();
 
-    console.info(`[quotes] Now playing: ${fileName} (${_bgmBaseSource})`);
+    console.info(`[quotes] Prepared ${fileName} (${_bgmBaseSource})${autoplay ? ' and started playback' : ''}`);
 }
 
 const CHARA_ATTRIBUTES_URL = new URL('./assets/charaAttributes.json', document.baseURI).href;
@@ -917,6 +985,240 @@ async function loadCharacterDetail(charaId) {
     }
 }
 
+function setHomePositioning(enabled) {
+    const config = window.__QUOTES_CONFIG || (window.__QUOTES_CONFIG = {});
+    if (enabled) {
+        if (previousQuotesXOffset === null) previousQuotesXOffset = config.xOffset;
+        config.viewMode = 'home16';
+        config.xOffset = HOME_X_OFFSET;
+    } else if (previousQuotesXOffset !== null) {
+        config.xOffset = previousQuotesXOffset;
+        previousQuotesXOffset = null;
+    }
+}
+
+function collectHomeScenarioResources(scenarioJson) {
+    const allowedExpressions = new Set();
+    const allowedMotions = new Set();
+    const allowedVoices = new Set();
+
+    if (scenarioJson?.story) {
+        Object.values(scenarioJson.story).forEach(steps => {
+            if (!Array.isArray(steps)) return;
+            steps.forEach(step => {
+                if (!Array.isArray(step.chara)) return;
+                step.chara.forEach(chara => {
+                    if (chara.face) {
+                        allowedExpressions.add(
+                            chara.face
+                                .replace(/\.exp3\.json$/, '')
+                                .replace(/\.exp\.json$/, '')
+                                .replace(/\.json$/, '')
+                        );
+                    }
+                    if (typeof chara.motion === 'number') allowedMotions.add(chara.motion);
+                    if (chara.voice) allowedVoices.add(chara.voice);
+                });
+            });
+        });
+    }
+
+    return { allowedExpressions, allowedMotions, allowedVoices };
+}
+
+function homeVoiceKey(voiceId) {
+    return `vo_char_${HOME_CHARA_ID}_00_${String(voiceId).padStart(2, '0')}`;
+}
+
+async function playHomeVoice(voiceId) {
+    if (!homeActive || !scenarioPlayer || !activeScenarioUrl) return;
+    scenarioPlayer.controller = state.currentController;
+    return scenarioPlayer.loadAndPlayVoice(activeScenarioUrl, homeVoiceKey(voiceId), HOME_CHARA_ID);
+}
+
+function chooseHomeLoginVoice() {
+    let firstLogin = false;
+    try {
+        firstLogin = !sessionStorage.getItem(HOME_LOGIN_SESSION_KEY);
+        if (firstLogin) sessionStorage.setItem(HOME_LOGIN_SESSION_KEY, '1');
+    } catch (e) {
+        firstLogin = false;
+    }
+
+    if (firstLogin) return 24;
+
+    const category = Math.floor(Math.random() * 4);
+    if (category === 1) return 29; // Other
+    if (category === 2) return 30; // placeholder Max AP
+    if (category === 3) return 31; // placeholder Max BP
+
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 25;
+    if (hour >= 12 && hour < 18) return 26;
+    if (hour >= 18) return 27;
+    return 28;
+}
+
+function pickHomeTapVoice() {
+    if (homeTapVoicePool.length === 0) {
+        homeTapVoicePool = [...HOME_TAP_VOICE_IDS];
+        return HOME_TAP9_VOICE_ID;
+    }
+
+    const index = Math.floor(Math.random() * homeTapVoicePool.length);
+    return homeTapVoicePool.splice(index, 1)[0];
+}
+
+async function revealHomeScreen() {
+    if (!homeActive || !homeReady || homeRevealed) return;
+
+    homeRevealed = true;
+    try {
+        if (player?.audioCtx?.state === 'suspended') await player.audioCtx.resume();
+        scenarioPlayer?.resumeAudio();
+        if (player) player.play();
+    } catch (e) {
+        console.warn('[quotes] Home audio unlock failed:', e);
+    }
+
+    if (bgArmature) bgArmature.visible = true;
+    if (state.currentModel) state.currentModel.visible = true;
+    document.body.classList.remove('connecting');
+
+    try {
+        await new Promise(resolve => setTimeout(resolve, HOME_LOGIN_DELAY_MS));
+        await playHomeVoice(chooseHomeLoginVoice());
+    } catch (e) {
+        console.warn('[quotes] Home login voice failed:', e);
+    }
+}
+
+async function loadHomeScreen() {
+    homeActive = true;
+    homeSceneMounted = true;
+    document.getElementById('ui-layer')?.classList.add('home-mode');
+    if (homeReady) return;
+    if (homeLoadPromise) return homeLoadPromise;
+
+    const generation = ++homeGeneration;
+    setHomePositioning(true);
+    document.body.classList.add('connecting');
+
+    homeLoadPromise = (async () => {
+        // Phase 1: prepare the scene background and BGM independently, then
+        // start both together. The Connecting state remains active over them.
+        await Promise.all([
+            initBackground(HOME_BACKGROUND_FILE, { visible: true, autoplay: false }),
+            playTrack(HOME_BGM_FILE, { autoplay: false })
+        ]);
+        if (!homeActive || generation !== homeGeneration) return;
+        startBackgroundAndMusic();
+        console.info('[quotes] Homescreen background and BGM started; loading character assets.');
+        // Phase 1 is complete: let the running background/music show briefly
+        // without a loading indicator. Phase 2 owns the indicator from the
+        // moment its first asset request starts until all assets are ready.
+        document.body.classList.remove('connecting');
+
+        // Phase 2: keep Connecting visible while preparing the scenario,
+        // model files, and every voice referenced by the homescreen scenario.
+        document.body.classList.add('connecting');
+        setAssetPreloadConnecting(true);
+        try {
+            const scenarioResult = await fetchScenarioJson(HOME_SCENARIO_PATH);
+            if (!scenarioResult.json) throw new Error(`Failed to load home scenario ${HOME_SCENARIO_PATH}`);
+            if (!homeActive || generation !== homeGeneration) return;
+
+            activeVoicePrefix = '00';
+            activeScenarioUrl = scenarioResult.url;
+            scenarioCache.set(activeScenarioUrl, scenarioResult.json);
+            state.currentCharacterId = HOME_CHARA_ID;
+            state.currentLive2dId = '00';
+
+            const { allowedExpressions, allowedMotions, allowedVoices } =
+                collectHomeScenarioResources(scenarioResult.json);
+
+            await Promise.all([
+                preloadModelToRam(HOME_MODEL_ID, { allowedExpressions, allowedMotions }),
+                preloadScenarioVoices(Array.from(allowedVoices), scenarioPlayer.voice),
+                preloadOpenSansFont()
+            ]);
+            if (!homeActive || generation !== homeGeneration) return;
+
+            destroyCurrentModels();
+            await loadModel(HOME_MODEL_ID, {
+                interactive: false,
+                allowedExpressions,
+                allowedMotions
+            });
+            if (!homeActive || generation !== homeGeneration) {
+                destroyCurrentModels();
+                return;
+            }
+
+            state.currentModels.set(HOME_MODEL_ID, {
+                model: state.currentModel,
+                controller: state.currentController,
+                pos: 0
+            });
+            scenarioPlayer.setControllers(
+                new Map([
+                    [HOME_MODEL_ID, state.currentController],
+                    [Number(HOME_MODEL_ID), state.currentController]
+                ]),
+                state.currentController
+            );
+
+            if (state.currentModel) state.currentModel.visible = false;
+            homeReady = true;
+            console.info('[quotes] Homescreen character and voice assets preloaded; ready for reveal.');
+        } finally {
+            setAssetPreloadConnecting(false);
+        }
+
+        const audioUnlocked = isHomeAudioUnlocked() || await waitForHomeAudioUnlock();
+        // A navigation from index.html carries the same autoplay intent as the
+        // existing Quotes entry. Direct loads/reloads still wait for a gesture.
+        if (audioUnlocked || HOME_OPENED_FROM_INDEX) await revealHomeScreen();
+    })().catch(error => {
+        console.error('[quotes] Homescreen preload failed:', error);
+        homeReady = false;
+    }).finally(() => {
+        homeLoadPromise = null;
+    });
+
+    return homeLoadPromise;
+}
+
+async function stopHomeScreen() {
+    if (!homeActive && !homeSceneMounted && !homeLoadPromise) return;
+
+    homeActive = false;
+    homeReady = false;
+    homeRevealed = false;
+    homeGeneration++;
+    const pendingLoad = homeLoadPromise;
+    if (pendingLoad) await pendingLoad;
+
+    scenarioPlayer?.stop();
+    destroyCurrentModels();
+    await clearBackground();
+    if (player) {
+        try { await player.stop(); } catch (e) {}
+        player = null;
+    }
+
+    setHomePositioning(false);
+    homeSceneMounted = false;
+    document.getElementById('ui-layer')?.classList.remove('home-mode');
+    document.body.classList.remove('connecting');
+
+    await Promise.all([
+        initBackground('bg/web/web_0015.ExportJson'),
+        playTrack('bgm02_anime11_hca.hca')
+    ]);
+}
+window.stopHomeScreen = stopHomeScreen;
+
 function setupBackBtn() {
     const handleBack = (e) => {
         if (e) e.preventDefault();
@@ -948,6 +1250,53 @@ function setupAudioAutoResume() {
     window.addEventListener('keydown', resume);
 }
 
+function isInsideHomeViewport(event) {
+    const camera = window.cameraContainer;
+    const viewport = window.VIEWPORT;
+    if (!camera || !viewport) return false;
+
+    const activeW = viewport.viewW * camera.scale.x;
+    const activeH = viewport.viewH * camera.scale.x;
+    return event.clientX >= camera.x && event.clientX <= camera.x + activeW &&
+        event.clientY >= camera.y && event.clientY <= camera.y + activeH;
+}
+
+function isHomeAudioUnlocked() {
+    return player?.audioCtx?.state === 'running';
+}
+
+async function waitForHomeAudioUnlock(timeoutMs = 1200) {
+    if (isHomeAudioUnlocked()) return true;
+    if (!player?.audioCtx || player.audioCtx.state === 'closed') return false;
+
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+        if (isHomeAudioUnlocked()) return true;
+    }
+    return isHomeAudioUnlocked();
+}
+
+function setupHomeInteractions() {
+    window.addEventListener('pointerdown', (event) => {
+        if (!homeActive || !isInsideHomeViewport(event)) return;
+
+        if (!homeRevealed) {
+            if (homeReady) revealHomeScreen();
+            return;
+        }
+
+        if (event.target?.closest?.('#ui-layer')) return;
+        playHomeVoice(pickHomeTapVoice()).catch(e => {
+            console.warn('[quotes] Home tap voice failed:', e);
+        });
+    }, true);
+
+    window.addEventListener('keydown', () => {
+        if (homeActive && homeReady && !homeRevealed) revealHomeScreen();
+    });
+}
+
 // ---- Init sequence ----
 async function init() {
     document.body.classList.add('connecting');
@@ -972,20 +1321,27 @@ async function init() {
 
     await loadCharaAttributes();
 
-    await Promise.all([
-        initBackground().catch((e) => console.warn('[quotes] background error:', e)),
-        playTrack('bgm02_anime11_hca.hca').catch((e) => console.warn('[quotes] bgm error:', e))
-    ]);
+    const initialHomeRoute = window.location.hash.startsWith('#/MyPage');
+    if (!initialHomeRoute) {
+        await Promise.all([
+            initBackground().catch((e) => console.warn('[quotes] background error:', e)),
+            playTrack('bgm02_anime11_hca.hca').catch((e) => console.warn('[quotes] bgm error:', e))
+        ]);
+    }
 
     // Resume audio on first user interaction if Chrome suspended the context.
     setupAudioAutoResume();
     setupBackBtn();
 
-    window.addEventListener('hashchange', () => handleRoute(loadCharacterDetail, state));
-    await handleRoute(loadCharacterDetail, state);
+    window.addEventListener('hashchange', () => {
+        handleRoute(loadCharacterDetail, state, loadHomeScreen)
+            .catch(e => console.error('[quotes] Route change failed:', e));
+    });
+    await handleRoute(loadCharacterDetail, state, loadHomeScreen);
 
     // Tap effect interaction
     window.addEventListener('pointerdown', showTapEffect, true);
+    setupHomeInteractions();
 }
 
 
