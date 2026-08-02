@@ -1,5 +1,32 @@
 <div id="globalMenu">
-    <span class="helpBtn se_decide" data-type="05" data-title="Memoria"></span>
+    <div id="userData">
+        <div class="user">
+            <div id="status">
+                <div id="exp">
+                    <span class="userRank"></span>
+                    <span class="pointWrap"></span>
+                    <span class="gaugeWrap">
+                        <span class="gauge">
+                            <span class="gaugeInner"></span>
+                        </span>
+                    </span>
+                </div>
+
+                <div id="money">
+                    <span class="pointWrap">0</span>
+                    <span class="plusBtn TE se_decide"></span>
+                </div>
+
+                <div id="ap">
+                    <span class="pointWrap">
+                        <span class="ACP">0</span>/<span class="MAX_ACP">0</span>
+                    </span>
+                    <span class="plusBtn TE se_decide"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="helpBtn se_decide" data-type="05" data-title="メモリアについて"></span>
 </div>
 
 <div id="sideMenu">
@@ -8,8 +35,8 @@
         <li class="unit"><div class="linkBtn btnOverlay se_decide" data-href="#/CharaListTop"></div></li>
         <li class="innocent"><div class="linkBtn btnOverlay se_decide" data-href="#/MemoriaTop"></div></li>
         <li class="team"><div class="linkBtn btnOverlay se_decide" data-href="#/FormationTop"></div></li>
-        <li class="gacha"><div class="linkBtn btnOverlay se_decide" data-href="#/GachaTop"></div></li>
-        <li class="mission"><div class="linkBtn btnOverlay se_decide" data-href="#/MissionTop"></div></li>
+        <li class="gacha"><div class="linkBtn btnOverlay se_decide" data-href="#/GachaTop"></div><span id="gachaBadge" class="globalBadge"></span></li>
+        <li class="mission"><div class="linkBtn btnOverlay se_decide" data-href="#/MissionTop"></div><span id="missionBadge" class="globalBadge"></span></li>
         <li class="shop"><div class="linkBtn btnOverlay se_decide" data-href="#/ShopTop"></div></li>
     </ul>
 
@@ -19,7 +46,10 @@
         <li class="globalQuestBtn globalBigBtn"><div class="linkBtn btnOverlay se_decide" data-href="#/MainQuest"></div></li>
         <li class="globalBattleBtn globalBigBtn"><div class="btnOverlay se_decide"></div></li>
         <li class="globalRegularEventBtn globalBigBtn"><div class="btnOverlay se_decide"></div></li>
-        <li class="globalScene0Btn globalBigBtn"><div class="linkBtn btnOverlay se_decide" data-href="#/Scene0Top"></div></li>
+        <li class="globalScene0Btn globalBigBtn">
+            <div class="linkBtn btnOverlay se_decide" data-href="#/Scene0Top"></div>
+            <div class="balloon"><div class="text">最新話更新</div></div>
+        </li>
     </ul>
 
     <div id="sideMenuCurtain"></div>

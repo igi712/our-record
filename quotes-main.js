@@ -7,6 +7,7 @@ import { preloadModelToRam, ramFolderCache, setAssetPreloadConnecting } from './
 import { ScenarioSequencePlayer, preloadScenarioVoices, scenarioCache } from './quotes-sequence.js';
 import { fetchScenarioJson, checkScenarioUrlExists, getDualUnitConfig } from './model-scenario.js';
 import { renderCharaCollectionGrid } from './chara-collection.js';
+import { revealHomeMenu } from './magica/js/home-menu.js';
 
 let activeVoicePrefix = '00';
 let activeScenarioUrl = '';
@@ -1114,6 +1115,9 @@ async function loadHomeScreen() {
         if (!homeActive || generation !== homeGeneration) return;
         startBackgroundAndMusic();
         console.info('[quotes] Homescreen background and BGM started; loading character assets.');
+        // The GlobalMenu UI (status bar + side menu) appears right after the
+        // background + BGM are playing, before the model finishes loading.
+        revealHomeMenu();
         // Phase 1 is complete: let the running background/music show briefly
         // without a loading indicator. Phase 2 owns the indicator from the
         // moment its first asset request starts until all assets are ready.

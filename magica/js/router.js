@@ -2,6 +2,7 @@
 
 import { loadViewTemplate } from './view-loader.js';
 import { renderCharaCollectionGrid } from '../../chara-collection.js';
+import { initHomeMenu, resetHomeMenu } from './home-menu.js';
 
 export async function handleRoute(loadCharacterDetail, state, loadHomeScreen) {
     const hash = window.location.hash || '#/CharaCollection';
@@ -11,6 +12,7 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen) {
     if (!hash.startsWith('#/MyPage') && window.stopHomeScreen) {
         await window.stopHomeScreen();
     }
+    resetHomeMenu();
 
     const setupBackBtn = () => {
         const handleBack = (e) => {
@@ -43,6 +45,7 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen) {
         if (homeMenuEl) homeMenuEl.style.display = 'block';
 
         setupBackBtn();
+        initHomeMenu();
         if (typeof loadHomeScreen === 'function') {
             await loadHomeScreen();
         }

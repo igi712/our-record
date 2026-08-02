@@ -21,14 +21,20 @@ export async function loadViewTemplate(path, targetContainerId) {
 
     const container = document.getElementById(targetContainerId);
     if (container) {
-        // Append fragment if element not already mounted
+        // Append each top-level element if not already mounted. Views may have
+        // multiple roots (GlobalMenu renders #globalMenu + #sideMenu), so the
+        // whole top-level fragment is mounted rather than just the first child.
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = html;
-        const firstChild = tempDiv.firstElementChild;
-        if (firstChild && !document.getElementById(firstChild.id)) {
-            container.appendChild(firstChild);
+        const roots = Array.from(tempDiv.children);
+        let mounted = false;
+        for (const child of roots) {
+            if (!child.id || !document.getElementById(child.id)) {
+                container.appendChild(child);
+                mounted = true;
+            }
         }
-        return true;
+        return mounted;
     }
     return false;
 }

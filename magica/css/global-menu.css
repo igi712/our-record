@@ -1,0 +1,880 @@
+@charset "UTF-8";
+
+/*
+ * global-menu.css — Ported Magia Record GlobalMenu styles for the homescreen.
+ * Source: puella-historia css/_common/GlobalMenu.css (minus APPopup) +
+ *         css/_common/common.css `.helpBtn`, `.overlayOn`, and the `#sideMenu`
+ *         block (sidemenu layout, open/close states, keyframes).
+ * Image URLs rewritten from absolute /magica/resource/... to relative ../resource/...
+ */
+
+/* The game's common.css has a global `ul { list-style: none }` reset; without it
+   the absolutely-positioned <li> buttons render default bullet markers. */
+#sideMenu ul,
+#sideMenu li {
+  list-style: none;
+}
+
+/* --------------------------------------------------------------------------
+   Keyframes
+   -------------------------------------------------------------------------- */
+@-webkit-keyframes statusFadeout {
+  0% { -webkit-transform: translateY(0); opacity: 1; }
+  100% { -webkit-transform: translateY(-70px); opacity: 0; }
+}
+@keyframes statusFadeout {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-70px); opacity: 0; }
+}
+
+@-webkit-keyframes statusFadein {
+  0% { -webkit-transform: translateY(-70px); opacity: 0; }
+  100% { -webkit-transform: translateY(0); opacity: 1; }
+}
+@keyframes statusFadein {
+  0% { transform: translateY(-70px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@-webkit-keyframes common_fade_in {
+  0% { -webkit-transform: translateZ(0); opacity: 0; }
+  100% { -webkit-transform: translateZ(0); opacity: 1; }
+}
+@keyframes common_fade_in {
+  0% { transform: translateZ(0); opacity: 0; }
+  100% { transform: translateZ(0); opacity: 1; }
+}
+
+@-webkit-keyframes common_menu_open {
+  0% { -webkit-transform: translate3d(100px, 0, 0); opacity: 0; }
+  100% { -webkit-transform: translate3d(0px, 0, 0); opacity: 1; }
+}
+@keyframes common_menu_open {
+  0% { transform: translate3d(100px, 0, 0); opacity: 0; }
+  100% { transform: translate3d(0px, 0, 0); opacity: 1; }
+}
+
+@-webkit-keyframes common_menu_close {
+  0% { -webkit-transform: translate3d(0px, 0, 0); opacity: 1; }
+  100% { -webkit-transform: translate3d(100px, 0, 0); opacity: 0; }
+}
+@keyframes common_menu_close {
+  0% { transform: translate3d(0px, 0, 0); opacity: 1; }
+  100% { transform: translate3d(100px, 0, 0); opacity: 0; }
+}
+
+@-webkit-keyframes common_globalBig_open {
+  0% { -webkit-transform: translate3d(0, 100px, 0); opacity: 0; }
+  20% { -webkit-transform: translate3d(0, 20px, 0); }
+  100% { -webkit-transform: translate3d(0, 0px, 0); opacity: 1; }
+}
+@keyframes common_globalBig_open {
+  0% { transform: translate3d(0, 100px, 0); opacity: 0; }
+  20% { transform: translate3d(0, 20px, 0); }
+  100% { transform: translate3d(0, 0px, 0); opacity: 1; }
+}
+
+@-webkit-keyframes common_globalBig_close {
+  0% { -webkit-transform: translate3d(0, 0px, 0); opacity: 1; }
+  80% { -webkit-transform: translate3d(0, 20px, 0); }
+  100% { -webkit-transform: translate3d(0, 100px, 0); opacity: 0; }
+}
+@keyframes common_globalBig_close {
+  0% { transform: translate3d(0, 0px, 0); opacity: 1; }
+  80% { transform: translate3d(0, 20px, 0); }
+  100% { transform: translate3d(0, 100px, 0); opacity: 0; }
+}
+
+@-webkit-keyframes common_sideMenuBg_open {
+  0% { -webkit-transform: translate3d(400px, 0, 0); opacity: 0; }
+  20% { -webkit-transform: translate3d(40px, 0, 0); }
+  100% { -webkit-transform: translate3d(0px, 0, 0); opacity: 1; }
+}
+@keyframes common_sideMenuBg_open {
+  0% { transform: translate3d(400px, 0, 0); opacity: 0; }
+  20% { transform: translate3d(40px, 0, 0); }
+  100% { transform: translate3d(0px, 0, 0); opacity: 1; }
+}
+
+@-webkit-keyframes common_sideMenuBg_close {
+  0% { -webkit-transform: translate3d(0px, 0, 0); opacity: 1; }
+  100% { -webkit-transform: translate3d(400px, 0, 0); opacity: 0; }
+}
+@keyframes common_sideMenuBg_close {
+  0% { transform: translate3d(0px, 0, 0); opacity: 1; }
+  100% { transform: translate3d(400px, 0, 0); opacity: 0; }
+}
+
+/* --------------------------------------------------------------------------
+   Shared helpers
+   -------------------------------------------------------------------------- */
+.noneDisp {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+.overlayOn:before {
+  -webkit-animation: common_fade_in .15s ease 0s 1 alternate;
+  animation: common_fade_in .15s ease 0s 1 alternate;
+}
+
+.touch {
+  -webkit-transform: scale(0.95);
+  -ms-transform: scale(0.95);
+  transform: scale(0.95);
+}
+
+/* ヘルプボタン */
+.helpBtn {
+  width: 36px;
+  height: 36px;
+  background-image: url("../resource/image_web/common/icon/icon_help.png");
+  background-size: contain;
+  display: none;
+  position: absolute;
+  top: 12px;
+  left: 660px;
+  z-index: 100;
+}
+
+.helpBtn.on {
+  display: block;
+  pointer-events: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Global menu (top-left user status)
+   -------------------------------------------------------------------------- */
+#globalMenu {
+  width: 1024px;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  pointer-events: none;
+  z-index: 1001;
+}
+
+#globalMenu .noneDisp {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+#globalMenu .user {
+  pointer-events: auto;
+}
+
+#globalMenu .user #status {
+  width: 158px;
+  position: absolute;
+  top: 20px;
+  left: 90px;
+}
+
+#globalMenu .user #status.myPageHide {
+  -webkit-animation: statusFadeout .45s ease 0s 1 alternate;
+  animation: statusFadeout .45s ease 0s 1 alternate;
+  pointer-events: none;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+
+#globalMenu .user #status.myPageShow {
+  -webkit-animation: statusFadein .45s ease 0s 1 alternate;
+  animation: statusFadein .45s ease 0s 1 alternate;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+
+#globalMenu .user #status #exp {
+  width: 210px;
+  height: 36px;
+  margin: 0 0 7px;
+  background-image: url("../resource/image_web/common/global/global_expframe.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+  position: absolute;
+  top: -8px;
+  left: 16px;
+  font-size: 12px;
+}
+
+#globalMenu .user #status #exp .userRank {
+  height: 14px;
+  display: -webkit-flex;
+  display: flex;
+  position: absolute;
+  top: 11px;
+  right: 130px;
+}
+
+#globalMenu .user #status #exp .userRank img {
+  width: 12px;
+  height: 14px;
+  margin-left: -1px;
+  display: block;
+}
+
+#globalMenu .user #status #exp .pointWrap {
+  position: absolute;
+  top: -8px;
+  right: 18px;
+  color: #ffe38f;
+  font-size: 14px;
+  text-shadow: -1px -1px 2px #8e2e24, 1px -1px 2px #8e2e24, -1px 1px 2px #8e2e24, 1px 1px 2px #8e2e24, -1px -1px #8e2e24, 1px -1px #8e2e24, -1px 1px #8e2e24, 1px 1px #8e2e24;
+  z-index: 10;
+}
+
+#globalMenu .user #status #exp .gaugeWrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 5;
+}
+
+#globalMenu .user #status #exp .gaugeWrap span {
+  display: block;
+}
+
+#globalMenu .user #status #exp .gaugeWrap .gauge {
+  width: 106px;
+  height: 6px;
+  position: absolute;
+  top: 15px;
+  left: 87px;
+  z-index: 10;
+}
+
+#globalMenu .user #status #exp .gaugeWrap .gauge .gaugeInner {
+  width: 0;
+  height: 6px;
+  background-color: #24c6c9;
+  border-radius: 3px;
+}
+
+#globalMenu .user #status #money {
+  width: 124px;
+  height: 60px;
+  background-image: url("../resource/image_web/common/global/global_money_wrap.png");
+  background-position: 0 12px;
+  background-size: contain;
+  position: absolute;
+  top: -20px;
+  left: 242px;
+}
+
+#globalMenu .user #status #money .pointWrap {
+  top: 21px;
+  right: 35px;
+  line-height: 18px;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8) !important;
+}
+
+#globalMenu .user #status #money .plusBtn {
+  top: 0px;
+  right: -25px;
+}
+
+#globalMenu .user #status #ap {
+  width: 150px;
+  height: 60px;
+  background-image: url("../resource/image_web/common/global/global_ap_wrap.png");
+  background-position: 0 12px;
+  background-size: contain;
+  position: absolute;
+  top: -20px;
+  left: 390px;
+}
+
+#globalMenu .user #status #ap .pointWrap {
+  top: 21px;
+  right: 35px;
+  line-height: 18px;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8) !important;
+}
+
+#globalMenu .user #status #ap .pointWrap .ACP,
+#globalMenu .user #status #ap .pointWrap .MAX_ACP {
+  color: #ffe38f;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8) !important;
+}
+
+#globalMenu .user #status #ap .plusBtn {
+  top: 0;
+  right: -25px;
+}
+
+#globalMenu .user #status #ap,
+#globalMenu .user #status #money {
+  background-repeat: no-repeat;
+  background-size: contain;
+  font-size: 14px;
+}
+
+#globalMenu .user #status #ap .plusBtn,
+#globalMenu .user #status #money .plusBtn {
+  width: 60px;
+  height: 52px;
+  background-image: url("../resource/image_web/common/global/plus_btn.png");
+  background-repeat: no-repeat;
+  background-position: 3px 11px;
+  background-size: 38px 38px;
+  display: block;
+  position: absolute;
+  pointer-events: auto;
+  z-index: 20;
+}
+
+#globalMenu .user #status #ap .pointWrap,
+#globalMenu .user #status #money .pointWrap {
+  display: block;
+  position: absolute;
+  color: #ffe38f;
+  text-align: right;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4), -1px -1px 1px rgba(0, 0, 0, 0.4), -1px 1px 1px rgba(0, 0, 0, 0.4), 1px -1px 1px rgba(0, 0, 0, 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   Side menu (right-edge navigation)
+   -------------------------------------------------------------------------- */
+#sideMenu {
+  width: 115px;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+#sideMenu .noneDisp {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+#sideMenu .gacha .globalBadge,
+#sideMenu .mission .globalBadge {
+  display: none;
+}
+
+#sideMenu .gacha .globalBadge.on,
+#sideMenu .mission .globalBadge.on {
+  width: auto;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 3px;
+  background-color: #d22d78;
+  display: inline;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 23px;
+  text-align: center;
+  border: 2px solid #ffffff;
+  border-radius: 12px;
+  text-shadow: none;
+}
+
+/* open state */
+#sideMenu.anim #sideMenuBg {
+  -webkit-animation: common_sideMenuBg_open .45s ease 0s 1 alternate;
+  animation: common_sideMenuBg_open .45s ease 0s 1 alternate;
+  pointer-events: auto;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+
+#sideMenu.anim #menuBtns {
+  display: block !important;
+}
+
+#sideMenu.anim #menuBtns .defOpen {
+  display: block !important;
+  opacity: 1;
+}
+
+#sideMenu.anim #menuBtns .unit,
+#sideMenu.anim #menuBtns .innocent,
+#sideMenu.anim #menuBtns .team,
+#sideMenu.anim #menuBtns .gacha,
+#sideMenu.anim #menuBtns .mission,
+#sideMenu.anim #menuBtns .shop,
+#sideMenu.anim #menuBtns .shop2 {
+  -webkit-animation: common_menu_open .3s ease 1 alternate;
+  animation: common_menu_open .3s ease 1 alternate;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+
+#sideMenu.anim #sideBigBtns {
+  display: block !important;
+  pointer-events: auto;
+}
+
+#sideMenu.anim #sideBigBtns .defOpen {
+  display: block !important;
+  opacity: 1;
+}
+
+#sideMenu.anim #sideBigBtns .globalPatrolBtn,
+#sideMenu.anim #sideBigBtns .globalScene0Btn {
+  -webkit-animation: common_globalBig_open .3s ease 0s 1 alternate;
+  animation: common_globalBig_open .3s ease 0s 1 alternate;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+
+#sideMenu.anim #sideBigBtns .globalQuestBtn {
+  -webkit-animation: common_globalBig_open .3s ease .03s 1 alternate;
+  animation: common_globalBig_open .3s ease .03s 1 alternate;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+
+#sideMenu.anim #sideBigBtns .globalBattleBtn,
+#sideMenu.anim #sideBigBtns .globalRegularEventBtn {
+  -webkit-animation: common_globalBig_open .3s ease .05s 1 alternate;
+  animation: common_globalBig_open .3s ease .05s 1 alternate;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+
+#sideMenu.anim .homeBtn {
+  -webkit-animation: common_globalBig_open .45s ease 0s 1 alternate;
+  animation: common_globalBig_open .45s ease 0s 1 alternate;
+  pointer-events: auto;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+
+/* close state */
+#sideMenu.close #sideMenuBg {
+  -webkit-animation: common_sideMenuBg_close .45s ease 0s 1 alternate;
+  animation: common_sideMenuBg_close .45s ease 0s 1 alternate;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+
+#sideMenu.close #menuBtns {
+  display: block !important;
+  pointer-events: none !important;
+}
+
+#sideMenu.close #menuBtns li {
+  -webkit-transform: translateY(0px);
+  transform: translateY(0px);
+  opacity: 1;
+  pointer-events: none !important;
+}
+
+#sideMenu.close #menuBtns .unit,
+#sideMenu.close #menuBtns .innocent,
+#sideMenu.close #menuBtns .team,
+#sideMenu.close #menuBtns .gacha,
+#sideMenu.close #menuBtns .mission,
+#sideMenu.close #menuBtns .shop {
+  -webkit-animation: common_menu_close .3s ease 1 alternate;
+  animation: common_menu_close .3s ease 1 alternate;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+
+#sideMenu.close #sideBigBtns {
+  display: block !important;
+  pointer-events: none !important;
+}
+
+#sideMenu.close #sideBigBtns .globalBigBtn {
+  -webkit-transform: translateY(0px);
+  transform: translateY(0px);
+  pointer-events: none !important;
+  opacity: 1;
+}
+
+#sideMenu.close #sideBigBtns .globalPatrolBtn,
+#sideMenu.close #sideBigBtns .globalScene0Btn {
+  -webkit-animation: common_globalBig_close .3s ease .1s 1 alternate;
+  animation: common_globalBig_close .3s ease .1s 1 alternate;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+
+#sideMenu.close #sideBigBtns .globalQuestBtn {
+  -webkit-animation: common_globalBig_close .3s ease .05s 1 alternate;
+  animation: common_globalBig_close .3s ease .05s 1 alternate;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+
+#sideMenu.close #sideBigBtns .globalBattleBtn,
+#sideMenu.close #sideBigBtns .globalRegularEventBtn {
+  -webkit-animation: common_globalBig_close .3s ease 0s 1 alternate;
+  animation: common_globalBig_close .3s ease 0s 1 alternate;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+
+#sideMenu.close .homeBtn {
+  -webkit-animation: common_globalBig_close .45s ease 0s 1 alternate;
+  animation: common_globalBig_close .45s ease 0s 1 alternate;
+  pointer-events: none;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+
+/* backdrop gradient */
+#sideMenu #sideMenuBg {
+  width: 800px;
+  height: calc(100% + 200px);
+  background: -webkit-linear-gradient(top, rgba(84, 0, 74, 0) 0%, rgba(25, 15, 21, 0.9) 50%, rgba(25, 15, 21, 0.9) 100%);
+  background: linear-gradient(to bottom, rgba(84, 0, 74, 0) 0%, rgba(25, 15, 21, 0.9) 50%, rgba(25, 15, 21, 0.9) 100%);
+  position: absolute;
+  top: 0;
+  right: -400px;
+  opacity: 0;
+}
+
+#sideMenu #sideMenuBg:before {
+  width: 400px;
+  height: 576px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  content: "";
+}
+
+#sideMenu span#menu,
+#sideMenu ul#menuBtns li {
+  pointer-events: auto;
+}
+
+/* menu toggle */
+#sideMenu.anim #menu {
+  width: 104px;
+  height: 48px;
+  background-image: url("../resource/image_web/common/global/global_menu.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+#sideMenu #menu {
+  width: 97px;
+  height: 55px;
+  background-image: url("../resource/image_web/common/global/global_menu_off.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 11;
+}
+
+#sideMenu #menu.overlayOn:before {
+  width: 97px;
+  height: 55px;
+  background-image: url("../resource/image_web/common/global/menu_hover_btn.png");
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: contain;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "";
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* round menu buttons */
+#sideMenu #menuBtns {
+  width: 95px;
+  height: 576px;
+  display: none;
+  position: absolute;
+  top: -18px;
+  right: 0;
+  text-align: center;
+}
+
+#sideMenu #menuBtns li {
+  width: 92px;
+  height: 98px;
+  background-repeat: no-repeat;
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-radius: 50px;
+}
+
+#sideMenu #menuBtns li div {
+  width: 92px;
+  height: 82px;
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  border-radius: 46px;
+}
+
+#sideMenu #menuBtns li div.overlayOn:before {
+  width: 92px;
+  height: 82px;
+  background: url("../resource/image_web/common/global/global_menu_hover.png");
+  background-size: contain;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "";
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+#sideMenu #menuBtns .unit {
+  background-image: url("../resource/image_web/common/global/update2/global_unit.png");
+  background-size: contain;
+  top: 42px;
+  opacity: 0;
+  z-index: 5;
+}
+
+#sideMenu #menuBtns .innocent {
+  background-image: url("../resource/image_web/common/global/update2/global_memoria.png");
+  background-size: contain;
+  top: calc(42px - -88px);
+  opacity: 0;
+  z-index: 6;
+}
+
+#sideMenu #menuBtns .team {
+  background-image: url("../resource/image_web/common/global/update2/global_team.png");
+  background-size: contain;
+  top: calc(42px - -88px*2);
+  opacity: 0;
+  z-index: 6;
+}
+
+#sideMenu #menuBtns .gacha {
+  background-image: url("../resource/image_web/common/global/update2/global_gacha.png");
+  background-size: contain;
+  top: calc(42px - -88px*3);
+  opacity: 0;
+  z-index: 7;
+}
+
+#sideMenu #menuBtns .mission {
+  background-image: url("../resource/image_web/common/global/update2/global_mission.png");
+  background-size: contain;
+  top: calc(42px - -88px*4);
+  opacity: 0;
+  z-index: 8;
+}
+
+#sideMenu #menuBtns .shop,
+#sideMenu #menuBtns .shop2 {
+  background-image: url("../resource/image_web/common/global/update2/global_shop.png");
+  background-size: contain;
+  top: calc(42px - -88px*5);
+  opacity: 0;
+  z-index: 9;
+}
+
+#sideMenu #menuBtns .shop2 {
+  top: calc(42px - -88px*6);
+}
+
+/* big buttons */
+#sideMenu #sideBigBtns {
+  display: none;
+}
+
+#sideMenu #sideBigBtns .globalBigBtn {
+  width: 176px;
+  height: 191px;
+  background-repeat: no-repeat;
+  position: absolute;
+  opacity: 0;
+  border-radius: 90px;
+}
+
+#sideMenu #sideBigBtns .globalBigBtn div {
+  width: 100px;
+  height: 110px;
+  position: absolute;
+  top: 3px;
+  left: 2px;
+  border-radius: 78px;
+}
+
+#sideMenu #sideBigBtns .globalBigBtn div.overlayOn:before {
+  width: 100px;
+  height: 110px;
+  background: url("../resource/image_web/common/global/global_bigBtn_hover.png");
+  background-position: 6px 0;
+  background-size: contain;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "";
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+#sideMenu #sideBigBtns .globalBigBtn.globalPatrolBtn {
+  width: 100px;
+  height: 110px;
+  background-image: url("../resource/image_web/common/global/global_patrol_a.png");
+  background-size: contain;
+  top: calc(100% - 350px);
+  right: 114px;
+  z-index: 20;
+}
+
+#sideMenu #sideBigBtns .globalBigBtn.globalBattleBtn {
+  width: 100px;
+  height: 110px;
+  background-image: url("../resource/image_web/common/global/global_battle.png");
+  background-size: contain;
+  top: calc(100% - 320px);
+  right: 214px;
+  z-index: 20;
+}
+
+#sideMenu #sideBigBtns .globalBigBtn.globalBattleBtn div {
+  width: 100px;
+  height: 110px;
+  position: absolute;
+  top: 6px;
+  left: 5px;
+}
+
+#sideMenu #sideBigBtns .globalBigBtn.globalBattleBtn div.overlayOn:before {
+  width: 100px;
+  height: 110px;
+  background: url("../resource/image_web/common/global/global_bigBtn_hover.png");
+  background-position: 6px 0;
+  background-size: contain;
+}
+
+#sideMenu #sideBigBtns .globalBigBtn.globalRegularEventBtn {
+  width: 100px;
+  height: 110px;
+  background-image: url("../resource/image_web/common/global/global_nothing.png");
+  background-size: contain;
+  top: calc(100% - 240px);
+  right: 282px;
+  z-index: 20;
+}
+
+#sideMenu #sideBigBtns .globalBigBtn.globalQuestBtn {
+  width: 150px;
+  height: 164px;
+  background-image: url("../resource/image_web/common/global/global_quest.png");
+  background-size: contain;
+  top: calc(100% - 189px);
+  right: 116px;
+  z-index: 20;
+}
+
+#sideMenu #sideBigBtns .globalBigBtn.globalQuestBtn div {
+  width: 150px;
+  height: 150px;
+  position: absolute;
+  top: 6px;
+  left: 5px;
+}
+
+#sideMenu #sideBigBtns .globalBigBtn.globalQuestBtn div.overlayOn:before {
+  width: 150px;
+  height: 150px;
+  background: url("../resource/image_web/common/global/global_bigBtn_hover.png");
+  background-position: 6px 0;
+  background-size: contain;
+}
+
+#sideMenu #sideBigBtns .globalBigBtn.globalScene0Btn {
+  width: 100px;
+  height: 110px;
+  background-image: url("../resource/image_web/common/global/global_scene0.png");
+  background-size: contain;
+  top: calc(100% - 136px);
+  right: 310px;
+  z-index: 20;
+}
+
+#sideMenu #sideBigBtns .globalBigBtn.globalScene0Btn div.btnOverlay {
+  z-index: 21;
+}
+
+#sideMenu #sideBigBtns .globalBigBtn.globalScene0Btn .balloon {
+  display: none;
+  background: url("../resource/image_web/common/global/event_pop.png") left top no-repeat;
+  width: 122px;
+  height: 52px;
+  position: absolute;
+  top: 72px;
+  left: 14px;
+}
+
+#sideMenu #sideBigBtns .globalBigBtn.globalScene0Btn .balloon .text {
+  display: inline-block;
+  text-align: center;
+  width: 122px;
+  margin: 16px 0 0 0;
+}
+
+/* home button */
+#sideMenu .homeBtn {
+  width: 102px;
+  height: 112px;
+  background-image: url("../resource/image_web/common/global/global_home.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+  display: block;
+  position: absolute;
+  top: 5px;
+  left: -81px;
+  opacity: 0;
+  z-index: 10;
+}
+
+#sideMenu .homeBtn.overlayOn:before {
+  width: 80px;
+  height: 88px;
+  background-image: url("../resource/image_web/common/global/global_menu_hover.png");
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: contain;
+  display: block;
+  position: absolute;
+  top: 16px;
+  left: 12px;
+  content: "";
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* curtain */
+#sideMenuCurtain {
+  width: 1024px;
+  height: 576px;
+  background-color: #000000;
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 999;
+}
+
+#sideMenuCurtain.show {
+  display: block !important;
+  pointer-events: auto !important;
+  opacity: .4 !important;
+}
