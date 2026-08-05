@@ -171,6 +171,8 @@
   position: absolute;
   top: 20px;
   left: 90px;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
 }
 
 #globalMenu .user #status.myPageHide {
@@ -199,6 +201,8 @@
   top: -8px;
   left: 16px;
   font-size: 12px;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
 }
 
 #globalMenu .user #status #exp .userRank {
@@ -263,6 +267,8 @@
   position: absolute;
   top: -20px;
   left: 242px;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
 }
 
 #globalMenu .user #status #money .pointWrap {
@@ -286,6 +292,8 @@
   position: absolute;
   top: -20px;
   left: 390px;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
 }
 
 #globalMenu .user #status #ap .pointWrap {
