@@ -526,6 +526,13 @@
   animation-fill-mode: forwards;
 }
 
+#sideMenu.close #sideBigBtns .eventBadgeWrap {
+  -webkit-animation: common_globalBig_close .3s ease 0s 1 alternate;
+  animation: common_globalBig_close .3s ease 0s 1 alternate;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+
 #sideMenu.close .homeBtn {
   -webkit-animation: common_globalBig_close .45s ease 0s 1 alternate;
   animation: common_globalBig_close .45s ease 0s 1 alternate;

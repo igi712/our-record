@@ -2,7 +2,7 @@
 // Wires up: cocos-to-pixi background, HCA BGM loop, and the default Live2D model.
 // Differences from viewer.html: no controls, no follow-on-click.
 import { loadCocosStudioAssets, CocosStudioArmature } from './lib/cocos-to-pixi.js';
-import { loadModel, loadAdditionalModel, destroyCurrentModels, state, getOutfitsForCharacter, buildModelId } from './model.js';
+import { loadModel, loadAdditionalModel, destroyCurrentModels, state, getOutfitsForCharacter, buildModelId, resolveMaReAssetsBase } from './model.js';
 import { preloadModelToRam, ramFolderCache, setAssetPreloadConnecting } from './model-assets.js';
 import { ScenarioSequencePlayer, preloadScenarioVoices, scenarioCache } from './quotes-sequence.js';
 import { fetchScenarioJson, checkScenarioUrlExists, getDualUnitConfig } from './model-scenario.js';
@@ -32,7 +32,6 @@ const HOME_BGM_FILE = 'bgm01_anime07_hca.hca';
 const HOME_BACKGROUND_FILE = 'bg/web/web_0011.ExportJson';
 const HOME_X_OFFSET = -132;
 const HOME_LOGIN_SESSION_KEY = 'mrHomeLoginSeen';
-const HOME_LOGIN_DELAY_MS = 100; // Half of model.js transitionIn's 200ms fade-in.
 const HOME_TAP_VOICE_IDS = [33, 34, 35, 36, 37, 38, 39, 40];
 const HOME_TAP9_VOICE_ID = 41;
 const HOME_OPENED_FROM_INDEX = (() => {
@@ -537,8 +536,9 @@ function setupOutfitButtons(charaId) {
 
             if (token !== outfitChangeToken) return;
 
-            // 3. Play transformation sound and visual effect after connecting ends
-            const modelX = 250; // Static single-model X position for Quotes page transformation VFX
+            // 3. Play transformation sound and visual effect after connecting ends.
+            //    The VFX appears at the Live2D model's current position.
+            const modelX = state.currentModel?.x ?? 250;
             playSfx('magica/resource/sound_native/jingle/7205_magic_girl_hca.hca');
             playTransformationEffect(modelX);
 
@@ -617,6 +617,296 @@ function setupOutfitButtons(charaId) {
 
     if (homeContainer) homeContainer.style.display = homeCount > 0 ? 'block' : 'none';
     if (storyContainer) storyContainer.style.display = storyCount > 0 ? 'block' : 'none';
+}
+
+// ---- MyPage outfit cycle + wearWrap panel ----
+// Ports the original MyPage.js live2d interaction to the left column:
+//   - #live2dBtn click cycles the next outfit (live2dFuncRegacy); a 1s-hold
+//     (live2dSelectTimer) instead opens/closes #wearWrap
+//   - #wearWrap rows are built from getOutfitsForCharacter with the same
+//     home/story split as setupOutfitButtons; clicking a row (wearSelect)
+//     marks it .current and swaps via the token-guarded outfit flow
+//   - .wearing hides the column + banner while the panel is open
+//   - #favoriteChara icon = card_<charaId>_f.png from resolveMaReAssetsBase();
+//     the frame is kept and a broken img is hidden when offline
+const MYPAGE_OUTFIT_SFX = 'magica/resource/sound_native/jingle/7205_magic_girl_hca.hca';
+const MYPAGE_OUTFIT_VFX_X = 512;
+
+let mypageOutfitBusy = false;
+let live2dHoldTimer = null;
+let live2dTimerFired = false;
+
+function myPageOutfitList() {
+    const charaId = state.currentCharacterId || HOME_CHARA_ID;
+    const outfits = getOutfitsForCharacter(charaId);
+    // Exclude entries that only exist in assets/missingLive2dList.json (story
+    // outfits with no registered home live2d entry) — the custome list is for
+    // models the home can actually display.
+    const keys = state.registeredLive2dKeys;
+    if (!keys) return outfits;
+    return outfits.filter(o =>
+        keys.has(`${Number(charaId)}-${String(o.live2dId).padStart(2, '0')}`)
+    );
+}
+
+function myPageCurrentOutfitIndex() {
+    const outfits = myPageOutfitList();
+    const current = String(state.currentLive2dId || '00').padStart(2, '0');
+    const index = outfits.findIndex(o => String(o.live2dId).padStart(2, '0') === current);
+    return index >= 0 ? index : 0;
+}
+
+function syncMyPageOutfitUI() {
+    const btn = document.getElementById('live2dBtn');
+    if (btn) {
+        if (myPageOutfitList().length >= 2) btn.classList.remove('off');
+        else btn.classList.add('off');
+    }
+
+    const current = String(state.currentLive2dId || '00').padStart(2, '0');
+    document.querySelectorAll('#MyPage #mypageWearScrollOuter .wrap').forEach(row => {
+        const id = String(row.dataset.live2dId || '').padStart(2, '0');
+        row.classList.toggle('current', id === current);
+    });
+}
+
+// The game cuts long outfit names at a word boundary ("Kamihama University
+// Affiliated") instead of clipping mid-word, so trim the label to the last
+// whole word that fits the row's text area (384px row - 56px icon padding).
+function fitRowLabel(row) {
+    const text = row.textContent;
+    if (!text) return;
+    const font = window.getComputedStyle(row).font;
+    const ctx = document.createElement('canvas').getContext('2d');
+    ctx.font = font;
+    const maxWidth = 384 - 56;
+    if (ctx.measureText(text).width <= maxWidth) return;
+    const words = text.split(' ');
+    while (words.length > 1 && ctx.measureText(words.join(' ')).width > maxWidth) {
+        words.pop();
+    }
+    let trimmed = words.join(' ');
+    while (trimmed && ctx.measureText(trimmed).width > maxWidth) {
+        trimmed = trimmed.slice(0, -1);
+    }
+    row.textContent = trimmed;
+}
+
+function buildWearRows() {
+    const scrollInner = document.querySelector('#MyPage #mypageWearScrollOuter .scrollInner');
+    if (!scrollInner) return;
+    scrollInner.innerHTML = '';
+
+    const outfits = myPageOutfitList();
+    if (outfits.length === 0) return;
+
+    outfits.forEach(outfit => {
+        const live2dIdStr = String(outfit.live2dId).padStart(2, '0');
+        const row = document.createElement('div');
+        row.className = 'wrap commonFrame4 TE se_decide';
+        row.dataset.live2dId = live2dIdStr;
+        row.textContent = outfit.description || live2dIdStr;
+        scrollInner.appendChild(row);
+        fitRowLabel(row);
+    });
+
+    syncMyPageOutfitUI();
+}
+
+// While the wearWrap outfit popup is open the rest of the home chrome
+// (#globalMenu status bar and #sideMenu) disappears instantly — as in the
+// game, only the Live2D model, background, and popup remain. They are
+// restored by the OK-close path and by stopHomeScreen.
+function setWearWrapChrome(hidden) {
+    ['globalMenu', 'sideMenu'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = hidden ? 'none' : '';
+    });
+}
+
+function toggleWearWrap() {
+    const wearWrap = document.getElementById('wearWrap');
+    const myPage = document.getElementById('MyPage');
+    if (!wearWrap) return;
+
+    if (wearWrap.classList.contains('off')) {
+        wearWrap.classList.remove('off');
+        if (myPage) myPage.classList.add('wearing');
+        setWearWrapChrome(true);
+        buildWearRows();
+    } else {
+        wearWrap.classList.add('off');
+        if (myPage) myPage.classList.remove('wearing');
+        setWearWrapChrome(false);
+        // OK-close as in the game: the left column, status bar, and carousel
+        // reappear instantly (no animation), while the right-side menu
+        // reopens with the standard menu-open choreography (model respawns
+        // as a fresh instance at the center position).
+        const sideMenu = document.getElementById('sideMenu');
+        if (sideMenu) {
+            sideMenu.classList.remove('close');
+            sideMenu.classList.add('anim');
+        }
+        if (typeof window.mypageMenuChoreography === 'function') {
+            window.mypageMenuChoreography(true);
+        }
+        // The banner carousel reappears with the column on OK-close; re-arm it
+        // in case a menu toggle cancelled the reveal's 120ms start (review P2).
+        if (typeof window.startBannerCarousel === 'function') {
+            window.startBannerCarousel();
+        }
+    }
+}
+
+async function swapMyPageOutfit(live2dIdRaw) {
+    const live2dId = String(live2dIdRaw).padStart(2, '0');
+    if (String(state.currentLive2dId || '00').padStart(2, '0') === live2dId) return false;
+    if (mypageOutfitBusy) return false;
+    mypageOutfitBusy = true;
+
+    const charaId = state.currentCharacterId || HOME_CHARA_ID;
+    const modelId = buildModelId(charaId, live2dId);
+    const token = ++outfitChangeToken;
+    // Snapshot before the optimistic commit so a failed load can roll back
+    // state.currentLive2dId (and the .current row marker via syncMyPageOutfitUI)
+    // to the outfit that actually loaded (review P3).
+    const previousLive2dId = state.currentLive2dId;
+    state.currentLive2dId = live2dId;
+
+    const btn = document.getElementById('live2dBtn');
+    if (btn) btn.classList.add('block');
+    // While the transformation plays, the wearWrap OK button is disabled
+    // (grayed out) and the whole popup ignores pointer input, as in the game.
+    const wearWrap = document.getElementById('wearWrap');
+    if (wearWrap) wearWrap.classList.add('block');
+
+    try {
+        if (scenarioPlayer) scenarioPlayer.stop();
+        const scenarioPromise = loadScenarioForOutfit(charaId, live2dId, token);
+
+        try {
+            await preloadModelToRam(modelId);
+        } catch (err) {
+            console.error('[quotes] MyPage outfit preload failed:', err);
+        }
+        if (token !== outfitChangeToken) return false;
+
+        playSfx(MYPAGE_OUTFIT_SFX);
+        // Place the transformation VFX at the model's current position.
+        playTransformationEffect(state.currentModel?.x ?? MYPAGE_OUTFIT_VFX_X);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        if (token !== outfitChangeToken) return false;
+
+        let loadedOk = false;
+        try {
+            loadedOk = await loadOutfitModels(charaId, live2dId, token);
+        } catch (err) {
+            console.error('[quotes] MyPage outfit load failed:', err);
+        }
+        // If a newer swap or a menu-close superseded this one, it owns the
+        // committed id — do not roll back (the respawn uses the clicked outfit).
+        if (token !== outfitChangeToken) return false;
+        if (!loadedOk) {
+            console.warn(`[quotes] MyPage outfit ${live2dId} failed to load; reverting to ${previousLive2dId}`);
+            state.currentLive2dId = previousLive2dId;
+            syncMyPageOutfitUI();
+            return false;
+        }
+
+        await scenarioPromise;
+        syncMyPageOutfitUI();
+        return true;
+    } finally {
+        if (btn) btn.classList.remove('block');
+        if (wearWrap) wearWrap.classList.remove('block');
+        mypageOutfitBusy = false;
+    }
+}
+
+function cycleMyPageOutfit() {
+    const outfits = myPageOutfitList();
+    if (outfits.length < 2) return;
+    const nextIndex = (myPageCurrentOutfitIndex() + 1) % outfits.length;
+    swapMyPageOutfit(outfits[nextIndex].live2dId);
+}
+
+function initMyPageOutfitWiring() {
+    if (window.__myPageOutfitWired) return;
+    window.__myPageOutfitWired = true;
+
+    document.addEventListener('pointerdown', (e) => {
+        if (!e.target.closest('#MyPage #live2dBtn')) return;
+        clearTimeout(live2dHoldTimer);
+        live2dTimerFired = false;
+        live2dHoldTimer = setTimeout(() => {
+            live2dTimerFired = true;
+            toggleWearWrap();
+        }, 1000);
+    });
+    document.addEventListener('pointerup', () => {
+        clearTimeout(live2dHoldTimer);
+    });
+
+    // Press feedback on the wearWrap rows + OK button: rows scale down
+    // (.touch) and the OK button also gets the light .b_screen overlay,
+    // matching the original outfit popup.
+    document.addEventListener('pointerdown', (e) => {
+        const el = e.target.closest('#MyPage #wearWrap .wrap, #MyPage #wearWrap #wearDecide');
+        if (!el) return;
+        el.classList.add('touch');
+    }, true);
+    document.addEventListener('pointerup', () => {
+        document.querySelectorAll('#MyPage #wearWrap .touch').forEach(el => el.classList.remove('touch'));
+    }, true);
+    document.addEventListener('pointercancel', () => {
+        document.querySelectorAll('#MyPage #wearWrap .touch').forEach(el => el.classList.remove('touch'));
+    }, true);
+
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('#MyPage #wearDecide')) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleWearWrap();
+            return;
+        }
+
+        const row = e.target.closest('#MyPage #mypageWearScrollOuter .wrap');
+        if (row) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (row.classList.contains('current')) return;
+            document.querySelectorAll('#MyPage #mypageWearScrollOuter .wrap').forEach(r => r.classList.remove('current'));
+            row.classList.add('current');
+            swapMyPageOutfit(row.dataset.live2dId);
+            return;
+        }
+
+        const btn = e.target.closest('#MyPage #live2dBtn');
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (live2dTimerFired) return;
+            cycleMyPageOutfit();
+        }
+    });
+}
+
+async function initFavoriteCharaIcon() {
+    const img = document.querySelector('#MyPage #favoriteChara .charaIcon img');
+    if (!img || img.getAttribute('data-mypage-card') === 'done') return;
+    img.setAttribute('data-mypage-card', 'done');
+
+    const charaId = state.currentCharacterId || HOME_CHARA_ID;
+    const base = await resolveMaReAssetsBase().catch(() => '');
+    if (!base) return;
+
+    const root = String(base).replace(/\/$/, '').replace(/\/live2d_v4\/?$/, '');
+    const url = `${root}/card/image/card_${charaId}1_f.png`;
+    img.addEventListener('error', () => {
+        img.removeAttribute('src');
+        img.style.display = 'none';
+    }, { once: true });
+    img.src = url;
 }
 
 function setupTabs() {
@@ -1028,7 +1318,11 @@ function collectHomeScenarioResources(scenarioJson) {
 }
 
 function homeVoiceKey(voiceId) {
-    return `vo_char_${HOME_CHARA_ID}_00_${String(voiceId).padStart(2, '0')}`;
+    // The voice prefix follows the active outfit's scenario (mirrors the
+    // original view's voicePrefixNo), so an outfit with its own quote set
+    // plays vo_char_<charaId>_<prefix>_<id> instead of the base '00' keys.
+    const prefix = activeVoicePrefix || '00';
+    return `vo_char_${HOME_CHARA_ID}_${prefix}_${String(voiceId).padStart(2, '0')}`;
 }
 
 async function playHomeVoice(voiceId) {
@@ -1070,6 +1364,134 @@ function pickHomeTapVoice() {
     return homeTapVoicePool.splice(index, 1)[0];
 }
 
+// ---- Menu-triggered Live2D choreography (homescreen) ----
+// On menu close the model disappears abruptly ~120ms into the slide-out and
+// reappears ~450ms later at screen center (x = 512, offset.x = 0 per
+// notes/live2d_positioning_and_subtitles.md) with a ~200ms fade-in; on menu
+// open it eases back to the home column x (512 + HOME_X_OFFSET).
+// Fades use an AlphaFilter on the model's filters (container.alpha breaks with
+// Live2D depth testing per model.js) and are token-cancelled so rapid menu
+// toggles can't leave interleaved fade loops fighting over the model.
+let menuChoreId = 0;
+let menuChoreTimers = [];
+let modelFadeToken = 0;
+
+function cancelMenuChoreography() {
+    menuChoreTimers.forEach(timer => clearTimeout(timer));
+    menuChoreTimers = [];
+    menuChoreId++;
+    modelFadeToken++;
+}
+
+function choreTimer(ms, fn) {
+    const id = menuChoreId;
+    const timer = setTimeout(() => {
+        menuChoreTimers = menuChoreTimers.filter(t => t !== timer);
+        if (id !== menuChoreId) return;
+        fn();
+    }, ms);
+    menuChoreTimers.push(timer);
+}
+
+function modelFadeFilter(model) {
+    let filter = (model.filters ?? []).find(f => f instanceof PIXI.filters.AlphaFilter) ?? null;
+    if (!filter) {
+        filter = new PIXI.filters.AlphaFilter(model.alpha ?? 1);
+        filter.resolution = window.app?.renderer?.resolution ?? 1;
+        model.filters = [...(model.filters ?? []), filter];
+    }
+    return filter;
+}
+
+function setModelFadeAlpha(model, alpha) {
+    if (!model) return;
+    modelFadeFilter(model).alpha = alpha;
+}
+
+function fadeModelTo(model, ms, toAlpha, onDone) {
+    if (!model) {
+        if (onDone) onDone();
+        return;
+    }
+    const filter = modelFadeFilter(model);
+    const token = modelFadeToken;
+    const from = filter.alpha;
+    const start = performance.now();
+    const tick = () => {
+        if (!model || model.destroyed || token !== modelFadeToken) return;
+        const t = Math.min(1, (performance.now() - start) / ms);
+        const eased = 1 - Math.pow(1 - t, 3);
+        filter.alpha = from + (toAlpha - from) * eased;
+        if (t < 1) {
+            requestAnimationFrame(tick);
+        } else {
+            filter.alpha = toAlpha;
+            if (toAlpha >= 1) {
+                const fl = model.filters;
+                if (fl) model.filters = fl.filter(f => f !== filter);
+            }
+            if (onDone) onDone();
+        }
+    };
+    tick();
+}
+
+// Menu open/close is a fresh model spawn, as in the game: the home model is
+// destroyed instantly (no fade-out) together with any running transformation
+// effect, and a new instance with default params appears at the new position.
+let homeMenuSpawnToken = 0;
+
+async function respawnHomeModel() {
+    const token = ++homeMenuSpawnToken;
+
+    // An outfit click commits state.currentLive2dId immediately, so even when
+    // the menu closes mid-transformation (before the 0.5s VFX wait resolves)
+    // the respawn uses the new outfit — same as the game showing the post-
+    // transformation model in the center.
+    const live2dId = String(state.currentLive2dId ?? '00').padStart(2, '0');
+    const modelId = buildModelId(state.currentCharacterId, live2dId);
+
+    destroyCurrentModels();
+    try {
+        await loadModel(modelId, { interactive: false });
+        if (token !== homeMenuSpawnToken || !homeActive) {
+            destroyCurrentModels();
+            return;
+        }
+        if (state.currentModel) state.currentModel.visible = true;
+        scenarioPlayer.setControllers(
+            new Map([
+                [modelId, state.currentController],
+                [Number(modelId), state.currentController]
+            ]),
+            state.currentController
+        );
+    } catch (e) {
+        console.warn('[quotes] Home menu model respawn failed:', e);
+    }
+}
+
+function mypageMenuChoreography(open) {
+    cancelMenuChoreography();
+    // Commit the menu state before the model guard: toggling while the home
+    // model is still preloading (phase 2) must still flip menu-closed and the
+    // xOffset so a later spawn pairs the right column/center positioning with
+    // the menu's visual state instead of exposing a self-healing-on-next-toggle
+    // gap (review P4).
+    const uiLayer = document.getElementById('ui-layer');
+    if (uiLayer) uiLayer.classList.toggle('menu-closed', !open);
+
+    window.__QUOTES_CONFIG.xOffset = open ? HOME_X_OFFSET : 0;
+
+    if (!state.currentModel) return;
+
+    if (scenarioPlayer) scenarioPlayer.stop();
+    cancelOutfitChanges();
+    respawnHomeModel();
+}
+
+window.mypageMenuChoreography = mypageMenuChoreography;
+
 async function revealHomeScreen() {
     if (!homeActive || !homeReady || homeRevealed) return;
 
@@ -1083,21 +1505,43 @@ async function revealHomeScreen() {
     }
 
     if (bgArmature) bgArmature.visible = true;
-    if (state.currentModel) state.currentModel.visible = true;
     document.body.classList.remove('connecting');
 
-    try {
-        await new Promise(resolve => setTimeout(resolve, HOME_LOGIN_DELAY_MS));
-        await playHomeVoice(chooseHomeLoginVoice());
-    } catch (e) {
-        console.warn('[quotes] Home login voice failed:', e);
-    }
+    // As-in-game sequence: ~120ms after connecting clears the carousel
+    // banners slide in from the right (the dots are already revealed with
+    // the column); the Live2D fades in last, after the banners are in place.
+    // The home quote starts at the same moment the model spawns: the voice's
+    // decode latency lands the subtitle ~100-150ms into the fade-in (see
+    // notes/live2d_positioning_and_subtitles.md). These run on choreTimer so
+    // a menu interaction or navigation cancels the reveal cleanly.
+    choreTimer(120, () => {
+        if (typeof window.startBannerCarousel === 'function') {
+            window.startBannerCarousel();
+        }
+    });
+    choreTimer(550, () => {
+        const m = state.currentModel;
+        if (!m) return;
+        m.visible = true;
+        setModelFadeAlpha(m, 0);
+        fadeModelTo(m, 250, 1);
+        playHomeVoice(chooseHomeLoginVoice()).catch(e => {
+            console.warn('[quotes] Home login voice failed:', e);
+        });
+    });
 }
 
 async function loadHomeScreen() {
     homeActive = true;
     homeSceneMounted = true;
     document.getElementById('ui-layer')?.classList.add('home-mode');
+    state.currentCharacterId = HOME_CHARA_ID;
+    initMyPageOutfitWiring();
+    initFavoriteCharaIcon();
+    if (!state.live2dListData || state.live2dListData.length === 0) {
+        initMetadata(HOME_CHARA_ID).then(syncMyPageOutfitUI);
+    }
+    syncMyPageOutfitUI();
     if (homeReady) return;
     if (homeLoadPromise) return homeLoadPromise;
 
@@ -1196,6 +1640,7 @@ async function loadHomeScreen() {
 async function stopHomeScreen() {
     if (!homeActive && !homeSceneMounted && !homeLoadPromise) return;
 
+    cancelMenuChoreography();
     homeActive = false;
     homeReady = false;
     homeRevealed = false;
@@ -1204,6 +1649,15 @@ async function stopHomeScreen() {
     if (pendingLoad) await pendingLoad;
 
     scenarioPlayer?.stop();
+    // Close any open wearWrap popup and restore the hidden global chrome
+    // (leave with the popup open would otherwise keep #globalMenu/#sideMenu
+    // display:none when returning to the home).
+    const wearWrap = document.getElementById('wearWrap');
+    if (wearWrap) wearWrap.classList.add('off');
+    const myPage = document.getElementById('MyPage');
+    if (myPage) myPage.classList.remove('wearing');
+    setWearWrapChrome(false);
+
     destroyCurrentModels();
     await clearBackground();
     if (player) {
@@ -1290,7 +1744,28 @@ function setupHomeInteractions() {
             return;
         }
 
-        if (event.target?.closest?.('#ui-layer')) return;
+        // Ignore presses on real UI surfaces (menu buttons, banner, popup,
+        // wear panel). The homescreen's MyPage layer covers the whole viewport
+        // with pointer-events:auto, so the renderer canvas is never the DOM
+        // target — a press on the model surfaces as a press on #MyPage itself.
+        const uiRootSelector = [
+            '#etcMenu', '#live2dMenu', '#favoriteChara', '#mypageBanner',
+            '#wearWrap', '#mypageWearScrollOuter', '#globalMenu', '#sideMenu',
+            '#popupArea', '#status', '#globalBackBtn', '#cardDetail', '#CharaCollection'
+        ].join(', ');
+        if (event.target?.closest?.(uiRootSelector)) return;
+
+        // Hit-test the Live2D model in stage space (same technique as the
+        // model-follow canvas handler) so a tap lands on the character.
+        const interaction = window.app?.renderer?.plugins?.interaction;
+        const m = state.currentModel;
+        if (!interaction || !m || typeof interaction.mapPositionToPoint !== 'function') return;
+        const pt = new PIXI.Point();
+        interaction.mapPositionToPoint(pt, event.clientX, event.clientY);
+        let hit = false;
+        try { hit = !!m.containsPoint(pt); } catch (e) { hit = false; }
+        if (!hit) return;
+
         playHomeVoice(pickHomeTapVoice()).catch(e => {
             console.warn('[quotes] Home tap voice failed:', e);
         });

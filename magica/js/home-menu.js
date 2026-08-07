@@ -7,11 +7,15 @@
 //   - on MyPage the #sideMenuBg backdrop and .homeBtn are hidden (noneDisp),
 //     matching GlobalMenuView.pagePerHandler
 //   - the #menu capsule toggles the menu open/closed with the original
-//     `.anim` / `.close` state classes
+//     `.anim` / `.close` state classes, and drives the MyPage left column via
+//     the mypage.js menuShow()/menuHide() callbacks (window.mypageMenuShow /
+//     window.mypageMenuHide), replicating GlobalMenuView.menuToggle's coupling
 //   - hover / press overlays (.overlayOn, .touch)
 //   - data-href routing: Unit -> #/CharaCollection, homeBtn -> #/MyPage,
 //     everything else no-op
 //   - static demo values for the player status bar (no live game data)
+
+import { resetMyPage } from './mypage.js';
 
 // Static demo values for the top-left player status bar.
 export const HOME_STATUS_DEMO = {
@@ -60,7 +64,7 @@ function fillStatusDemo() {
     if (maxAcpEl) maxAcpEl.textContent = HOME_STATUS_DEMO.maxAcp;
 }
 
-function setMenuOpen(open) {
+function setMenuOpen(open, { chrome = true } = {}) {
     const sideMenu = document.getElementById('sideMenu');
     const sideMenuBg = document.getElementById('sideMenuBg');
     if (!sideMenu) return;
@@ -72,6 +76,9 @@ function setMenuOpen(open) {
             sideMenuBg.classList.remove('close');
             sideMenuBg.classList.add('anim');
         }
+        if (chrome && typeof window.mypageMenuShow === 'function') {
+            window.mypageMenuShow();
+        }
     } else {
         sideMenu.classList.remove('anim');
         sideMenu.classList.add('close');
@@ -79,6 +86,15 @@ function setMenuOpen(open) {
             sideMenuBg.classList.remove('anim');
             sideMenuBg.classList.add('close');
         }
+        if (chrome && typeof window.mypageMenuHide === 'function') {
+            window.mypageMenuHide();
+        }
+    }
+    // chrome:false (initial reveal) animates only the right-side menu; the
+    // column/status/Live2D choreography is skipped so they stay static until
+    // their own reveal points (MyPage visibility, revealHomeScreen).
+    if (chrome && typeof window.mypageMenuChoreography === 'function') {
+        window.mypageMenuChoreography(open);
     }
 }
 
@@ -187,8 +203,9 @@ export function initHomeMenu() {
     fillStatusDemo();
     bindEvents();
 
-    // Mount in the closed, hidden state. The menu is revealed (and auto-opened)
-    // only after the home screen background + BGM have finished loading.
+    // Mount in the closed, hidden state. The default template state ships 0/0
+    // in the status bar, so the whole menu stays hidden until the reveal (the
+    // side menu's closed state already renders it invisible — same pattern).
     setMenuClosed();
     hideMenuUI();
 }
@@ -198,7 +215,7 @@ export function revealHomeMenu() {
     if (!sideMenu) return;
 
     showMenuUI();
-    setMenuOpen(true);
+    setMenuOpen(true, { chrome: false });
 
     // On MyPage the backdrop and home button are suppressed.
     const sideMenuBg = document.getElementById('sideMenuBg');
@@ -206,12 +223,36 @@ export function revealHomeMenu() {
     const homeBtn = sideMenu.querySelector('.homeBtn');
     if (homeBtn) homeBtn.classList.add('noneDisp');
 
-    const status = document.querySelector('#globalMenu .user #status');
-    if (status) status.classList.add('myPageShow');
+    // The left utility column + carousel were hidden (visibility) during the
+    // load; per the in-game sequence they fade IN PLACE ~180ms after the
+    // right-side menu starts sliding in, instead of being visible from the
+    // start or re-running the menu-toggle slide.
+    scheduleColumnReveal();
+}
+
+let columnRevealId = 0;
+
+function scheduleColumnReveal() {
+    const id = ++columnRevealId;
+    setTimeout(() => {
+        if (id !== columnRevealId) return;
+        const myPage = document.getElementById('MyPage');
+        if (!myPage) return;
+        myPage.style.visibility = 'visible';
+        myPage.classList.add('reveal');
+    }, 180);
 }
 
 export function resetHomeMenu() {
     clearPress();
+    columnRevealId++;
     showMenuUI();
     setMenuClosed();
+    const myPage = document.getElementById('MyPage');
+    if (myPage) myPage.classList.remove('reveal');
+    // The banner container may carry .hide from a menu-close; clear it so the
+    // next reveal shows the carousel again.
+    const banner = document.getElementById('mypageBanner');
+    if (banner) banner.classList.remove('hide');
+    resetMyPage();
 }

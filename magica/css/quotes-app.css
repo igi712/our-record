@@ -114,6 +114,7 @@ canvas {
     background-size: contain;
     cursor: pointer;
     z-index: 101;
+    display: none;
 }
 
 #CharaCollection,
@@ -368,6 +369,11 @@ canvas {
 /* Homescreen subtitle placement from notes/live2d_positioning_and_subtitles.md. */
 #ui-layer.home-mode #subtitle {
     left: 377px;
+}
+
+/* Menu closed: the model recenters at x=512 (offset.x = 0 → target X = -5). */
+#ui-layer.home-mode.menu-closed #subtitle {
+    left: 507px;
 }
 
 /* Overrides to adapt game CardDetail.css to local scrolling and positioning */
