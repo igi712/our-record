@@ -1,5 +1,5 @@
 # our-record
-Magia Record Live2D home viewer. Static site, no build. Open `index.html`'s links: viewer, quotes/homescreen, sound mode.  
+Magia Record Live2D home viewer. No build step: it's plain HTML and JS, and `index.html` links to the viewer, homescreen, quotes, and sound mode.
 
 ## [main hub](https://igi712.github.io/our-record/)
 [**Homescreen**](https://igi712.github.io/our-record/quotes.html#/MyPage)  
@@ -8,7 +8,7 @@ View the Magia Record homescreen
 Play quotes for each playable unit  
 [**Sound Mode**](https://igi712.github.io/our-record/sound.html)  
 Play the OST  
-[**Live2D Viewer**](http://localhost:8000/viewer.html)  
+[**Live2D Viewer**](https://igi712.github.io/our-record/viewer.html)  
 View Live2D models for each playable units  
 
 Attach `?id=1001` to the end of the Homescreen and Quotes pages, and replace with the character's ID of your choice to view them quickly. Character IDs can be found by going to the [Magia Record Wiki](https://magireco.fandom.com/wiki/Magia_Record_English_Wiki) and going to the page of your character. Also helpful might be [this page](https://magireco.fandom.com/wiki/Category:Magical_Girl_by_ID) which lists characters in order by their ID.
@@ -23,7 +23,7 @@ Attach `?id=1001` to the end of the Homescreen and Quotes pages, and replace wit
 ## run it
 1. Needs http (ES modules), so navigate to the repo root
 2. Run `python3 -m http.server 8000`
-3. Open http://localhost:8000/ to view the hub <br><br>
+3. Open http://localhost:8000/ to view the hub
 
 
 With auto-reload, watching only root + `magica` (skips the huge `assets/` etc):
