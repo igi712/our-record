@@ -15,9 +15,9 @@
 |----------|-------|-------------|-----------|--------------|
 | `vo_char_1001_00_01` | group_1 | Self Introduction 1 | 自己紹介① – Self Introduction 1 | yes |
 | `vo_char_1001_00_02` | group_43 | Self Introduction 2 | 自己紹介② – Self Introduction 2 | yes |
-| `vo_char_1001_00_03` | group_2 | *(debug: group_2)* | Story Chapter End 1 | no (voice+animation only) |
-| `vo_char_1001_00_04` | group_3 | *(debug: group_3)* | Story Chapter End 2 | no (voice+animation only) |
-| `vo_char_1001_00_05` | group_4 | *(debug: group_4)* | Story Chapter End 3 | no (voice+animation only) |
+| `vo_char_1001_00_03` | group_2 | Story Chapter End 1 | Story Chapter End 1 | no (voice+animation only) |
+| `vo_char_1001_00_04` | group_3 | Story Chapter End 2 | Story Chapter End 2 | no (voice+animation only) |
+| `vo_char_1001_00_05` | group_4 | Story Chapter End 3 | Story Chapter End 3 | no (voice+animation only) |
 | `vo_char_1001_00_13` | group_5 | Enhance | 強化完了 – Strengthening Complete | yes |
 | `vo_char_1001_00_14` | group_6 | Enhance (Max Lvl.) | 強化(Lv最大時) – Strengthening Max | yes |
 | `vo_char_1001_00_15` | group_7 | Episode Lvl. UP | エピソードLvアップ – Episode Lvl Up | yes |
@@ -37,7 +37,7 @@
 | `vo_char_1001_00_29` | group_21 | Login 6 (Other) | ログイン⑥(その他) – Login 6 | yes |
 | `vo_char_1001_00_30` | group_22 | Login 7 (Max AP) | ログイン⑦(AP最大時) – Login 7 | yes |
 | `vo_char_1001_00_31` | group_23 | Login 8 (Max BP) | ログイン⑧(BP最大時) – Login 8 | yes |
-| `vo_char_1001_00_32` | group_24 | *(debug: group_24)* | Unused 3 | no (voice+animation only) |
+| `vo_char_1001_00_32` | group_24 | Unused 3 | Unused 3 | no (voice+animation only) |
 | `vo_char_1001_00_33` | group_25 | Magical Girl Tap 1 | 魔法少女タップ① – Tap 1 | yes |
 | `vo_char_1001_00_34` | group_26 | Magical Girl Tap 2 | 魔法少女タップ② – Tap 2 | yes |
 | `vo_char_1001_00_35` | group_27 | Magical Girl Tap 3 | 魔法少女タップ③ – Tap 3 | yes |
@@ -52,10 +52,10 @@
 | `vo_char_1001_00_44` | group_36 | Quest Victory 2 | クエスト勝利② – Battle Victory 2 | yes |
 | `vo_char_1001_00_45` | group_37 | Quest Victory 3 | クエスト勝利③ – Battle Victory 3 | yes |
 | `vo_char_1001_00_46` | group_38 | Unused 4 (Quest Victory 4?) | Unused 4 | yes |
-| `vo_char_1001_00_63` | group_39 | *(debug: group_39)* | Magia (1) | no (voice+animation only) |
-| `vo_char_1001_00_64` | group_40 | *(debug: group_40)* | Magia (2) | no (voice+animation only) |
-| `vo_char_1001_00_65` | group_41 | *(debug: group_41)* | Magia (3) | no (voice+animation only) |
-| `vo_char_1001_00_66` | group_42 | *(debug: group_42)* | Magia (4) | no (voice+animation only) |
+| `vo_char_1001_00_63` | group_39 | Magia 1 | Magia (1) | no (voice+animation only) |
+| `vo_char_1001_00_64` | group_40 | Magia 2 | Magia (2) | no (voice+animation only) |
+| `vo_char_1001_00_65` | group_41 | Magia 3 | Magia (3) | no (voice+animation only) |
+| `vo_char_1001_00_66` | group_42 | Magia 4 | Magia (4) | no (voice+animation only) |
 
 ## Groups without `textHome` (voice+animation only)
 

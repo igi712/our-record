@@ -67,6 +67,9 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen) {
         if (typeof loadHomeScreen === 'function') {
             await loadHomeScreen();
         }
+        if (typeof loadCharacterDetail === 'function') {
+            await loadCharacterDetail(state.currentCharacterId);
+        }
     } else if (hash.startsWith('#/CharaCollectionDetail')) {
         let charaDetailEl = document.getElementById('cardDetail');
         if (!charaDetailEl) {

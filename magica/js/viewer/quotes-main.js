@@ -26,9 +26,7 @@ let previousQuotesXOffset = null;
 const WORLD_W = 1024;
 const WORLD_H = 768;
 const HOME16_H = 576;
-const HOME_CHARA_ID = 1001;
-const HOME_MODEL_ID = '100100';
-const HOME_SCENARIO_PATH = '100100.json';
+const DEFAULT_CHARA_ID = 1001;
 const HOME_BGM_FILE = 'bgm01_anime07_hca.hca';
 const HOME_BACKGROUND_FILE = 'bg/web/web_0011.ExportJson';
 const HOME_X_OFFSET = -132;
@@ -638,7 +636,7 @@ let live2dHoldTimer = null;
 let live2dTimerFired = false;
 
 function myPageOutfitList() {
-    const charaId = state.currentCharacterId || HOME_CHARA_ID;
+    const charaId = state.currentCharacterId || DEFAULT_CHARA_ID;
     const outfits = getOutfitsForCharacter(charaId);
     // Exclude entries that only exist in assets/missingLive2dList.json (story
     // outfits with no registered home live2d entry) — the custome list is for
@@ -765,7 +763,7 @@ async function swapMyPageOutfit(live2dIdRaw) {
     if (mypageOutfitBusy) return false;
     mypageOutfitBusy = true;
 
-    const charaId = state.currentCharacterId || HOME_CHARA_ID;
+    const charaId = state.currentCharacterId || DEFAULT_CHARA_ID;
     const modelId = buildModelId(charaId, live2dId);
     const token = ++outfitChangeToken;
     // Snapshot before the optimistic commit so a failed load can roll back
@@ -897,12 +895,20 @@ async function initFavoriteCharaIcon() {
     if (!img || img.getAttribute('data-mypage-card') === 'done') return;
     img.setAttribute('data-mypage-card', 'done');
 
-    const charaId = state.currentCharacterId || HOME_CHARA_ID;
+    const charaId = state.currentCharacterId || DEFAULT_CHARA_ID;
     const base = await resolveMaReAssetsBase().catch(() => '');
     if (!base) return;
 
     const root = String(base).replace(/\/$/, '').replace(/\/live2d_v4\/?$/, '');
-    const url = `${root}/card/image/card_${charaId}1_f.png`;
+
+    let url = `${root}/card/image/card_${charaId}5_f.png`;
+    try {
+        const resp = await fetch(url);
+        if (!resp.ok) {
+            url = `${root}/card/image/card_${charaId}4_f.png`;
+        }
+    } catch (e) {    }
+
     img.addEventListener('error', () => {
         img.removeAttribute('src');
         img.style.display = 'none';
@@ -1020,7 +1026,7 @@ function setupVoiceButtons() {
             btn.classList.add('current');
 
             const voiceId = btn.getAttribute('data-voice');
-            const charaId = state.currentCharacterId || 1001;
+            const charaId = state.currentCharacterId || DEFAULT_CHARA_ID;
 
             const voiceKey = `vo_char_${charaId}_${activeVoicePrefix}_${voiceId}`;
 
@@ -1096,13 +1102,14 @@ async function loadOutfitModels(charaId, live2dId, token, allowedExpressions = n
         const secondaryId = dualConfig.secondaryId;
         const primaryZOrder = dualConfig.primaryZOrder;
         const secondaryZOrder = dualConfig.secondaryZOrder;
+        const xOverride = !window.location.hash.startsWith('#/MyPage') ? [104, 320] : [229, 445]
 
         // Load Primary Model (pos 0)
         await loadModel(primaryId, {
             interactive: false,
             allowedExpressions,
             allowedMotions,
-            xOverride: 104.0,
+            xOverride: xOverride[0],
             zOrder: primaryZOrder
         });
 
@@ -1116,7 +1123,7 @@ async function loadOutfitModels(charaId, live2dId, token, allowedExpressions = n
             interactive: false,
             allowedExpressions,
             allowedMotions,
-            xOverride: 320.0,
+            xOverride: xOverride[1],
             zOrder: secondaryZOrder
         });
 
@@ -1323,13 +1330,13 @@ function homeVoiceKey(voiceId) {
     // original view's voicePrefixNo), so an outfit with its own quote set
     // plays vo_char_<charaId>_<prefix>_<id> instead of the base '00' keys.
     const prefix = activeVoicePrefix || '00';
-    return `vo_char_${HOME_CHARA_ID}_${prefix}_${String(voiceId).padStart(2, '0')}`;
+    return `vo_char_${state.currentCharacterId}_${prefix}_${String(voiceId).padStart(2, '0')}`;
 }
 
 async function playHomeVoice(voiceId) {
     if (!homeActive || !scenarioPlayer || !activeScenarioUrl) return;
     scenarioPlayer.controller = state.currentController;
-    return scenarioPlayer.loadAndPlayVoice(activeScenarioUrl, homeVoiceKey(voiceId), HOME_CHARA_ID);
+    return scenarioPlayer.loadAndPlayVoice(activeScenarioUrl, homeVoiceKey(voiceId), state.currentCharacterId);
 }
 
 function chooseHomeLoginVoice() {
@@ -1563,11 +1570,10 @@ async function loadHomeScreen() {
     homeActive = true;
     homeSceneMounted = true;
     document.getElementById('ui-layer')?.classList.add('home-mode');
-    state.currentCharacterId = HOME_CHARA_ID;
     initMyPageOutfitWiring();
     initFavoriteCharaIcon();
     if (!state.live2dListData || state.live2dListData.length === 0) {
-        initMetadata(HOME_CHARA_ID).then(syncMyPageOutfitUI);
+        initMetadata(state.currentCharacterId).then(syncMyPageOutfitUI);
     }
     syncMyPageOutfitUI();
     if (homeReady) return;
@@ -1600,28 +1606,29 @@ async function loadHomeScreen() {
         document.body.classList.add('connecting');
         setAssetPreloadConnecting(true);
         try {
-            const scenarioResult = await fetchScenarioJson(HOME_SCENARIO_PATH);
-            if (!scenarioResult.json) throw new Error(`Failed to load home scenario ${HOME_SCENARIO_PATH}`);
+            const scenarioPath = state.currentCharacterId + '00.json';
+            const scenarioResult = await fetchScenarioJson(scenarioPath);
+            if (!scenarioResult.json) throw new Error(`Failed to load home scenario ${scenarioPath}`);
             if (!homeActive || generation !== homeGeneration) return;
 
             activeVoicePrefix = '00';
             activeScenarioUrl = scenarioResult.url;
             scenarioCache.set(activeScenarioUrl, scenarioResult.json);
-            state.currentCharacterId = HOME_CHARA_ID;
             state.currentLive2dId = '00';
+            state.currentModelId = state.currentCharacterId + '00';
 
             const { allowedExpressions, allowedMotions, allowedVoices } =
                 collectHomeScenarioResources(scenarioResult.json);
 
             await Promise.all([
-                preloadModelToRam(HOME_MODEL_ID, { allowedExpressions, allowedMotions }),
+                preloadModelToRam(state.currentModelId, { allowedExpressions, allowedMotions }),
                 preloadScenarioVoices(Array.from(allowedVoices), scenarioPlayer.voice),
                 preloadOpenSansFont()
             ]);
             if (!homeActive || generation !== homeGeneration) return;
 
             destroyCurrentModels();
-            await loadModel(HOME_MODEL_ID, {
+            await loadModel(state.currentModelId, {
                 interactive: false,
                 allowedExpressions,
                 allowedMotions
@@ -1631,15 +1638,15 @@ async function loadHomeScreen() {
                 return;
             }
 
-            state.currentModels.set(HOME_MODEL_ID, {
+            state.currentModels.set(state.currentModelId, {
                 model: state.currentModel,
                 controller: state.currentController,
                 pos: 0
             });
             scenarioPlayer.setControllers(
                 new Map([
-                    [HOME_MODEL_ID, state.currentController],
-                    [Number(HOME_MODEL_ID), state.currentController]
+                    [state.currentModelId, state.currentController],
+                    [Number(state.currentModelId), state.currentController]
                 ]),
                 state.currentController
             );
@@ -1833,6 +1840,9 @@ async function init() {
             playTrack('bgm02_anime11_hca.hca').catch((e) => console.warn('[quotes] bgm error:', e))
         ]);
     }
+
+    const urlParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
+    state.currentCharacterId = Number(urlParams.get('id')) || DEFAULT_CHARA_ID;
 
     // Resume audio on first user interaction if Chrome suspended the context.
     setupAudioAutoResume();

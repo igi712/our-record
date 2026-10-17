@@ -51,6 +51,9 @@ function fillDemoData() {
     if (badge) badge.textContent = String(MYPAGE_DEMO.presentCount);
 
     renderBanner();
+    
+    const eventDeadline = document.querySelector('.endAtText');
+    eventDeadline.textContent = String(MYPAGE_DEMO.eventEndAt);
 }
 
 function renderBanner() {
