@@ -18,7 +18,7 @@ Attach `?id=1001` to the end of the Homescreen and Quotes pages, and replace wit
 > `3XXX` is side story characters original to the Magia Record game.  
 > `4XXX` is crossover characters, including from other branches of the Madoka franchise as well as non-Madoka characters.
 
-###### [Puella Magi Wiki](https://wiki.puella-magi.net/Category:Magia_Record_Units_by_ID)
+[Puella Magi Wiki — units by ID](https://wiki.puella-magi.net/Category:Magia_Record_Units_by_ID)
 
 ## run it
 1. Needs http (ES modules), so navigate to the repo root

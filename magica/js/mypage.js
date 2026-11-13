@@ -53,7 +53,9 @@ function fillDemoData() {
     renderBanner();
     
     const eventDeadline = document.querySelector('.endAtText');
-    eventDeadline.textContent = String(MYPAGE_DEMO.eventEndAt);
+    if (eventDeadline) {
+        eventDeadline.textContent = String(MYPAGE_DEMO.eventEndAt);
+    }
 }
 
 function renderBanner() {

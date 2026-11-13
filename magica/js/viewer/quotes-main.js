@@ -910,20 +910,29 @@ async function initFavoriteCharaIcon() {
 
     const root = String(base).replace(/\/$/, '').replace(/\/live2d_v4\/?$/, '');
 
-    let url = `${root}/card/image/card_${charaId}5_f.png`;
-    try {
-        const resp = await fetch(url);
-        if (!resp.ok) {
-            url = `${root}/card/image/card_${charaId}4_f.png`;
-        }
-    } catch (e) { }
+    let url = null;
+    for (const suffix of ['5', '4', '1']) {
+        const candidate = `${root}/card/image/card_${charaId}${suffix}_f.png`;
+        try {
+            const resp = await fetch(candidate);
+            if (resp.ok) {
+                url = candidate;
+                break;
+            }
+        } catch (e) {}
+    }
 
     if (img.getAttribute('data-mypage-card') !== idForThisRun) return;
 
-    img.addEventListener('error', () => {
+    if (!url) {
         img.removeAttribute('src');
         img.style.display = 'none';
-    }, { once: true });
+        return;
+    }
+    img.onerror = () => {
+        img.removeAttribute('src');
+        img.style.display = 'none';
+    };
     img.style.display = '';
     img.src = url;
 }
@@ -1114,7 +1123,7 @@ async function loadOutfitModels(charaId, live2dId, token, allowedExpressions = n
         const secondaryId = dualConfig.secondaryId;
         const primaryZOrder = dualConfig.primaryZOrder;
         const secondaryZOrder = dualConfig.secondaryZOrder;
-        const xOverride = !window.location.hash.startsWith('#/MyPage') ? [104, 320] : [229, 445]
+        const xOverride = !window.location.hash.startsWith('#/MyPage') ? [104, 320] : [229, 445];
 
         // Load Primary Model (pos 0)
         await loadModel(primaryId, {
