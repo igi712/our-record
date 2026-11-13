@@ -19,6 +19,12 @@ let homeActive = false;
 let homeSceneMounted = false;
 let homeReady = false;
 let homeRevealed = false;
+let homeLoadedCharaId = null;
+let homePendingCharaId = null;
+let homeTeardownPromise = null;
+let homeStopPromise = null;
+let homeRequestToken = 0;
+let homeDesiredActive = false;
 let homeTapVoicePool = [];
 let previousQuotesXOffset = null;
 
@@ -892,10 +898,13 @@ function initMyPageOutfitWiring() {
 
 async function initFavoriteCharaIcon() {
     const img = document.querySelector('#MyPage #favoriteChara .charaIcon img');
-    if (!img || img.getAttribute('data-mypage-card') === 'done') return;
-    img.setAttribute('data-mypage-card', 'done');
+    if (!img) return;
 
     const charaId = state.currentCharacterId || DEFAULT_CHARA_ID;
+    const idForThisRun = String(charaId);
+    if (img.getAttribute('data-mypage-card') === idForThisRun) return;
+    img.setAttribute('data-mypage-card', idForThisRun);
+
     const base = await resolveMaReAssetsBase().catch(() => '');
     if (!base) return;
 
@@ -907,12 +916,15 @@ async function initFavoriteCharaIcon() {
         if (!resp.ok) {
             url = `${root}/card/image/card_${charaId}4_f.png`;
         }
-    } catch (e) {    }
+    } catch (e) { }
+
+    if (img.getAttribute('data-mypage-card') !== idForThisRun) return;
 
     img.addEventListener('error', () => {
         img.removeAttribute('src');
         img.style.display = 'none';
     }, { once: true });
+    img.style.display = '';
     img.src = url;
 }
 
@@ -1457,23 +1469,15 @@ async function respawnHomeModel() {
     // the respawn uses the new outfit — same as the game showing the post-
     // transformation model in the center.
     const live2dId = String(state.currentLive2dId ?? '00').padStart(2, '0');
-    const modelId = buildModelId(state.currentCharacterId, live2dId);
 
     destroyCurrentModels();
     try {
-        await loadModel(modelId, { interactive: false });
+        await loadOutfitModels(state.currentCharacterId, live2dId, undefined);
         if (token !== homeMenuSpawnToken || !homeActive) {
             destroyCurrentModels();
             return;
         }
         if (state.currentModel) state.currentModel.visible = true;
-        scenarioPlayer.setControllers(
-            new Map([
-                [modelId, state.currentController],
-                [Number(modelId), state.currentController]
-            ]),
-            state.currentController
-        );
     } catch (e) {
         console.warn('[quotes] Home menu model respawn failed:', e);
     }
@@ -1555,31 +1559,88 @@ async function revealHomeScreen() {
         }
     });
     choreTimer(550, () => {
-        const m = state.currentModel;
-        if (!m) return;
-        m.visible = true;
-        setModelFadeAlpha(m, 0);
-        fadeModelTo(m, 250, 1);
+        const targets = Array.from(new Set(
+            Array.from(state.currentModels.values()).map(e => e && e.model).filter(Boolean)
+        ));
+        if (targets.length === 0 && state.currentModel) targets.push(state.currentModel);
+        if (targets.length === 0) return;
+        targets.forEach(m => {
+            m.visible = true;
+            setModelFadeAlpha(m, 0);
+            fadeModelTo(m, 250, 1);
+        });
         playHomeVoice(chooseHomeLoginVoice()).catch(e => {
             console.warn('[quotes] Home login voice failed:', e);
         });
     });
 }
 
+function resolveRequestedCharaId() {
+    const hashQuery = window.location.hash.split('?')[1] || '';
+    const hashId = new URLSearchParams(hashQuery).get('id');
+    const searchId = new URLSearchParams(window.location.search).get('id');
+    const raw = hashId || searchId || '';
+    return /^\d{4}$/.test(raw) ? Number(raw) : DEFAULT_CHARA_ID;
+}
+
 async function loadHomeScreen() {
+    homeDesiredActive = true;
+    const requestToken = ++homeRequestToken;
+    while (homeTeardownPromise || homeStopPromise) {
+        await (homeTeardownPromise || homeStopPromise);
+        if (requestToken !== homeRequestToken) return;
+    }
+
+    const requestedId = resolveRequestedCharaId();
+    const activeId = homeLoadedCharaId ?? homePendingCharaId;
+    if ((homeReady || homeLoadPromise) && activeId != null && activeId !== requestedId) {
+        console.info(`[quotes] Home character change requested: ${activeId} -> ${requestedId}`);
+        await teardownHomeScreen();
+        if (requestToken !== homeRequestToken) return;
+    }
+
     homeActive = true;
     homeSceneMounted = true;
     document.getElementById('ui-layer')?.classList.add('home-mode');
+    state.currentCharacterId = requestedId;
     initMyPageOutfitWiring();
     initFavoriteCharaIcon();
     if (!state.live2dListData || state.live2dListData.length === 0) {
-        initMetadata(state.currentCharacterId).then(syncMyPageOutfitUI);
+        initMetadata(requestedId).then(syncMyPageOutfitUI);
     }
     syncMyPageOutfitUI();
-    if (homeReady) return;
-    if (homeLoadPromise) return homeLoadPromise;
+
+    if (homeReady) {
+        // Same-id re-entry: the router hid the home chrome again; re-show it.
+        revealHomeMenu();
+        if (homeRevealed) {
+            if (typeof window.startBannerCarousel === 'function') {
+                window.startBannerCarousel();
+            }
+            return;
+        }
+        const audioUnlocked = isHomeAudioUnlocked() || await waitForHomeAudioUnlock();
+        if (requestToken !== homeRequestToken) return;
+        if (audioUnlocked || HOME_OPENED_FROM_INDEX) await revealHomeScreen();
+        return;
+    }
+    if (homeLoadPromise) {
+        await homeLoadPromise;
+        if (requestToken !== homeRequestToken) return;
+        if (!homeActive || !homeSceneMounted) return;
+        revealHomeMenu();
+        if (!homeRevealed) {
+            const audioUnlocked = isHomeAudioUnlocked() || await waitForHomeAudioUnlock();
+            if (requestToken !== homeRequestToken) return;
+            if (audioUnlocked || HOME_OPENED_FROM_INDEX) await revealHomeScreen();
+        } else if (typeof window.startBannerCarousel === 'function') {
+            window.startBannerCarousel();
+        }
+        return;
+    }
 
     const generation = ++homeGeneration;
+    homePendingCharaId = requestedId;
     setHomePositioning(true);
     document.body.classList.add('connecting');
 
@@ -1627,32 +1688,19 @@ async function loadHomeScreen() {
             ]);
             if (!homeActive || generation !== homeGeneration) return;
 
-            destroyCurrentModels();
-            await loadModel(state.currentModelId, {
-                interactive: false,
-                allowedExpressions,
-                allowedMotions
-            });
-            if (!homeActive || generation !== homeGeneration) {
+            const loadedOk = await loadOutfitModels(requestedId, '00', undefined, allowedExpressions, allowedMotions);
+            if (!loadedOk || !homeActive || generation !== homeGeneration) {
                 destroyCurrentModels();
                 return;
             }
 
-            state.currentModels.set(state.currentModelId, {
-                model: state.currentModel,
-                controller: state.currentController,
-                pos: 0
-            });
-            scenarioPlayer.setControllers(
-                new Map([
-                    [state.currentModelId, state.currentController],
-                    [Number(state.currentModelId), state.currentController]
-                ]),
-                state.currentController
-            );
-
-            if (state.currentModel) state.currentModel.visible = false;
+            for (const model of new Set(
+                Array.from(state.currentModels.values()).map(e => e && e.model).filter(Boolean)
+            )) {
+                model.visible = false;
+            }
             homeReady = true;
+            homeLoadedCharaId = requestedId;
             console.info('[quotes] Homescreen character and voice assets preloaded; ready for reveal.');
         } finally {
             setAssetPreloadConnecting(false);
@@ -1665,50 +1713,76 @@ async function loadHomeScreen() {
     })().catch(error => {
         console.error('[quotes] Homescreen preload failed:', error);
         homeReady = false;
+        if (generation === homeGeneration) {
+            document.body.classList.remove('connecting');
+        }
     }).finally(() => {
         homeLoadPromise = null;
+        homePendingCharaId = null;
     });
 
     return homeLoadPromise;
 }
 
-async function stopHomeScreen() {
+async function teardownHomeScreen() {
+    if (homeTeardownPromise) return homeTeardownPromise;
     if (!homeActive && !homeSceneMounted && !homeLoadPromise) return;
 
-    cancelMenuChoreography();
-    homeActive = false;
-    homeReady = false;
-    homeRevealed = false;
-    homeGeneration++;
-    const pendingLoad = homeLoadPromise;
-    if (pendingLoad) await pendingLoad;
+    homeTeardownPromise = (async () => {
+        cancelMenuChoreography();
+        homeActive = false;
+        homeReady = false;
+        homeRevealed = false;
+        homeLoadedCharaId = null;
+        homePendingCharaId = null;
+        homeGeneration++;
+        const pendingLoad = homeLoadPromise;
+        if (pendingLoad) await pendingLoad;
 
-    scenarioPlayer?.stop();
-    // Close any open wearWrap popup and restore the hidden global chrome
-    // (leave with the popup open would otherwise keep #globalMenu/#sideMenu
-    // display:none when returning to the home).
-    const wearWrap = document.getElementById('wearWrap');
-    if (wearWrap) wearWrap.classList.add('off');
-    const myPage = document.getElementById('MyPage');
-    if (myPage) myPage.classList.remove('wearing');
-    setWearWrapChrome(false);
+        scenarioPlayer?.stop();
+        // Close any open wearWrap popup and restore the hidden global chrome
+        // (leave with the popup open would otherwise keep #globalMenu/#sideMenu
+        // display:none when returning to the home).
+        const wearWrap = document.getElementById('wearWrap');
+        if (wearWrap) wearWrap.classList.add('off');
+        const myPage = document.getElementById('MyPage');
+        if (myPage) myPage.classList.remove('wearing');
+        setWearWrapChrome(false);
 
-    destroyCurrentModels();
-    await clearBackground();
-    if (player) {
-        try { await player.stop(); } catch (e) {}
-        player = null;
-    }
+        destroyCurrentModels();
+        await clearBackground();
+        if (player) {
+            try { await player.stop(); } catch (e) {}
+            player = null;
+        }
 
-    setHomePositioning(false);
-    homeSceneMounted = false;
-    document.getElementById('ui-layer')?.classList.remove('home-mode');
-    document.body.classList.remove('connecting');
+        setHomePositioning(false);
+        homeSceneMounted = false;
+        document.getElementById('ui-layer')?.classList.remove('home-mode');
+        document.body.classList.remove('connecting');
+    })().finally(() => {
+        homeTeardownPromise = null;
+    });
 
-    await Promise.all([
-        initBackground('bg/web/web_0015.ExportJson'),
-        playTrack('bgm02_anime11_hca.hca')
-    ]);
+    return homeTeardownPromise;
+}
+
+async function stopHomeScreen() {
+    homeDesiredActive = false;
+    homeRequestToken++;
+    if (homeStopPromise) return homeStopPromise;
+    const wasActive = homeActive || homeSceneMounted || homeLoadPromise || Boolean(homeTeardownPromise);
+    homeStopPromise = (async () => {
+        await teardownHomeScreen();
+        if (!wasActive || homeActive || homeDesiredActive) return;
+        await Promise.all([
+            initBackground('bg/web/web_0015.ExportJson'),
+            playTrack('bgm02_anime11_hca.hca')
+        ]);
+    })().finally(() => {
+        homeStopPromise = null;
+    });
+    return homeStopPromise;
 }
 window.stopHomeScreen = stopHomeScreen;
 
@@ -1833,6 +1907,12 @@ async function init() {
 
     await loadCharaAttributes();
 
+    const bareSearchId = new URLSearchParams(window.location.search).get('id');
+    const bareEntry = !window.location.hash || window.location.hash === '#' || window.location.hash === '#/';
+    if (bareEntry && /^\d{4}$/.test(bareSearchId || '')) {
+        history.replaceState(null, '', `${window.location.pathname}${window.location.search}#/MyPage?id=${bareSearchId}`);
+    }
+
     const initialHomeRoute = window.location.hash.startsWith('#/MyPage');
     if (!initialHomeRoute) {
         await Promise.all([
@@ -1840,9 +1920,6 @@ async function init() {
             playTrack('bgm02_anime11_hca.hca').catch((e) => console.warn('[quotes] bgm error:', e))
         ]);
     }
-
-    const urlParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
-    state.currentCharacterId = Number(urlParams.get('id')) || DEFAULT_CHARA_ID;
 
     // Resume audio on first user interaction if Chrome suspended the context.
     setupAudioAutoResume();

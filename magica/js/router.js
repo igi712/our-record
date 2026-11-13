@@ -5,13 +5,36 @@ import { renderCharaCollectionGrid } from './viewer/chara-collection.js';
 import { initHomeMenu, resetHomeMenu } from './home-menu.js';
 import { initMyPage, resetMyPage } from './mypage.js';
 
+let routeGeneration = 0;
+
+/**
+ * Loads a view template and returns false if a newer route superseded this one
+ * while awaiting the fetch, hiding any newly mounted elements so they cannot
+ * appear over the active route.
+ */
+async function loadRouteTemplate(path, generation, ...staleHideIds) {
+    const mounted = await loadViewTemplate(path, 'ui-layer');
+    if (generation === routeGeneration) return true;
+    if (mounted) {
+        for (const id of staleHideIds) {
+            const el = document.getElementById(id);
+            if (!el) continue;
+            if (id === 'sideMenu') el.style.visibility = 'hidden';
+            else el.style.display = 'none';
+        }
+    }
+    return false;
+}
+
 export async function handleRoute(loadCharacterDetail, state, loadHomeScreen) {
+    const generation = ++routeGeneration;
     const hash = window.location.hash || '#/CharaCollection';
     const uiLayer = document.getElementById('ui-layer');
     if (!uiLayer) return;
 
     if (!hash.startsWith('#/MyPage') && window.stopHomeScreen) {
         await window.stopHomeScreen();
+        if (generation !== routeGeneration) return;
     }
     resetHomeMenu();
     resetMyPage();
@@ -36,7 +59,7 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen) {
     if (hash.startsWith('#/MyPage')) {
         let homeMenuEl = document.getElementById('globalMenu');
         if (!homeMenuEl) {
-            await loadViewTemplate('magica/template/base/GlobalMenu.html', 'ui-layer');
+            if (!await loadRouteTemplate('magica/template/base/GlobalMenu.html', generation, 'globalMenu', 'sideMenu')) return;
             homeMenuEl = document.getElementById('globalMenu');
         }
         // Hide immediately after mount: the raw template shows 0/0 in the
@@ -46,7 +69,7 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen) {
         if (homeMenuEl) homeMenuEl.style.visibility = 'hidden';
         const sideMenuEl = document.getElementById('sideMenu');
         if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
-        await loadViewTemplate('magica/template/base/MyPage.html', 'ui-layer');
+        if (!await loadRouteTemplate('magica/template/base/MyPage.html', generation, 'MyPage')) return;
 
         const charaCollectionEl = document.getElementById('CharaCollection');
         const cardDetailEl = document.getElementById('cardDetail');
@@ -67,13 +90,10 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen) {
         if (typeof loadHomeScreen === 'function') {
             await loadHomeScreen();
         }
-        if (typeof loadCharacterDetail === 'function') {
-            await loadCharacterDetail(state.currentCharacterId);
-        }
     } else if (hash.startsWith('#/CharaCollectionDetail')) {
         let charaDetailEl = document.getElementById('cardDetail');
         if (!charaDetailEl) {
-            await loadViewTemplate('magica/template/collection/CharaCollectionDetail.html', 'ui-layer');
+            if (!await loadRouteTemplate('magica/template/collection/CharaCollectionDetail.html', generation, 'cardDetail')) return;
             charaDetailEl = document.getElementById('cardDetail');
         }
 
@@ -101,7 +121,7 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen) {
     } else {
         let charaCollectionEl = document.getElementById('CharaCollection');
         if (!charaCollectionEl) {
-            await loadViewTemplate('magica/template/collection/CharaCollection.html', 'ui-layer');
+            if (!await loadRouteTemplate('magica/template/collection/CharaCollection.html', generation, 'CharaCollection')) return;
             charaCollectionEl = document.getElementById('CharaCollection');
         }
 
