@@ -5,8 +5,12 @@ PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.LINEAR;
 const MAX_DPR = 2; // clamp to prevent huge memory/scrolling issues on mobile
 function getAppliedDPR() { return Math.max(1, Math.min(MAX_DPR, Math.ceil(window.devicePixelRatio || 1))); }
 
+const viewerBgState = window.__QUOTES_CONFIG?.noGameBg
+    ? { type: 'home', color: 0x000000 }
+    : { type: 'solid', color: 0x999999 };
+
 const app = new PIXI.Application({
-    backgroundColor: 0x000000,
+    backgroundColor: viewerBgState.color,
     autoStart: true,
     view: document.getElementById('canvas'),
     antialias: true,
@@ -87,6 +91,9 @@ const cameraContainer = new PIXI.Container();
 const gameBg = new PIXI.Graphics();
 cameraContainer.addChild(gameBg);
 
+const sceneBgContainer = new PIXI.Container();
+cameraContainer.addChild(sceneBgContainer);
+
 const worldContainer = new PIXI.Container();
 cameraContainer.addChild(worldContainer);
 app.stage.addChild(cameraContainer);
@@ -156,7 +163,9 @@ function updateViewport() {
     currentViewLeft = cameraLeft;
     currentViewTop = cameraTop;
 
-    // Shift the world so the view window's top-left becomes (0,0) under the camera container.
+    // Shift the scene background and world so the view window's top-left becomes (0,0) under the camera container.
+    sceneBgContainer.x = -cameraLeft;
+    sceneBgContainer.y = -cameraTop;
     worldContainer.x = -cameraLeft;
     worldContainer.y = -cameraTop;
 
@@ -165,10 +174,16 @@ function updateViewport() {
     cameraMask.drawRect(0, 0, viewW, viewH);
     cameraMask.endFill();
 
-    // Always clear gameBg; only draw the gray fill when not suppressed by config.
+    const isQuotesMode = Boolean(window.__QUOTES_CONFIG?.noGameBg);
+    const isSolidBg = !isQuotesMode && viewerBgState.type === 'solid';
+    const stageColor = isSolidBg ? viewerBgState.color : 0x000000;
+
+    app.renderer.backgroundColor = stageColor;
+
+    // Always clear gameBg; fill with solid stage color (or black behind scene backgrounds) unless suppressed by config.
     gameBg.clear();
-    if (!window.__QUOTES_CONFIG?.noGameBg) {
-        gameBg.beginFill(0x999999);
+    if (!isQuotesMode) {
+        gameBg.beginFill(stageColor);
         gameBg.drawRect(0, 0, viewW, viewH);
         gameBg.endFill();
     }
@@ -185,24 +200,25 @@ function updateViewport() {
     const vy = Math.floor((h - viewH * scale) / 2);
     cameraContainer.position.set(vx, vy);
 
-    // Draw opaque borders over the letterbox/pillarbox areas.
-    // This hides any Live2D models that bleed outside the camera mask
-    // due to the library's custom WebGL state ignoring PIXI's stencil mask.
+    // Draw opaque borders over the letterbox/pillarbox areas when framing Story/Home/Quotes scenes.
+    // Solid/test backgrounds omit borders so the solid color fills the full viewport seamlessly.
     viewerBgGraphics.clear();
-    const matrix = new PIXI.Matrix();
-    matrix.scale(1, h / 256); // Stretch the 256px gradient to the screen height
-    viewerBgGraphics.beginTextureFill({ texture: viewerBgTexture, matrix: matrix });
-    
-    // Top border
-    if (vy > 0) viewerBgGraphics.drawRect(0, 0, w, vy);
-    // Bottom border
-    if (h - (vy + viewH * scale) > 0) viewerBgGraphics.drawRect(0, vy + viewH * scale, w, h - (vy + viewH * scale));
-    // Left border
-    if (vx > 0) viewerBgGraphics.drawRect(0, vy, vx, viewH * scale);
-    // Right border
-    if (w - (vx + viewW * scale) > 0) viewerBgGraphics.drawRect(vx + viewW * scale, vy, w - (vx + viewW * scale), viewH * scale);
-    
-    viewerBgGraphics.endFill();
+    if (!isSolidBg) {
+        const matrix = new PIXI.Matrix();
+        matrix.scale(1, h / 256); // Stretch the 256px gradient to the screen height
+        viewerBgGraphics.beginTextureFill({ texture: viewerBgTexture, matrix: matrix });
+
+        // Top border
+        if (vy > 0) viewerBgGraphics.drawRect(0, 0, w, vy);
+        // Bottom border
+        if (h - (vy + viewH * scale) > 0) viewerBgGraphics.drawRect(0, vy + viewH * scale, w, h - (vy + viewH * scale));
+        // Left border
+        if (vx > 0) viewerBgGraphics.drawRect(0, vy, vx, viewH * scale);
+        // Right border
+        if (w - (vx + viewW * scale) > 0) viewerBgGraphics.drawRect(vx + viewW * scale, vy, w - (vx + viewW * scale), viewH * scale);
+
+        viewerBgGraphics.endFill();
+    }
 
     // Expose active viewport metrics for placement code.
     window.VIEWPORT = {
@@ -216,6 +232,22 @@ function updateViewport() {
         scaleMode: mode === 'portrait' ? 'fill-height' : 'fit'
     };
 }
+
+/**
+ * Updates the viewer stage background framing mode and solid backdrop color.
+ * @param {{ type?: 'solid'|'story'|'home', color?: number }} nextState
+ */
+window.setViewerBackgroundState = function setViewerBackgroundState(nextState = {}) {
+    const nextType = nextState && (nextState.type === 'story' || nextState.type === 'home' || nextState.type === 'solid')
+        ? nextState.type
+        : 'solid';
+    const nextColor = Number.isFinite(nextState?.color)
+        ? (nextState.color >>> 0)
+        : (nextType === 'solid' ? 0x999999 : 0x000000);
+    viewerBgState.type = nextType;
+    viewerBgState.color = nextColor;
+    updateViewport();
+};
 
 window.updateViewerViewport = updateViewport;
 updateViewport();
@@ -237,5 +269,6 @@ PIXI.live2d.Live2DModel.registerTicker(PIXI.Ticker);
 
 window.app = app;
 window.cameraContainer = cameraContainer;
+window.sceneBgContainer = sceneBgContainer;
 window.worldContainer = worldContainer;
 window.viewerBgSprite = viewerBgGraphics;
