@@ -25,6 +25,7 @@ import {
     swapDualPositions
 } from './model.js';
 import { getDualUnitConfig } from './model-scenario.js';
+import { isBackgroundModalOpen, setupBackgroundSelector } from './viewer-bg.js';
 
 function populateCharacterDropdown() {
     const characterSelect = document.getElementById('characterSelect');
@@ -268,6 +269,7 @@ export function setupHotkeys() {
         window.addEventListener('keydown', (ev) => {
             try {
                 if (ev.repeat) return;
+                if (isBackgroundModalOpen()) return;
                 const active = document.activeElement;
                 if (active) {
                     const t = active.tagName;
@@ -478,4 +480,6 @@ export function setupManualControls() {
         if (randomBtn) randomBtn.onclick = () => playRandomMotion();
         if (captureBtn) captureBtn.onclick = () => downloadModelSnapshot();
     } catch {}
+
+    setupBackgroundSelector();
 }

@@ -17,6 +17,7 @@ const FILES = [
   'magica/js/viewer/model-scenario.js',
   'magica/js/viewer/quotes-sequence.js',
   'magica/js/viewer/ui.js',
+  'magica/js/viewer/viewer-bg.js',
   'magica/js/viewer/main.js',
   'magica/js/viewer/chara-collection.js',
   'magica/js/viewer/quotes-main.js',

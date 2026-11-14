@@ -68,12 +68,175 @@
 
         .small { font-size: 12px; padding: 6px 8px; }
 
+        #controls .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px 8px;
+            margin-top: 8px;
+        }
+        #controls .checkbox-grid label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 0;
+            cursor: pointer;
+            line-height: 1.15;
+        }
+        #controls .checkbox-grid input[type="checkbox"] {
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        /* Background Selector Modal (matches #controls minimal dark overlay style) */
+        #bgSelectorModal[hidden] { display: none; }
+        #bgSelectorModal {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            box-sizing: border-box;
+            font: 13px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            color: #e6e6e6;
+        }
+        .bg-modal-dialog {
+            width: min(860px, 100%);
+            max-height: min(85vh, 720px);
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 8px;
+        }
+        .bg-modal-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+        #bgModalCloseBtn {
+            background: none;
+            border: none;
+            color: #e6e6e6;
+            font-size: 16px;
+            line-height: 1;
+            padding: 2px 6px;
+            cursor: pointer;
+        }
+        .bg-modal-toolbar {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        #bgSearchInput {
+            flex: 1;
+            min-width: 0;
+            font-size: 12px;
+            padding: 4px 6px;
+        }
+        #bgCategorySelect {
+            font-size: 12px;
+            padding: 4px;
+        }
+        .bg-modal-hr {
+            margin: 8px 0;
+            border: 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+        }
+        .bg-modal-body {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+        #bgModalStatus[hidden] { display: none; }
+        #bgModalStatus {
+            padding: 12px;
+            text-align: center;
+            font-size: 12px;
+            color: #bbb;
+        }
+        .bg-section[hidden] { display: none; }
+        .bg-section + .bg-section { margin-top: 12px; }
+        .bg-section-title {
+            margin: 0 0 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #ccc;
+        }
+        .bg-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(122px, 1fr));
+            gap: 8px;
+        }
+        .bg-card {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 4px;
+            border-radius: 4px;
+            border: 2px solid transparent;
+            background: rgba(255, 255, 255, 0.06);
+            color: #e6e6e6;
+            font: inherit;
+            font-size: 11.5px;
+            text-align: left;
+            cursor: pointer;
+        }
+        .bg-card:hover { background: rgba(255, 255, 255, 0.12); }
+        .bg-card.is-selected {
+            border-color: #ffffff;
+            background: rgba(255, 255, 255, 0.18);
+        }
+        .bg-thumb {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            border-radius: 3px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.06);
+            display: block;
+        }
+        .bg-swatch, .bg-thumb-img, .bg-thumb-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .bg-thumb-img { object-fit: cover; }
+        .bg-thumb-img:not([src]) { visibility: hidden; }
+        .bg-card-label {
+            line-height: 1.2;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
+        }
+        .bg-more-btn[hidden] { display: none; }
+        .bg-more-btn { margin-top: 8px; }
+        .bg-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
         @media (max-width: 520px) {
             #controls { width: 180px; padding: 8px; right: 8px; top: 8px; border-radius: 8px; }
             .menu-toggle { width: 34px; height: 34px; right: 8px; top: 8px; }
             #controls label { font-size: 11px; }
+            #controls .checkbox-grid { gap: 5px 6px; }
+            #controls .checkbox-grid label { font-size: 10.5px; gap: 4px; }
             #controls select, #controls input[type="range"] { font-size: 11px; }
             #controls button { font-size: 12px; padding: 5px 6px; }
+            #bgSelectorModal { padding: 8px; }
+            .bg-modal-dialog { max-height: 90vh; }
+            .bg-grid { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 6px; }
         }
 
     </style>
@@ -136,28 +299,66 @@
                 </div>
             </div>
 
-            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                <label style="display:flex;align-items:center;gap:6px;"><input id="eyeClose" type="checkbox">Eye Close</label>
+            <div class="checkbox-grid">
+                <label><input id="eyeClose" type="checkbox">Eye Close</label>
+                <label><input id="mouthOpen" type="checkbox">Mouth Open</label>
+                <label><input id="tear" type="checkbox">Tear</label>
+                <label><input id="soulGem" type="checkbox">Soul Gem</label>
             </div>
 
-            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                <label style="display:flex;align-items:center;gap:6px;"><input id="mouthOpen" type="checkbox">Mouth Open</label>
-            </div>
-
-            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                <label style="display:flex;align-items:center;gap:6px;"><input id="tear" type="checkbox">Tear</label>
-            </div>
-
-            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                <label style="display:flex;align-items:center;gap:6px;"><input id="soulGem" type="checkbox">Soul Gem</label>
-            </div>
-
-            <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
+            <div style="display:flex;gap:8px;margin-top:8px;align-items:center;">
                 <button id="micToggle" type="button">Start Mic Lipsync</button>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
             <label for="micSensitivity" style="font-size:12px;">Mic Sens</label>
             <input id="micSensitivity" type="range" min="0.25" max="2" step="0.05" value="1" style="flex:1;">
+            </div>
+
+            <hr style="margin:8px 0;border:0;border-top:1px solid rgba(255,255,255,0.06);">
+
+            <div>
+                <button id="changeBgBtn" type="button" style="width:100%;">Change Background</button>
+            </div>
+        </div>
+
+        <div id="bgSelectorModal" hidden role="dialog" aria-modal="true" aria-labelledby="bgModalTitle">
+            <div class="bg-modal-dialog">
+                <div class="bg-modal-top">
+                    <span id="bgModalTitle">Background</span>
+                    <button id="bgModalCloseBtn" type="button" aria-label="Close">✕</button>
+                </div>
+                <div class="bg-modal-toolbar">
+                    <input id="bgSearchInput" type="search" placeholder="Search..." aria-label="Search backgrounds">
+                    <select id="bgCategorySelect" aria-label="Filter category">
+                        <option value="all">All</option>
+                        <option value="solid">Solid</option>
+                        <option value="story">Story</option>
+                        <option value="home">Home</option>
+                    </select>
+                </div>
+                <hr class="bg-modal-hr">
+                <div id="bgModalBody" class="bg-modal-body">
+                    <div id="bgModalStatus" hidden></div>
+                    <section id="bgSectionSolid" class="bg-section">
+                        <div class="bg-section-title">Solid</div>
+                        <div id="bgGridSolid" class="bg-grid"></div>
+                    </section>
+                    <section id="bgSectionStory" class="bg-section">
+                        <div class="bg-section-title">Story</div>
+                        <div id="bgGridStory" class="bg-grid"></div>
+                        <button id="bgMoreStory" type="button" class="bg-more-btn small" data-section-key="story" hidden>More...</button>
+                    </section>
+                    <section id="bgSectionHome" class="bg-section">
+                        <div class="bg-section-title">Home</div>
+                        <div id="bgGridHome" class="bg-grid"></div>
+                        <button id="bgMoreHome" type="button" class="bg-more-btn small" data-section-key="home" hidden>More...</button>
+                    </section>
+                </div>
+                <hr class="bg-modal-hr">
+                <div class="bg-modal-footer">
+                    <button id="bgCancelBtn" type="button" class="small">Cancel</button>
+                    <button id="bgOkBtn" type="button" class="small">OK</button>
+                </div>
             </div>
         </div>
 

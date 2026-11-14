@@ -151,9 +151,12 @@ function updateViewport() {
         cameraLeft = HOME16_LEFT;
         cameraTop = HOME16_TOP;
     } else if (mode === 'portrait') {
-        viewW = PORTRAIT_W;
+        // Fill available viewport width (up to WORLD_W) in responsive portrait so wider portrait windows don't show pillarboxes.
+        viewW = (!configMode && h > w)
+            ? Math.max(PORTRAIT_W, Math.min(WORLD_W, Math.ceil(WORLD_H * (w / h)) + 2))
+            : PORTRAIT_W;
         viewH = PORTRAIT_H;
-        cameraLeft = PORTRAIT_LEFT;
+        cameraLeft = (WORLD_W - viewW) / 2;
         cameraTop = PORTRAIT_TOP;
     }
 
