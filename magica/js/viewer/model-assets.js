@@ -39,7 +39,8 @@ function positionLoadingIndicator() {
 function isPortraitViewMode() {
     try {
         const vp = window.VIEWPORT;
-        if (vp && typeof vp.mode === 'string') return vp.mode === 'portrait';
+        if (vp && typeof vp.isPortrait === 'boolean') return vp.isPortrait;
+        if (vp && typeof vp.mode === 'string') return vp.mode === 'portrait' || vp.mode === 'portrait-full';
         return window.innerHeight > window.innerWidth;
     } catch (e) { return false; }
 }

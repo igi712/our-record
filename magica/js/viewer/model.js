@@ -128,6 +128,12 @@ export function swapDualPositions() {
     state.primaryModel.x = state.secondaryModel.x;
     state.secondaryModel.x = tempX;
 
+    if (state.primaryModel.__mrPlacement && state.secondaryModel.__mrPlacement) {
+        const tempOverride = state.primaryModel.__mrPlacement.xOverride;
+        state.primaryModel.__mrPlacement.xOverride = state.secondaryModel.__mrPlacement.xOverride;
+        state.secondaryModel.__mrPlacement.xOverride = tempOverride;
+    }
+
     const tempZ = state.primaryModel.zIndex;
     state.primaryModel.zIndex = state.secondaryModel.zIndex;
     state.secondaryModel.zIndex = tempZ;
@@ -861,28 +867,77 @@ function beginTransition(ctx, performFadeOut) {
     }
 }
 
-// Phase 4: placement math (16:9 home / 4:3 / portrait profiles).
-function positionModel(model, params, modelId, xOverride, zOrder) {
+// Phase 4: placement math (16:9 home / 4:3 / full / portrait profiles).
+function applyModelPlacement(model, params, modelId, xOverride) {
     // Placement profiles.
-    // Keep the original 16:9 home placement math intact for future use.
     const HOME16_OFFSET_X = -132;
     const HOME16_Y_INTERCEPT = 287.0999674453658;
     const HOME16_Y_PER_HEIGHT = 1.7775731122833498;
 
     // 4:3 (1200x900-derived) placement: yGame = a + b*height in a 1024x768 space.
-    // Derived from your 1200x900 landscape logs by converting SetMvpMatrix ty into yGame
-    // via: yGame = (WORLD_H/2) * (1 + ty) where WORLD_H=768.
     const VIEW43_OFFSET_X = -132;
     const VIEW43_Y_INTERCEPT = 383.35314268220066;
     const VIEW43_Y_PER_HEIGHT = 1.1379321886101403;
 
-    // Portrait behavior: center model horizontally in portrait view (no per-height x regression).
-    // We'll simply center at WORLD_W/2 and avoid changing scale in portrait.
-    // (Old regression constants removed in favor of simple centering.)
-
     const heightParam = Number(params.height ?? 0);
     let modelScaleParam = Number(params.modelScale ?? 1.3);
     if (String(modelId) === '160100') modelScaleParam = 1.3; // Infinite Iroha
+
+    model.anchor.set(0.5, 0.5);
+
+    const coreModel = model?.internalModel?.coreModel;
+    const readNumber = (v) => {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : null;
+    };
+    const tryGet = (fn) => {
+        try { return fn(); } catch { return null; }
+    };
+
+    const canvasWidthUnits =
+        readNumber(coreModel?.canvasWidth) ??
+        readNumber(coreModel?.CanvasWidth) ??
+        readNumber(tryGet(() => coreModel?.getCanvasWidth?.())) ??
+        readNumber(tryGet(() => coreModel?.GetCanvasWidth?.())) ??
+        null;
+
+    const vp = window.VIEWPORT || { mode: 'full43', worldW: WORLD_W, worldH: WORLD_H, viewW: WORLD_W, viewH: WORLD_H, viewLeft: 0, viewTop: 0 };
+    const viewMode = String(vp.mode || 'full43');
+    const isPortraitMode = viewMode === 'portrait' || viewMode === 'portrait-full';
+    const viewH = vp.viewH || WORLD_H;
+
+    // Unified Y formula (exact at 576 & 768, linearly extrapolated for taller views like 960).
+    const t = (viewH - HOME16_H) / (WORLD_H - HOME16_H);
+    const yIntercept = HOME16_Y_INTERCEPT + t * (VIEW43_Y_INTERCEPT - HOME16_Y_INTERCEPT);
+    const ySlope = HOME16_Y_PER_HEIGHT + t * (VIEW43_Y_PER_HEIGHT - HOME16_Y_PER_HEIGHT);
+    const yGame = yIntercept + (heightParam * ySlope);
+
+    let xGame;
+    const scaleMult = 1.0;
+
+    if (xOverride != null) {
+        xGame = xOverride;
+    } else if (viewMode === 'home16') {
+        const home16OffsetX = (window.__QUOTES_CONFIG?.xOffset ?? HOME16_OFFSET_X);
+        xGame = (HOME16_W / 2) + home16OffsetX;
+    } else if (isPortraitMode) {
+        xGame = WORLD_W / 2;
+    } else {
+        xGame = (WORLD_W / 2) + VIEW43_OFFSET_X;
+    }
+
+    model.x = xGame;
+    model.y = (vp.viewTop || 0) + (viewH - yGame);
+
+    const SCALE_TWEAK = 1.0;
+    const cw = canvasWidthUnits ?? 1;
+    const baseScale = ((WORLD_W / 2) * cw) / model.internalModel.originalWidth;
+    const finalScale = baseScale * modelScaleParam * SCALE_TWEAK * scaleMult;
+    model.scale.set(finalScale);
+}
+
+function positionModel(model, params, modelId, xOverride, zOrder) {
+    model.__mrPlacement = { params, modelId, xOverride };
 
     // Hide initially so we can fade in
     model.visible = false;
@@ -904,68 +959,24 @@ function positionModel(model, params, modelId, xOverride, zOrder) {
         worldContainer.addChild(model);
     }
 
-    // Positioning: keep existing math.
-    model.anchor.set(0.5, 0.5);
-
-    const coreModel = model?.internalModel?.coreModel;
-    const readNumber = (v) => {
-        const n = Number(v);
-        return Number.isFinite(n) ? n : null;
-    };
-    const tryGet = (fn) => {
-        try { return fn(); } catch { return null; }
-    };
-
-    const canvasWidthUnits =
-        readNumber(coreModel?.canvasWidth) ??
-        readNumber(coreModel?.CanvasWidth) ??
-        readNumber(tryGet(() => coreModel?.getCanvasWidth?.())) ??
-        readNumber(tryGet(() => coreModel?.GetCanvasWidth?.())) ??
-        null;
-
-    const vp = window.VIEWPORT || { mode: 'full43', worldW: WORLD_W, worldH: WORLD_H, viewW: WORLD_W, viewH: WORLD_H, viewLeft: 0, viewTop: 0 };
-    const viewMode = String(vp.mode || 'full43');
-
-    let xGame;
-    let yGameFromHeight;
-    let yGame;
-    let scaleMult = 1.0;
-
-    if (xOverride != null) {
-        xGame = xOverride;
-        if (viewMode === 'full43' || viewMode === 'portrait') {
-            yGameFromHeight = VIEW43_Y_INTERCEPT + (heightParam * VIEW43_Y_PER_HEIGHT);
-        } else {
-            yGameFromHeight = HOME16_Y_INTERCEPT + (heightParam * HOME16_Y_PER_HEIGHT);
-        }
-    } else if (viewMode === 'home16') {
-        const home16OffsetX = (window.__QUOTES_CONFIG?.xOffset ?? HOME16_OFFSET_X);
-        xGame = (HOME16_W / 2) + home16OffsetX;
-        yGameFromHeight = HOME16_Y_INTERCEPT + (heightParam * HOME16_Y_PER_HEIGHT);
-    } else {
-        // full43 + portrait both use the 4:3-derived y regression.
-        yGameFromHeight = VIEW43_Y_INTERCEPT + (heightParam * VIEW43_Y_PER_HEIGHT);
-
-        if (viewMode === 'portrait') {
-            // Center horizontally in portrait.
-            xGame = (WORLD_W / 2);
-            scaleMult = 1.0;
-        } else {
-            xGame = (WORLD_W / 2) + VIEW43_OFFSET_X;
-        }
-    }
-
-    yGame = yGameFromHeight;
-
-    model.x = xGame;
-    model.y = (vp.viewTop || 0) + ((vp.viewH || WORLD_H) - yGame);
-
-    const SCALE_TWEAK = 1.0;
-    const cw = canvasWidthUnits ?? 1;
-    const baseScale = ((WORLD_W / 2) * cw) / model.internalModel.originalWidth;
-    const finalScale = baseScale * modelScaleParam * SCALE_TWEAK * scaleMult;
-    model.scale.set(finalScale);
+    applyModelPlacement(model, params, modelId, xOverride);
 }
+
+export function repositionActiveModels() {
+    const models = new Set();
+    if (state.currentModel) models.add(state.currentModel);
+    if (state.primaryModel) models.add(state.primaryModel);
+    if (state.secondaryModel) models.add(state.secondaryModel);
+    models.forEach((m) => {
+        const meta = m?.__mrPlacement;
+        if (!meta) return;
+        applyModelPlacement(m, meta.params, meta.modelId, meta.xOverride);
+    });
+}
+
+try {
+    window.addEventListener('mrv2:viewportChange', () => repositionActiveModels());
+} catch {}
 
 // Phase 5: create v2 controller + wire controls + apply default/preserved params + initial motion.
 async function createAndConfigureController(model, modelJson, preservedState, isStaleLoad) {

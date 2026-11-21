@@ -472,13 +472,31 @@ export function setupManualControls() {
         }
     } catch (e) { console.warn('Menu init failed', e); }
 
-    // Buttons: capture / random / follow
+    // Buttons: capture / random / view mode
     try {
         const captureBtn = document.getElementById('captureBtn');
         const randomBtn = document.getElementById('randomBtn');
+        const viewModeBtn = document.getElementById('viewModeBtn');
 
         if (randomBtn) randomBtn.onclick = () => playRandomMotion();
         if (captureBtn) captureBtn.onclick = () => downloadModelSnapshot();
+
+        if (viewModeBtn) {
+            const labels = {
+                full43: '4:3',
+                home16: '16:9',
+                full: 'Full',
+                portrait: 'Normal',
+                'portrait-full': 'Full'
+            };
+            const syncViewModeBtn = (vp) => {
+                const mode = vp?.mode || window.VIEWPORT?.mode || 'full43';
+                viewModeBtn.textContent = labels[mode] || '4:3';
+            };
+            syncViewModeBtn(window.VIEWPORT);
+            viewModeBtn.onclick = () => window.cycleViewerViewMode?.();
+            window.addEventListener('mrv2:viewportChange', (ev) => syncViewModeBtn(ev.detail));
+        }
     } catch {}
 
     setupBackgroundSelector();

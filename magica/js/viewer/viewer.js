@@ -60,11 +60,20 @@ const VIEW43_H = WORLD_H;
 const VIEW43_LEFT = 0;
 const VIEW43_TOP = 0;
 
+// Full (taller) view: tuned taller height to show more of the model without floating
+const VIEWFULL_W = WORLD_W;
+const VIEWFULL_H = 928;
+const VIEWFULL_LEFT = 0;
+const VIEWFULL_TOP = (WORLD_H - VIEWFULL_H) / 2;
+
 // Portrait view: keep full height, crop width to 3:4 (shows more vertical content)
 const PORTRAIT_W = Math.round((WORLD_H * 3) / 4); // 576 for 768h
 const PORTRAIT_H = WORLD_H;
 const PORTRAIT_LEFT = Math.round((WORLD_W - PORTRAIT_W) / 2); // 224
 const PORTRAIT_TOP = 0;
+
+// Session-only user view preference (null = auto default)
+let userViewMode = null;
 
 function getInitialViewOverride() {
     try {
@@ -73,6 +82,7 @@ function getInitialViewOverride() {
         if (!v) return null;
         if (v === 'home16' || v === '16:9' || v === '16x9') return 'home16';
         if (v === 'full43' || v === '4:3' || v === '4x3') return 'full43';
+        if (v === 'full' || v === 'tall') return 'full';
         if (v === 'portrait') return 'portrait';
 
         return null;
@@ -138,7 +148,21 @@ function updateViewport() {
 
     const overrideMode = getInitialViewOverride();
     const configMode = window.__QUOTES_CONFIG?.viewMode;
-    const mode = overrideMode || configMode || detectAutoViewMode();
+    const isPortraitViewport = h > w;
+
+    let mode;
+    if (configMode) {
+        mode = configMode;
+    } else {
+        const requested = userViewMode || overrideMode;
+        if (isPortraitViewport) {
+            // Portrait only switches between Normal (768h) and Full (tallH); skip 16:9.
+            mode = (requested === 'full' || requested === 'portrait-full') ? 'portrait-full' : 'portrait';
+        } else {
+            mode = requested || detectAutoViewMode();
+            if (mode === 'portrait-full') mode = 'full';
+        }
+    }
 
     let viewW = VIEW43_W;
     let viewH = VIEW43_H;
@@ -150,15 +174,23 @@ function updateViewport() {
         viewH = HOME16_H;
         cameraLeft = HOME16_LEFT;
         cameraTop = HOME16_TOP;
-    } else if (mode === 'portrait') {
+    } else if (mode === 'full') {
+        viewW = VIEWFULL_W;
+        viewH = VIEWFULL_H;
+        cameraLeft = VIEWFULL_LEFT;
+        cameraTop = VIEWFULL_TOP;
+    } else if (mode === 'portrait' || mode === 'portrait-full') {
+        const targetH = (mode === 'portrait-full') ? VIEWFULL_H : PORTRAIT_H;
         // Fill available viewport width (up to WORLD_W) in responsive portrait so wider portrait windows don't show pillarboxes.
-        viewW = (!configMode && h > w)
-            ? Math.max(PORTRAIT_W, Math.min(WORLD_W, Math.ceil(WORLD_H * (w / h)) + 2))
+        viewW = (!configMode && isPortraitViewport)
+            ? Math.max(PORTRAIT_W, Math.min(WORLD_W, Math.ceil(targetH * (w / h)) + 2))
             : PORTRAIT_W;
-        viewH = PORTRAIT_H;
+        viewH = targetH;
         cameraLeft = (WORLD_W - viewW) / 2;
-        cameraTop = PORTRAIT_TOP;
+        cameraTop = (WORLD_H - targetH) / 2;
     }
+
+    const isPortraitMode = (mode === 'portrait' || mode === 'portrait-full');
 
     currentViewMode = mode;
     currentViewW = viewW;
@@ -167,8 +199,11 @@ function updateViewport() {
     currentViewTop = cameraTop;
 
     // Shift the scene background and world so the view window's top-left becomes (0,0) under the camera container.
-    sceneBgContainer.x = -cameraLeft;
-    sceneBgContainer.y = -cameraTop;
+    // For taller views (viewH > WORLD_H), scale the background around world center so it covers height (cropping left/right).
+    const bgScale = Math.max(1, viewH / WORLD_H);
+    sceneBgContainer.pivot.set(WORLD_W / 2, WORLD_H / 2);
+    sceneBgContainer.scale.set(bgScale);
+    sceneBgContainer.position.set(WORLD_W / 2 - cameraLeft, WORLD_H / 2 - cameraTop);
     worldContainer.x = -cameraLeft;
     worldContainer.y = -cameraTop;
 
@@ -193,7 +228,7 @@ function updateViewport() {
 
     // Scale: normally fit; in portrait, fill height to avoid letterboxing and allow horizontal cropping.
     let scale;
-    if (mode === 'portrait') {
+    if (isPortraitMode) {
         scale = h / viewH; // fill height, crop sides if needed
     } else {
         scale = Math.min(w / viewW, h / viewH);
@@ -226,15 +261,41 @@ function updateViewport() {
     // Expose active viewport metrics for placement code.
     window.VIEWPORT = {
         mode: currentViewMode,
+        isPortrait: isPortraitMode,
         worldW: WORLD_W,
         worldH: WORLD_H,
         viewW: currentViewW,
         viewH: currentViewH,
         viewLeft: currentViewLeft,
         viewTop: currentViewTop,
-        scaleMode: mode === 'portrait' ? 'fill-height' : 'fit'
+        scaleMode: isPortraitMode ? 'fill-height' : 'fit'
     };
+
+    try {
+        window.dispatchEvent(new CustomEvent('mrv2:viewportChange', { detail: window.VIEWPORT }));
+    } catch {}
 }
+
+window.setViewerViewMode = function setViewerViewMode(nextMode) {
+    if (window.__QUOTES_CONFIG?.viewMode) return currentViewMode;
+    userViewMode = nextMode || null;
+    updateViewport();
+    return currentViewMode;
+};
+
+window.cycleViewerViewMode = function cycleViewerViewMode() {
+    if (window.__QUOTES_CONFIG?.viewMode) return currentViewMode;
+    const isPortraitViewport = (window.innerHeight || 0) > (window.innerWidth || 0);
+    if (isPortraitViewport) {
+        userViewMode = (currentViewMode === 'portrait-full') ? 'full43' : 'full';
+    } else {
+        const order = ['full43', 'home16', 'full'];
+        const idx = order.indexOf(currentViewMode);
+        userViewMode = order[(idx + 1) % order.length];
+    }
+    updateViewport();
+    return currentViewMode;
+};
 
 /**
  * Updates the viewer stage background framing mode and solid backdrop color.
