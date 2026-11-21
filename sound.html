@@ -524,7 +524,15 @@
             height: window.innerHeight,
             view: document.getElementById('bgCanvas'),
             backgroundColor: 0x050508,
-            antialias: true
+            antialias: false
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                bgApp.ticker.stop();
+            } else {
+                bgApp.ticker.start();
+            }
         });
 
         let bgArmature = null;

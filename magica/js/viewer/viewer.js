@@ -1,17 +1,18 @@
 // Pixi / viewer setup
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.LINEAR;
 
-// Use an integer DPR (ceil) but clamp to avoid extremely large backing buffers on some mobile devices.
+// Clamp DPR to avoid extremely large backing buffers on high-DPI mobile devices.
 const MAX_DPR = 2; // clamp to prevent huge memory/scrolling issues on mobile
-function getAppliedDPR() { return Math.max(1, Math.min(MAX_DPR, Math.ceil(window.devicePixelRatio || 1))); }
+function getAppliedDPR() { return Math.max(1, Math.min(MAX_DPR, window.devicePixelRatio || 1)); }
 
 const viewerBgState = { type: 'home', color: 0x000000 };
 
 const app = new PIXI.Application({
     backgroundColor: viewerBgState.color,
     autoStart: true,
+    sharedTicker: true,
     view: document.getElementById('canvas'),
-    antialias: true,
+    antialias: false,
     autoDensity: true,
     resolution: getAppliedDPR()
 });
@@ -216,9 +217,10 @@ function updateViewport() {
 
     app.renderer.backgroundColor = stageColor;
 
-    // Always clear gameBg; fill with solid stage color (or black behind scene backgrounds) unless suppressed by config.
+    // Always clear gameBg; fill behind scene backgrounds unless suppressed by config.
+    // Solid backgrounds already clear the canvas to stageColor, so skip the redundant fill.
     gameBg.clear();
-    if (!isQuotesMode) {
+    if (!isQuotesMode && !isSolidBg) {
         gameBg.beginFill(stageColor);
         gameBg.drawRect(0, 0, viewW, viewH);
         gameBg.endFill();
@@ -320,7 +322,7 @@ window.addEventListener('resize', updateViewport);
     const canvas = app.view;
     const rect = canvas.getBoundingClientRect();
     console.log('Viewer sizing', {
-        devicePixelRatio: 1,
+        devicePixelRatio: window.devicePixelRatio || 1,
         canvasCssPx: { w: rect.width, h: rect.height },
         rendererScreen: { w: app.screen.width, h: app.screen.height },
         rendererResolution: app.renderer.resolution
@@ -328,6 +330,14 @@ window.addEventListener('resize', updateViewport);
 }
 
 PIXI.live2d.Live2DModel.registerTicker(PIXI.Ticker);
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        app.ticker.stop();
+    } else {
+        app.ticker.start();
+    }
+});
 
 window.app = app;
 window.cameraContainer = cameraContainer;
