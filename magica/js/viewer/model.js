@@ -270,6 +270,8 @@ export function applySoulGem(enabled) {
 
 export { downloadModelSnapshot } from './model-snapshot.js';
 
+const DEFAULT_EXPRESSION_VALUE = '__default__';
+
 function setupControlsForModel(model, modelJson) {
     const motionSelect = document.getElementById('motionSelect');
     const expressionSelect = document.getElementById('expressionSelect');
@@ -321,6 +323,11 @@ function setupControlsForModel(model, modelJson) {
     if (expressionSelect) {
         const expressions = modelJson?.FileReferences?.Expressions ?? [];
         const expressionOptions = [];
+        const defaultExpr = findDefaultExpression(expressions);
+
+        if (Array.isArray(expressions) && expressions.length > 0 && !defaultExpr) {
+            expressionOptions.push({ value: DEFAULT_EXPRESSION_VALUE, label: 'Default' });
+        }
 
         if (Array.isArray(expressions)) {
             for (let i = 0; i < expressions.length; i++) {
@@ -332,10 +339,13 @@ function setupControlsForModel(model, modelJson) {
 
         fillSelect(expressionSelect, expressionOptions);
 
-        // Prefer mtn_ex_010, falling back to lowest mtn_ex_XXX or first listed option.
+        // Prefer mtn_ex_010 -> mtn_ex_000 -> model's built-in Default (no .exp3.json).
         if (expressionOptions.length > 0) {
-            const defaultExpr = findDefaultExpression(expressions);
-            if (defaultExpr) setSelectValue(expressionSelect, defaultExpr);
+            if (defaultExpr) {
+                setSelectValue(expressionSelect, defaultExpr);
+            } else {
+                expressionSelect.value = DEFAULT_EXPRESSION_VALUE;
+            }
             if (!expressionSelect.value) expressionSelect.value = expressionOptions[0].value;
         }
 
@@ -344,8 +354,12 @@ function setupControlsForModel(model, modelJson) {
             if (!controllers.length) return;
             updateSavedUnitState(s => s.expressionValue = expressionSelect.value);
             controllers.forEach(c => {
-                const ok = c?.setExpressionByName?.(expressionSelect.value);
-                if (!ok) console.warn('Could not set expression', { name: expressionSelect.value });
+                if (expressionSelect.value === DEFAULT_EXPRESSION_VALUE) {
+                    c?.resetExpression?.();
+                } else {
+                    const ok = c?.setExpressionByName?.(expressionSelect.value);
+                    if (!ok) console.warn('Could not set expression', { name: expressionSelect.value });
+                }
             });
         };
     }
@@ -705,7 +719,7 @@ async function applyInitialMotionAndExpression(opts) {
         if (d) await waitMs(d);
         if (typeof isStaleLoad === 'function' && isStaleLoad()) return;
         const name = expressionSelect?.value;
-        if (!name) break;
+        if (!name || name === DEFAULT_EXPRESSION_VALUE) break;
         try {
             if (controller.setExpressionByName(name)) break;
         } catch {}

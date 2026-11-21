@@ -678,6 +678,17 @@
                 return setExpressionByIndex(idx);
             },
 
+            resetExpression() {
+                try {
+                    const em = im?.motionManager?.expressionManager;
+                    if (em && typeof em.resetExpression === 'function') {
+                        em.resetExpression();
+                        return true;
+                    }
+                } catch (e) {}
+                return false;
+            },
+
             destroy() {
                 cancelSequence();
                 cancelTween('eyeTween');

@@ -9,12 +9,12 @@ export function normalizeExpressionName(raw) {
 
 /**
  * Pick the default expression for a model: `mtn_ex_010` if available,
- * otherwise the lowest-numbered `mtn_ex_XXX` (or the first listed entry).
+ * otherwise `mtn_ex_000` if available, otherwise `null` (use model's built-in default).
  */
 export function findDefaultExpression(expressions) {
     if (!Array.isArray(expressions) || expressions.length === 0) return null;
 
-    let lowestMtnEx = null;
+    let fallback000 = null;
     for (const expr of expressions) {
         const fullName = String(expr?.Name ?? expr?.name ?? '');
         const rawForMatch = fullName || String(expr?.File ?? expr?.file ?? '');
@@ -22,19 +22,10 @@ export function findDefaultExpression(expressions) {
         const name = normalizeExpressionName(rawForMatch);
         const candidate = fullName || rawForMatch;
         if (name === 'mtn_ex_010') return candidate;
-
-        const match = /^mtn_ex_(\d+)$/.exec(name);
-        if (match) {
-            const num = Number(match[1]);
-            if (!lowestMtnEx || num < lowestMtnEx.num) {
-                lowestMtnEx = { num, originalName: candidate };
-            }
-        }
+        if (name === 'mtn_ex_000' && !fallback000) fallback000 = candidate;
     }
 
-    if (lowestMtnEx) return lowestMtnEx.originalName;
-    const first = expressions[0];
-    return first ? String(first.Name ?? first.name ?? first.File ?? first.file ?? '') || null : null;
+    return fallback000;
 }
 
 function collectExpressionFiles(expressions, allowedExpressions, filesToFetch) {
