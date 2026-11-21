@@ -300,7 +300,7 @@ function setupControlsForModel(model, modelJson) {
                 const name = String(m.Name ?? i);
                 motionOptions.push({
                     value: JSON.stringify({ group, index: i }),
-                    label: `${group}: ${name}`
+                    label: group === 'Motion' ? name : `${group}: ${name}`
                 });
             }
         }
