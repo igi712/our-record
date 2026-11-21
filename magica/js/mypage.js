@@ -380,4 +380,17 @@ export function initMyPage() {
 export function resetMyPage() {
     clearPress();
     bannerActive = false;
+    if (live2dMenuRevealTimer) {
+        clearTimeout(live2dMenuRevealTimer);
+        live2dMenuRevealTimer = null;
+    }
+    clearUiHideRestoreTimer();
+    if (uiHidePrompt) {
+        uiHidePrompt.remove();
+        uiHidePrompt = null;
+    }
+    if (uiHidden) {
+        uiHidden = false;
+        setUiHiddenDisplay(false);
+    }
 }

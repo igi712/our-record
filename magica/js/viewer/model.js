@@ -29,27 +29,38 @@ export const state = {
     }
 };
 
-export function destroyCurrentModels() {
+function destroyModelInstance(model, controller) {
+    if (!model) return;
+    cleanupOldModelHandlers(model);
+    const ctrl = controller || model.internalModel?.__mrControllerV2;
+    try { ctrl?.destroy?.(); } catch (e) {}
+    if (model.destroyed) return;
+    try { model.filters = null; } catch (e) {}
+    try {
+        if (model.parent) model.parent.removeChild(model);
+    } catch (e) {}
+    try {
+        model.destroy({ children: true, texture: true, baseTexture: true });
+    } catch (e) {}
+}
+
+export function destroyCurrentModels({ excludeModel = null } = {}) {
+    const toDestroy = new Map();
+    const collect = (model, controller) => {
+        if (!model || model === excludeModel) return;
+        if (!toDestroy.has(model)) toDestroy.set(model, controller || null);
+    };
+
     if (state.currentModels && state.currentModels.size > 0) {
-        state.currentModels.forEach(({ model }) => {
-            if (model) {
-                cleanupOldModelHandlers(model);
-                if (model.parent) model.parent.removeChild(model);
-                try { model.destroy({ children: true }); } catch (e) {}
-            }
-        });
+        state.currentModels.forEach(({ model, controller }) => collect(model, controller));
         state.currentModels.clear();
     }
-    if (state.primaryModel && state.primaryModel !== state.currentModel) {
-        cleanupOldModelHandlers(state.primaryModel);
-        if (state.primaryModel.parent) state.primaryModel.parent.removeChild(state.primaryModel);
-        try { state.primaryModel.destroy({ children: true }); } catch (e) {}
-    }
-    if (state.secondaryModel) {
-        cleanupOldModelHandlers(state.secondaryModel);
-        if (state.secondaryModel.parent) state.secondaryModel.parent.removeChild(state.secondaryModel);
-        try { state.secondaryModel.destroy({ children: true }); } catch (e) {}
-    }
+    collect(state.primaryModel, state.primaryController);
+    collect(state.secondaryModel, state.secondaryController);
+    collect(state.currentModel, state.currentController);
+
+    toDestroy.forEach((controller, model) => destroyModelInstance(model, controller));
+
     state.primaryModel = null;
     state.primaryController = null;
     state.primaryModelJson = null;
@@ -337,73 +348,82 @@ function setupControlsForModel(model, modelJson) {
                 if (!ok) console.warn('Could not set expression', { name: expressionSelect.value });
             });
         };
-
-        // Reflect random choices from controller in the UI
-        // Wraps each item's sync in a try/catch that logs via safeWarn, so one
-        // failing item doesn't abort the rest.
-        const syncRandomChoiceItem = (label, fn) => {
-            try { fn(); } catch (e) { safeWarn('mrv2:randomChoice handler failed', e); }
-        };
-
-        window.addEventListener('mrv2:randomChoice', (ev) => {
-            try {
-                const d = ev && ev.detail;
-                if (!d) return;
-                syncRandomChoiceItem('motion', () => {
-                    if (motionSelect && typeof d.motionGroup !== 'undefined' && typeof d.motionIndex === 'number') {
-                        const v = JSON.stringify({ group: d.motionGroup, index: d.motionIndex });
-                        setSelectValue(motionSelect, v);
-                        motionSelect.value = v;
-                    }
-                });
-                syncRandomChoiceItem('expression', () => {
-                    if (expressionSelect && typeof d.faceName === 'string' && d.faceName !== 'null') {
-                        setSelectValue(expressionSelect, d.faceName);
-                        expressionSelect.value = d.faceName;
-                    }
-                });
-                syncRandomChoiceItem('cheek', () => {
-                    const r = document.querySelectorAll('input[name="cheek"]');
-                    for (const el of r) {
-                        if (String(el.value) === String(d.cheek)) {
-                            el.checked = true;
-                            applyCheek(el.value);
-                            break;
-                        }
-                    }
-                });
-                syncRandomChoiceItem('eye', () => {
-                    if (state.currentController && typeof state.currentController.setEyeClosed === 'function') {
-                        state.currentController.setEyeClosed(d.eyeClose === true || d.eyeOpen === 0, false);
-                    } else {
-                        applyEyeClose(d.eyeOpen === 0);
-                    }
-                    const eyeEl = document.getElementById('eyeClose');
-                    if (eyeEl) eyeEl.checked = (d.eyeClose === true || d.eyeOpen === 0);
-                });
-                syncRandomChoiceItem('mouth', () => {
-                    if (state.currentController && typeof state.currentController.setMouth === 'function') {
-                        const mouthVal = (typeof d.mouth === 'number') ? d.mouth : ((d.mouthOpen) ? 1 : 0);
-                        state.currentController.setMouth(mouthVal, false);
-                    } else {
-                        const shouldOpen = (typeof d.mouth === 'number') ? (d.mouth > 0.5) : !!d.mouthOpen;
-                        applyMouthOpen(shouldOpen);
-                    }
-                    const mouthEl = document.getElementById('mouthOpen');
-                    if (mouthEl) mouthEl.checked = !!(d.mouthOpen || (typeof d.mouth === 'number' && d.mouth > 0.5));
-                });
-                syncRandomChoiceItem('tear', () => {
-                    if (state.currentController && typeof state.currentController.setTear === 'function') {
-                        state.currentController.setTear(d.tear ? 1 : 0, false);
-                    }
-                    const tearEl = document.getElementById('tear');
-                    if (tearEl) tearEl.checked = !!d.tear;
-                });
-                // Soul Gem: intentionally ignore random choice for soul gem to avoid toggling it when Random is pressed.
-            } catch (e) { safeWarn('mrv2:randomChoice handler failed', e); }
-        });
-
     }
+
+    ensureRandomChoiceListener();
+}
+
+let randomChoiceListenerInstalled = false;
+
+function ensureRandomChoiceListener() {
+    if (randomChoiceListenerInstalled) return;
+    randomChoiceListenerInstalled = true;
+
+    // Reflect random choices from controller in the UI (registered once so
+    // switching models/targets never stacks duplicate listeners or leaks closures).
+    const syncRandomChoiceItem = (label, fn) => {
+        try { fn(); } catch (e) { safeWarn('mrv2:randomChoice handler failed', e); }
+    };
+
+    window.addEventListener('mrv2:randomChoice', (ev) => {
+        try {
+            const d = ev && ev.detail;
+            if (!d) return;
+            const motionSelect = document.getElementById('motionSelect');
+            const expressionSelect = document.getElementById('expressionSelect');
+            syncRandomChoiceItem('motion', () => {
+                if (motionSelect && typeof d.motionGroup !== 'undefined' && typeof d.motionIndex === 'number') {
+                    const v = JSON.stringify({ group: d.motionGroup, index: d.motionIndex });
+                    setSelectValue(motionSelect, v);
+                    motionSelect.value = v;
+                }
+            });
+            syncRandomChoiceItem('expression', () => {
+                if (expressionSelect && typeof d.faceName === 'string' && d.faceName !== 'null') {
+                    setSelectValue(expressionSelect, d.faceName);
+                    expressionSelect.value = d.faceName;
+                }
+            });
+            syncRandomChoiceItem('cheek', () => {
+                const r = document.querySelectorAll('input[name="cheek"]');
+                for (const el of r) {
+                    if (String(el.value) === String(d.cheek)) {
+                        el.checked = true;
+                        applyCheek(el.value);
+                        break;
+                    }
+                }
+            });
+            syncRandomChoiceItem('eye', () => {
+                if (state.currentController && typeof state.currentController.setEyeClosed === 'function') {
+                    state.currentController.setEyeClosed(d.eyeClose === true || d.eyeOpen === 0, false);
+                } else {
+                    applyEyeClose(d.eyeOpen === 0);
+                }
+                const eyeEl = document.getElementById('eyeClose');
+                if (eyeEl) eyeEl.checked = (d.eyeClose === true || d.eyeOpen === 0);
+            });
+            syncRandomChoiceItem('mouth', () => {
+                if (state.currentController && typeof state.currentController.setMouth === 'function') {
+                    const mouthVal = (typeof d.mouth === 'number') ? d.mouth : ((d.mouthOpen) ? 1 : 0);
+                    state.currentController.setMouth(mouthVal, false);
+                } else {
+                    const shouldOpen = (typeof d.mouth === 'number') ? (d.mouth > 0.5) : !!d.mouthOpen;
+                    applyMouthOpen(shouldOpen);
+                }
+                const mouthEl = document.getElementById('mouthOpen');
+                if (mouthEl) mouthEl.checked = !!(d.mouthOpen || (typeof d.mouth === 'number' && d.mouth > 0.5));
+            });
+            syncRandomChoiceItem('tear', () => {
+                if (state.currentController && typeof state.currentController.setTear === 'function') {
+                    state.currentController.setTear(d.tear ? 1 : 0, false);
+                }
+                const tearEl = document.getElementById('tear');
+                if (tearEl) tearEl.checked = !!d.tear;
+            });
+            // Soul Gem: intentionally ignore random choice for soul gem to avoid toggling it when Random is pressed.
+        } catch (e) { safeWarn('mrv2:randomChoice handler failed', e); }
+    });
 }
 
 const waitMs = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -433,7 +453,7 @@ function capturePreservedState(preserveState) {
 
 function createFadeOut(appRef) {
     return function performFadeOut(target, controller) {
-        if (!target) return;
+        if (!target || target.destroyed) return;
 
         // Setup AlphaFilter for smooth fade out
         const filter = new PIXI.filters.AlphaFilter(1);
@@ -445,6 +465,7 @@ function createFadeOut(appRef) {
         const start = performance.now();
 
         function tick() {
+            if (!target || target.destroyed) return;
             const now = performance.now();
             const progress = Math.min(1, (now - start) / duration);
 
@@ -455,17 +476,14 @@ function createFadeOut(appRef) {
             if (progress < 1) {
                 requestAnimationFrame(tick);
             } else {
-                // Done. Now we safe to stop animations and destroy.
+                // Done. Now safe to stop animations and destroy model + GPU textures.
                 try {
                     if (controller && typeof controller.stopSequence === 'function') {
                         controller.stopSequence();
                     }
                 } catch(e) {}
 
-                try {
-                    if (target.parent) target.parent.removeChild(target);
-                    target.destroy({ children: true });
-                } catch (e) {}
+                destroyModelInstance(target, controller);
             }
         }
         requestAnimationFrame(tick);
@@ -715,6 +733,13 @@ export async function loadModel(modelId, opts = {}) {
     const ctx = beginLoad(modelId, opts);
     const { model, params, modelJson } = await fetchAndCreateModel(modelId, opts);
 
+    // If a newer load superseded this one while fetching/creating, dispose the
+    // newly created model immediately without touching the active model.
+    if (ctx.isStaleLoad()) {
+        destroyModelInstance(model);
+        return;
+    }
+
     const performFadeOut = createFadeOut(app);
     beginTransition(ctx, performFadeOut);
 
@@ -723,6 +748,14 @@ export async function loadModel(modelId, opts = {}) {
     const { controller, lastMotionStart } = await createAndConfigureController(
         model, modelJson, ctx.preservedState, ctx.isStaleLoad
     );
+
+    if (ctx.isStaleLoad()) {
+        destroyModelInstance(model, controller);
+        if (ctx.preserveState && ctx.oldModel && !ctx.oldModel.destroyed) {
+            destroyModelInstance(ctx.oldModel, ctx.oldController);
+        }
+        return;
+    }
 
     state.primaryModel = model;
     state.primaryController = controller;
@@ -739,12 +772,16 @@ export async function loadModel(modelId, opts = {}) {
         setupFollowForModel(model);
     }
 
-    await transitionIn(model, ctx, performFadeOut, lastMotionStart);
+    await transitionIn(model, controller, ctx, performFadeOut, lastMotionStart);
 }
 
 // Non-destructive model loading for secondary/dual-unit models without clearing state/transitions
 export async function loadAdditionalModel(modelId, opts = {}) {
     const { model, params, modelJson } = await fetchAndCreateModel(modelId, opts);
+    if (typeof opts.isStale === 'function' && opts.isStale()) {
+        destroyModelInstance(model);
+        return null;
+    }
     positionModel(model, params, modelId, opts.xOverride, opts.zOrder);
 
     const controller = window.createMagirecoStyleControllerV2(model, modelJson);
@@ -816,8 +853,9 @@ async function fetchAndCreateModel(modelId, opts) {
 
 // Phase 3: transition bookkeeping for the OLD model (cleanup + fade-out on character change).
 function beginTransition(ctx, performFadeOut) {
-    // Cleanup any active dual-unit secondary models first
-    destroyCurrentModels();
+    // Cleanup any other active models (e.g., dual-unit secondary) while keeping
+    // ctx.oldModel alive long enough for performFadeOut / crossfade to own its teardown.
+    destroyCurrentModels({ excludeModel: ctx.oldModel });
 
     // Cleanup per-model follow handlers from the OLD model immediately
     cleanupOldModelHandlers(ctx.oldModel);
@@ -1018,18 +1056,21 @@ function installFollowDebugInstrumentation(model) {
                 }
             });
 
-            // global event logging to compare devtools-on vs devtools-off behavior
-            const logEv = (ev) => console.log('[v2 follow][DBG] event', ev.type, 'pointerType:', ev.pointerType || ev.type, 'buttons:', ev.buttons);
-            window.addEventListener('pointerdown', logEv, true);
-            window.addEventListener('pointerup', logEv, true);
-            window.addEventListener('pointercancel', logEv, true);
-            window.addEventListener('pointermove', logEv, true);
-            window.addEventListener('blur', (e) => console.log('[v2 follow][DBG] blur'));
+            // global event logging to compare devtools-on vs devtools-off behavior (bind once)
+            if (!window.__mrFollowDebugListenersInstalled) {
+                window.__mrFollowDebugListenersInstalled = true;
+                const logEv = (ev) => console.log('[v2 follow][DBG] event', ev.type, 'pointerType:', ev.pointerType || ev.type, 'buttons:', ev.buttons);
+                window.addEventListener('pointerdown', logEv, true);
+                window.addEventListener('pointerup', logEv, true);
+                window.addEventListener('pointercancel', logEv, true);
+                window.addEventListener('pointermove', logEv, true);
+                window.addEventListener('blur', () => console.log('[v2 follow][DBG] blur'));
 
-            // also listen to mouse/touch end in case environment uses those
-            window.addEventListener('mouseup', (e) => console.log('[v2 follow][DBG] mouseup'), true);
-            window.addEventListener('touchend', (e) => console.log('[v2 follow][DBG] touchend'), true);
-            window.addEventListener('touchcancel', (e) => console.log('[v2 follow][DBG] touchcancel'), true);
+                // also listen to mouse/touch end in case environment uses those
+                window.addEventListener('mouseup', () => console.log('[v2 follow][DBG] mouseup'), true);
+                window.addEventListener('touchend', () => console.log('[v2 follow][DBG] touchend'), true);
+                window.addEventListener('touchcancel', () => console.log('[v2 follow][DBG] touchcancel'), true);
+            }
 
             console.log('[v2 follow][DBG] instrumentation enabled. Reproduce the bug with DevTools device toolbar ON and OFF and compare events.');
         } catch (e) { console.warn('[v2 follow][DBG] instrumentation failed', e); }
@@ -1037,7 +1078,7 @@ function installFollowDebugInstrumentation(model) {
 }
 
 // Phase 6: wait for motion, crossfade old model (if outfit change), then fade in new model.
-async function transitionIn(model, ctx, performFadeOut, lastMotionStart) {
+async function transitionIn(model, controller, ctx, performFadeOut, lastMotionStart) {
     // Wait for the chosen motion to finish loading/starting before fading in.
     try {
         if (lastMotionStart && typeof lastMotionStart.then === 'function') {
@@ -1047,11 +1088,15 @@ async function transitionIn(model, ctx, performFadeOut, lastMotionStart) {
 
     // Give the model a frame or two to apply the first motion update.
     await waitForFrames(2);
+    if (!model || model.destroyed || ctx.isStaleLoad()) {
+        destroyModelInstance(model, controller);
+        if (ctx.preserveState && ctx.oldModel && !ctx.oldModel.destroyed) {
+            destroyModelInstance(ctx.oldModel, ctx.oldController);
+        }
+        return;
+    }
     try { model.update(10); } catch {}
     try { model.updateTransform(); } catch {}
-
-    // If the user switched models mid-load, bail out before showing this one.
-    if (ctx.isStaleLoad()) return;
 
     // --- TRANSITION LOGIC: CROSSFADE IF NEEDED ---
     // If we have an old model waiting (because it was an outfit change),
@@ -1078,8 +1123,8 @@ async function transitionIn(model, ctx, performFadeOut, lastMotionStart) {
     const fadeStartTime = performance.now();
 
     function animateFade() {
-        // If the user switched models mid-fade, stop updating this old one
-        if (state.currentModel !== model) return;
+        // If the user switched models mid-fade or model was destroyed, stop updating this old one
+        if (state.currentModel !== model || model.destroyed) return;
 
         const now = performance.now();
         const elapsed = now - fadeStartTime;

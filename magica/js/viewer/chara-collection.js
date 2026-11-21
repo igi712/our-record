@@ -181,8 +181,14 @@ function appendCardIconIfValid(iconWrap, chara, charaId, rank, rawAtt, upperAtt)
         }
     };
 
-    img.onload = () => show();
+    img.onload = () => {
+        img.onload = null;
+        img.onerror = null;
+        show();
+    };
     img.onerror = () => {
+        img.onload = null;
+        img.onerror = null;
         // Do not add to DOM if rank icon image 404s
     };
     img.src = url;

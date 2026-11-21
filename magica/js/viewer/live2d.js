@@ -114,6 +114,8 @@
             return /^motion_0\d\d\b/i.test(k) || /^motion_0\d\d\./i.test(k);
         }
 
+        const getNum = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
+
         // --- MOTION POLICY: INFINITE TAIL HACK ---
         try {
             const mm = im?.motionManager;
@@ -139,21 +141,24 @@
                         // 3. Hijack the update logic.
                         if (typeof motion.doUpdateParameters === 'function') {
                             const originalDoUpdate = motion.doUpdateParameters;
-                            
+                            let cachedDuration = undefined;
+
                             motion.doUpdateParameters = function (coreModel, timeSeconds, weight, queueEntry) {
                                 try {
                                     // Calculate how far we are into the animation
                                     const startTime = queueEntry.getStartTime();
                                     const elapsed = timeSeconds - startTime;
-                                    
-                                    // Get the REAL duration of the file
-                                    const getNum = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
-                                    const duration =
-                                        getNum(this.getLoopDuration?.()) ??
-                                        getNum(this.getDuration?.()) ??
-                                        getNum(this._loopDurationSeconds) ??
-                                        getNum(this._motionData?.duration) ??
-                                        null;
+
+                                    if (cachedDuration === undefined) {
+                                        const d =
+                                            getNum(this.getLoopDuration?.()) ??
+                                            getNum(this.getDuration?.()) ??
+                                            getNum(this._loopDurationSeconds) ??
+                                            getNum(this._motionData?.duration) ??
+                                            null;
+                                        if (d && d > 0) cachedDuration = d;
+                                    }
+                                    const duration = cachedDuration;
 
                                     if (duration && duration > 0) {
                                         // If this is a non-idle motion and we've passed the end...
@@ -233,8 +238,11 @@
 
         function cancelTween(tweenKey) {
             const tw = state[tweenKey];
-            if (tw && typeof tw.raf === 'number') {
-                cancelAnimationFrame(tw.raf);
+            if (tw) {
+                tw.cancelled = true;
+                if (typeof tw.raf === 'number') {
+                    cancelAnimationFrame(tw.raf);
+                }
             }
             state[tweenKey] = null;
         }
@@ -251,21 +259,24 @@
             const f0 = Number(from);
             const t0 = Number(to);
             const dur = Math.max(1, Number(durationMs) || 1);
+            const tw = { raf: null, cancelled: false };
 
             function frame(now) {
+                if (tw.cancelled) return;
                 const k = Math.min(1, (now - start) / dur);
                 const kk = ease(k);
                 const v = f0 + (t0 - f0) * kk;
                 try { onUpdate(v); } catch {}
+                if (tw.cancelled) return;
                 if (k < 1) {
-                    const raf = requestAnimationFrame(frame);
-                    if (state.__activeTween && state.__activeTween.raf !== raf) state.__activeTween.raf = raf;
+                    tw.raf = requestAnimationFrame(frame);
                 } else {
+                    tw.raf = null;
                     try { onDone && onDone(); } catch {}
                 }
             }
 
-            const tw = { raf: requestAnimationFrame(frame) };
+            tw.raf = requestAnimationFrame(frame);
             return tw;
         }
 
@@ -665,6 +676,21 @@
                 const idx = exprDefs.findIndex(e => String(e?.Name || '').split('.')[0] === String(name || '').split('.')[0]);
                 if (idx < 0) return false;
                 return setExpressionByIndex(idx);
+            },
+
+            destroy() {
+                cancelSequence();
+                cancelTween('eyeTween');
+                state.micActive = false;
+                state.micAnalyser = null;
+                state.micBuf = null;
+                state.model = null;
+                state.modelJson = null;
+                try { im?.off?.('afterMotionUpdate', afterMotionUpdate); } catch {}
+                try { im?.off?.('beforeModelUpdate', beforeModelUpdate); } catch {}
+                try {
+                    if (im && im.__mrControllerV2) delete im.__mrControllerV2;
+                } catch {}
             },
         };
     }

@@ -338,6 +338,9 @@ document.addEventListener('visibilitychange', () => {
         app.ticker.start();
     }
 });
+if (document.hidden) {
+    app.ticker.stop();
+}
 
 window.app = app;
 window.cameraContainer = cameraContainer;

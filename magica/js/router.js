@@ -1,6 +1,7 @@
 // js/router.js — Hash router for quotes SPA
 
 import { loadViewTemplate } from './view-loader.js';
+import { destroyCurrentModels } from './viewer/model.js';
 import { renderCharaCollectionGrid } from './viewer/chara-collection.js';
 import { initHomeMenu, resetHomeMenu } from './home-menu.js';
 import { initMyPage, resetMyPage } from './mypage.js';
@@ -153,15 +154,8 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen) {
             window.resetDetailViewState();
         }
 
-        // Destroy Live2D model instance when returning to collection
-        if (state.currentModel) {
-            if (state.currentModel.parent) {
-                state.currentModel.parent.removeChild(state.currentModel);
-            }
-            try { state.currentModel.destroy({ children: true }); } catch (e) {}
-            state.currentModel = null;
-            state.currentController = null;
-        }
+        // Destroy Live2D model instance(s) and GPU textures when returning to collection
+        destroyCurrentModels();
 
         document.body.classList.remove('connecting');
 

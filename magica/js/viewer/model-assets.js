@@ -64,9 +64,21 @@ let __mrWorldDimFilter = null;
 
 function positionLoadingIndicator() {
     try {
+        const root = document.documentElement;
+        if (!root || !root.classList.contains('connecting')) return;
         const el = document.getElementById('loading');
+        if (!el) return;
+        if (!isPortraitViewMode()) {
+            if (el.style.left || el.style.top || el.style.right || el.style.bottom) {
+                el.style.left = '';
+                el.style.top = '';
+                el.style.right = '';
+                el.style.bottom = '';
+            }
+            return;
+        }
         const canvas = document.getElementById('canvas');
-        if (!el || !canvas) return;
+        if (!canvas) return;
 
         const rect = canvas.getBoundingClientRect();
         const lw = el.offsetWidth || 334;
@@ -155,8 +167,31 @@ try {
 //  2) Otherwise, try to detect a local checkout by probing a known small model JSON under
 //     'assets/ma-re-data/resource/image_native/live2d_v4/100100/model.model3.json'. If it exists, prefer local path.
 //  3) Fallback to a remote raw.githubusercontent.com URL (configurable via query param 'assetsRemote' or window.MR_ASSETS_REMOTE).
-// Global cache to store the "virtual files" so we don't re-fetch them on outfit changes
+// Global cache to store the "virtual files" so we don't re-fetch them on outfit changes.
+// Bounded as a simple LRU so browsing many characters doesn't pin hundreds of MB of Blobs.
+const MAX_RAM_FOLDER_CACHE = 6;
 export const ramFolderCache = new Map();
+
+function putRamFolderCache(modelId, files) {
+    if (ramFolderCache.has(modelId)) {
+        ramFolderCache.delete(modelId);
+    }
+    ramFolderCache.set(modelId, files);
+    if (ramFolderCache.size <= MAX_RAM_FOLDER_CACHE) return;
+
+    const activeIds = new Set();
+    if (state.currentModelId) activeIds.add(String(state.currentModelId));
+    if (state.currentModels) {
+        for (const entry of state.currentModels.values()) {
+            if (entry?.modelId) activeIds.add(String(entry.modelId));
+        }
+    }
+    for (const key of ramFolderCache.keys()) {
+        if (ramFolderCache.size <= MAX_RAM_FOLDER_CACHE) break;
+        if (String(key) === String(modelId) || activeIds.has(String(key))) continue;
+        ramFolderCache.delete(key);
+    }
+}
 
 // --- 1. ROBUST PRELOADER (Ignores 404s) ---
 
@@ -183,7 +218,13 @@ async function fetchToVirtualFile(targetUrl, fileName) {
 }
 
 export async function preloadModelToRam(modelId, options = {}) {
-    if (ramFolderCache.has(modelId)) return ramFolderCache.get(modelId);
+    if (ramFolderCache.has(modelId)) {
+        const cached = ramFolderCache.get(modelId);
+        // Refresh LRU position on cache hit
+        ramFolderCache.delete(modelId);
+        ramFolderCache.set(modelId, cached);
+        return cached;
+    }
 
     // Show connecting cursor / banner while preloading
     __mrSetConnecting(true);
@@ -367,7 +408,7 @@ export async function preloadModelToRam(modelId, options = {}) {
             console.info && console.info(`[MR] preloader added ${placeholders.length} placeholder files to satisfy loader expectations for model ${modelId}`);
         }
 
-        ramFolderCache.set(modelId, finalFiles);
+        putRamFolderCache(modelId, finalFiles);
         return finalFiles;
     } finally {
         __mrSetConnecting(false);

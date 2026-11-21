@@ -68,9 +68,12 @@
             return true;
         }
 
-        // Try immediate patch; also retry once PIXI becomes available.
-        try { doPatch(); } catch (e) {}
-        const handle = setInterval(() => { if (doPatch()) clearInterval(handle); }, 250);
+        // Try immediate patch; only poll if PIXI wasn't available yet.
+        let patched = false;
+        try { patched = doPatch(); } catch (e) {}
+        if (!patched) {
+            const handle = setInterval(() => { if (doPatch()) clearInterval(handle); }, 250);
+        }
     })();
 
     // Suppress thrown/rejected texture-loading errors from terminating model load.

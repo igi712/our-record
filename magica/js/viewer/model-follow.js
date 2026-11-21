@@ -29,6 +29,8 @@ function getTargetModelsForFollow(targetModel) {
     }
 }
 
+const scratchFollowPoint = typeof PIXI !== 'undefined' ? new PIXI.Point() : null;
+
 function disableFollowOnModel(activeModel) {
     if (!activeModel) return;
     try {
@@ -71,7 +73,8 @@ function enableFollowOnModel(activeModel, initialEvent) {
                     const canvasX = clientX - rect.left;
                     const canvasY = clientY - rect.top;
 
-                    const pt = new PIXI.Point(canvasX, canvasY);
+                    const pt = scratchFollowPoint || new PIXI.Point();
+                    pt.set(canvasX, canvasY);
                     try { activeModel.toModelPosition(pt, pt, true); } catch {}
 
                     const origW = Number(im.originalWidth) || 1;
@@ -152,6 +155,14 @@ export function cleanupOldModelHandlers(oldModel) {
             try { window.removeEventListener('touchmove', oldModel.__mrMoveHandler, true); } catch {}
             try { delete oldModel.__mrMoveHandler; } catch {}
         }
+        if (Array.isArray(oldModel.__mrMoveRetryTimers)) {
+            try { oldModel.__mrMoveRetryTimers.forEach(t => clearTimeout(t)); } catch {}
+            try { delete oldModel.__mrMoveRetryTimers; } catch {}
+        }
+        if (oldModel.__mrEyeOffsetTimer) {
+            try { clearTimeout(oldModel.__mrEyeOffsetTimer); } catch {}
+            try { delete oldModel.__mrEyeOffsetTimer; } catch {}
+        }
     } catch {}
 }
 
@@ -225,7 +236,7 @@ export function setupFollowForModel(model) {
                                 const interaction = app?.renderer?.plugins?.interaction;
                                 if (!interaction || typeof interaction.mapPositionToPoint !== 'function') return;
 
-                                const pt = new PIXI.Point();
+                                const pt = scratchFollowPoint || new PIXI.Point();
                                 interaction.mapPositionToPoint(pt, ev.clientX, ev.clientY);
 
                                 let hit = false;
@@ -266,10 +277,15 @@ export function setupFollowForModel(model) {
                         const delayMs = Number(opts.delayMs) || 150;
                         const topCandidates = Number(opts.topCandidates) || 6;
                         let tries = 0;
-                        function schedule() { if (tries >= maxTries) return; setTimeout(attempt, delayMs); }
+                        function schedule() {
+                            if (tries >= maxTries || !m || m.destroyed) return;
+                            m.__mrEyeOffsetTimer = setTimeout(attempt, delayMs);
+                        }
                         function attempt() {
+                            m.__mrEyeOffsetTimer = null;
                             tries++;
-                            if (!m || !m.internalModel) return schedule();
+                            if (!m || m.destroyed) return;
+                            if (!m.internalModel) return schedule();
                             const im = m.internalModel;
                             const ids = (typeof im.getDrawableIDs === 'function') ? im.getDrawableIDs()
                                       : (typeof im.getDrawableIds === 'function' ? im.getDrawableIds() : []);

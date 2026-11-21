@@ -190,9 +190,14 @@ export async function initializeApp() {
             state.activeTarget = 'primary';
         }
 
+        let selectionToken = 0;
+
         async function loadSelectedModel(charaId, live2dId) {
+            const token = ++selectionToken;
+            const isStale = () => token !== selectionToken;
             try {
                 const dualConfig = await getDualUnitConfig(charaId, live2dId);
+                if (isStale()) return;
                 updateDualControlVisibility(dualConfig.isDual);
                 if (dualConfig.isDual) {
                     state.dualMode = true;
@@ -200,9 +205,11 @@ export async function initializeApp() {
                         xOverride: 244.0,
                         zOrder: dualConfig.primaryZOrder
                     });
+                    if (isStale()) return;
                     await loadAdditionalModel(dualConfig.secondaryId, {
                         xOverride: 480.0,
-                        zOrder: dualConfig.secondaryZOrder
+                        zOrder: dualConfig.secondaryZOrder,
+                        isStale
                     });
                 } else {
                     state.dualMode = false;
@@ -210,6 +217,7 @@ export async function initializeApp() {
                     await loadModel(modelId);
                 }
             } catch (e) {
+                if (isStale()) return;
                 console.error('Failed to load selected model:', e);
                 const modelId = buildModelId(charaId, live2dId);
                 await loadModel(modelId).catch((err) => console.error(err));
@@ -350,9 +358,10 @@ export function setupManualControls() {
     let micAnalyzer = null;
     let micCtx = null;
     let micBuf = null;
+    let micStarting = false;
 
     async function startMic() {
-        if (micStream) return;
+        if (micStream || micStarting) return;
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             showToast('Microphone not available in this browser/context');
             return;
@@ -361,8 +370,15 @@ export function setupManualControls() {
             showToast('Microphone requires a secure context (HTTPS).');
         }
 
+        micStarting = true;
         try {
             micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            if (!micStarting) {
+                // stopMic() was called while awaiting permission
+                try { micStream.getTracks().forEach(t => t.stop()); } catch {}
+                micStream = null;
+                return;
+            }
             micCtx = new (window.AudioContext || window.webkitAudioContext)();
             const src = micCtx.createMediaStreamSource(micStream);
             micAnalyzer = micCtx.createAnalyser();
@@ -395,10 +411,13 @@ export function setupManualControls() {
                 showToast('Microphone start failed: ' + (e && e.message ? e.message : String(e)));
             }
             stopMic();
+        } finally {
+            micStarting = false;
         }
     }
 
     function stopMic() {
+        micStarting = false;
         if (micCtx) try { micCtx.close(); } catch {}
         micCtx = null;
         if (micStream) {

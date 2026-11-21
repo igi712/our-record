@@ -530,10 +530,17 @@
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
                 bgApp.ticker.stop();
+                stopTimelineUpdate();
             } else {
                 bgApp.ticker.start();
+                if (player && !player.closed && player.requestedToPlay) {
+                    startTimelineUpdate(true);
+                }
             }
         });
+        if (document.hidden) {
+            bgApp.ticker.stop();
+        }
 
         let bgArmature = null;
 
@@ -591,7 +598,29 @@
         let hcaModule;
         let hcaBlobUrl;
         let worker;
+        let workerPromise = null;
         let player;
+        let trackLoadToken = 0;
+
+        async function safeStopHcaPlayer(hcaPlayer) {
+            if (!hcaPlayer || hcaPlayer.closed) return;
+            try {
+                if (hcaPlayer.bufSrc) hcaPlayer.bufSrc.onended = null;
+                if (hcaPlayer.audioCtx?.state === 'suspended') {
+                    await hcaPlayer.audioCtx.resume().catch(() => {});
+                }
+                await hcaPlayer.stop();
+            } catch {
+                try {
+                    if (hcaPlayer.visibilityChangeListener) {
+                        document.removeEventListener('visibilitychange', hcaPlayer.visibilityChangeListener);
+                    }
+                } catch {}
+                try { hcaPlayer.bufSrc?.disconnect(); } catch {}
+                try { await hcaPlayer.audioCtx?.close(); } catch {}
+                hcaPlayer.closed = true;
+            }
+        }
 
         // Resolved BGM assets base (local or remote)
         let _bgmBase = null;
@@ -661,19 +690,28 @@
 
         async function initWorker() {
             if (worker) return worker;
+            if (workerPromise) return workerPromise;
 
-            if (!hcaBlobUrl) {
-                const response = await fetch(HCA_JS_URL.href);
-                const blob = new Blob([await response.arrayBuffer()], { type: "text/javascript" });
-                hcaBlobUrl = URL.createObjectURL(blob);
-            }
+            workerPromise = (async () => {
+                try {
+                    if (!hcaBlobUrl) {
+                        const response = await fetch(HCA_JS_URL.href);
+                        const blob = new Blob([await response.arrayBuffer()], { type: "text/javascript" });
+                        hcaBlobUrl = URL.createObjectURL(blob);
+                    }
 
-            if (!hcaModule) {
-                hcaModule = await import(hcaBlobUrl);
-            }
+                    if (!hcaModule) {
+                        hcaModule = await import(hcaBlobUrl);
+                    }
 
-            worker = await hcaModule.HCAWorker.create(hcaBlobUrl);
-            return worker;
+                    worker = await hcaModule.HCAWorker.create(hcaBlobUrl);
+                    return worker;
+                } catch (err) {
+                    workerPromise = null;
+                    throw err;
+                }
+            })();
+            return workerPromise;
         }
 
         const LOOP_TRACK_SVG = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/><text x="12" y="15" font-size="8" font-family="sans-serif" font-weight="bold" fill="currentColor" text-anchor="middle">1</text></svg>`;
@@ -764,10 +802,13 @@
             return `${m}:${s < 10 ? '0' : ''}${s}`;
         }
 
-        function startTimelineUpdate() {
+        function startTimelineUpdate(preserveElapsed = false) {
             stopTimelineUpdate();
-            startCtxTime = player.audioCtx.currentTime;
-            elapsedBeforePause = 0;
+            if (!player || player.closed || !player.bufSrc || !player.bufSrc.buffer) return;
+            if (!preserveElapsed) {
+                startCtxTime = player.audioCtx.currentTime;
+                elapsedBeforePause = 0;
+            }
 
             const progressFill = document.getElementById("progressFill");
             const timeElapsedEl = document.getElementById("timeElapsed");
@@ -775,19 +816,19 @@
 
             const duration = player.bufSrc.buffer.duration;
             timeTotalEl.textContent = formatTime(duration);
+            let lastTimeText = "";
+            let lastPctText = "";
 
-            timelineInterval = setInterval(() => {
-                if (!player || player.closed) {
+            const updateOnce = () => {
+                if (!player || player.closed || document.hidden || !player.requestedToPlay) {
                     stopTimelineUpdate();
                     return;
                 }
 
-                let elapsed = 0;
-                if (player.audioCtx.state === "suspended") {
-                    elapsed = elapsedBeforePause;
-                } else {
-                    elapsed = (player.audioCtx.currentTime - startCtxTime) + elapsedBeforePause;
-                }
+                const elapsedRaw = player.audioCtx.state === "suspended"
+                    ? elapsedBeforePause
+                    : (player.audioCtx.currentTime - startCtxTime) + elapsedBeforePause;
+                let elapsed = elapsedRaw;
 
                 if (player.bufSrc.loop) {
                     const loopStart = player.bufSrc.loopStart || 0;
@@ -801,9 +842,22 @@
                 }
 
                 const pct = Math.min(100, (elapsed / duration) * 100);
-                progressFill.style.width = `${pct}%`;
-                timeElapsedEl.textContent = formatTime(elapsed);
-            }, 100);
+                const pctText = `${pct.toFixed(2)}%`;
+                if (pctText !== lastPctText) {
+                    progressFill.style.width = pctText;
+                    lastPctText = pctText;
+                }
+                const timeText = formatTime(elapsed);
+                if (timeText !== lastTimeText) {
+                    timeElapsedEl.textContent = timeText;
+                    lastTimeText = timeText;
+                }
+            };
+
+            updateOnce();
+            if (player && !player.closed && player.requestedToPlay && !document.hidden) {
+                timelineInterval = setInterval(updateOnce, 100);
+            }
         }
 
         function stopTimelineUpdate() {
@@ -818,6 +872,7 @@
             const playPauseBtn = document.getElementById("playPauseBtn");
             if (player.audioCtx.state === "running") {
                 player.pause();
+                stopTimelineUpdate();
                 playPauseBtn.textContent = "▶";
                 playPauseBtn.title = "Play";
                 elapsedBeforePause += (player.audioCtx.currentTime - startCtxTime);
@@ -826,18 +881,18 @@
                 playPauseBtn.textContent = "❚❚";
                 playPauseBtn.title = "Pause";
                 startCtxTime = player.audioCtx.currentTime;
+                startTimelineUpdate(true);
             }
         }
 
         async function stopBgm() {
+            trackLoadToken++;
             stopTimelineUpdate();
-            if (player && !player.closed) {
-                if (player.bufSrc) {
-                    player.bufSrc.onended = null;
-                }
-                await player.stop();
+            if (player) {
+                const oldPlayer = player;
+                player = null;
+                await safeStopHcaPlayer(oldPlayer);
             }
-            player = null;
 
             document.getElementById("playPauseBtn").textContent = "▶";
             document.getElementById("playPauseBtn").title = "Play";
@@ -895,6 +950,7 @@
                     playPauseBtn.textContent = "❚❚";
                     playPauseBtn.title = "Pause";
                 }
+                startTimelineUpdate(true);
             } catch (e) {
                 console.error('[MR-BGM] Seek failed:', e);
             }
@@ -1009,11 +1065,13 @@
         }
 
         async function playTrack(fileName, displayName, context) {
+            const token = ++trackLoadToken;
             try {
                 stopTimelineUpdate();
                 setStatus(`Loading ${fileName}...`);
                 const activeWorker = await initWorker();
                 await resolveBgmBase(); // Ensure base is resolved
+                if (token !== trackLoadToken) return;
 
                 const fileResponse = await fetch(`${_bgmBase}/${fileName}`);
                 if (!fileResponse.ok) {
@@ -1021,14 +1079,18 @@
                 }
 
                 const hcaData = new Uint8Array(await fileResponse.arrayBuffer());
+                if (token !== trackLoadToken) return;
                 const decrypted = await activeWorker.decrypt(hcaData, KEY1, KEY2);
+                if (token !== trackLoadToken) return;
                 const newPlayer = await hcaModule.HCAWebAudioLoopPlayer.create(decrypted, activeWorker);
 
+                if (token !== trackLoadToken) {
+                    await safeStopHcaPlayer(newPlayer);
+                    return;
+                }
+
                 if (player) {
-                    if (player.bufSrc) {
-                        player.bufSrc.onended = null;
-                    }
-                    await player.stop();
+                    await safeStopHcaPlayer(player);
                 }
                 player = newPlayer;
                 player.volume = savedVolume;
@@ -1042,6 +1104,7 @@
                 }
 
                 player.bufSrc.onended = () => {
+                    if (player !== newPlayer) return;
                     if (loopMode === "group") {
                         playNextTrack();
                     } else if (loopMode === "none") {
@@ -1060,6 +1123,7 @@
                 setStatus(`Now playing: ${fileName} (${displayName})`);
                 updateNowPlaying(displayName, context);
             } catch (error) {
+                if (token !== trackLoadToken) return;
                 console.error(error);
                 setStatus(`Error: ${error.message || error}`);
                 updateNowPlaying(`Error: ${error.message || error}`, "");
@@ -1123,7 +1187,8 @@
             const group = bgmGroups[idx];
             listTitleEl.textContent = group.groupname || "BGM List";
 
-            // Render BGM tracks
+            // Render BGM tracks (release previous group's active button ref so detached DOM can be GC'd)
+            activeBgmBtn = null;
             listEl.innerHTML = "";
             const entries = (group.entries || [])
                 .filter((entry) => typeof entry.filename === "string" && entry.filename.endsWith(".hca"));

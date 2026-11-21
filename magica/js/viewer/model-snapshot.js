@@ -121,10 +121,13 @@ export async function downloadModelSnapshot() {
         model.y = original.y + (h / 2 - cy);
 
         const rt = PIXI.RenderTexture.create({ width: w, height: h, resolution: SNAPSHOT_RESOLUTION });
-        renderer.render(captureRoot, { renderTexture: rt, clear: true });
-
-        const canvas = extract.canvas(rt);
-        rt.destroy(true);
+        let canvas;
+        try {
+            renderer.render(captureRoot, { renderTexture: rt, clear: true });
+            canvas = extract.canvas(rt);
+        } finally {
+            rt.destroy(true);
+        }
 
         const cropped = cropCanvasToAlpha(canvas, 1);
         const outCanvas = cropped.canvas;
@@ -150,6 +153,13 @@ export async function downloadModelSnapshot() {
         const fileName = `${fileBase}_${Date.now()}.png`;
 
         const blob = await new Promise((resolve) => outCanvas.toBlob(resolve, 'image/png'));
+        // Release temporary 2D canvas backing stores immediately.
+        canvas.width = 0;
+        canvas.height = 0;
+        if (outCanvas !== canvas) {
+            outCanvas.width = 0;
+            outCanvas.height = 0;
+        }
         if (!blob) {
             showToast('Snapshot failed: could not create PNG blob');
             return;
@@ -171,6 +181,7 @@ export async function downloadModelSnapshot() {
         showToast('Snapshot failed: ' + (e && e.message ? e.message : String(e)));
     } finally {
         try { captureRoot.removeChild(model); } catch {}
+        try { captureRoot.destroy({ children: false }); } catch {}
         try {
             if (originalParent) originalParent.addChildAt(model, Math.max(0, originalIndex));
         } catch {

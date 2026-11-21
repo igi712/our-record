@@ -31,6 +31,7 @@ let lastFocusedEl = null;
 let thumbObserver = null;
 let moreObserver = null;
 
+const MAX_SHEET_IMAGE_CACHE = 16;
 const recordsById = new Map();
 const recordsBySection = { solid: [], story: [], home: [] };
 const sectionLimits = { solid: Infinity, story: INITIAL_LIMIT, home: INITIAL_LIMIT };
@@ -110,17 +111,72 @@ function loadHtmlImage(url) {
 }
 
 function getCachedSheetImage(url) {
-    if (!sheetImageCache.has(url)) {
-        const p = loadHtmlImage(url).catch((err) => {
-            sheetImageCache.delete(url);
-            throw err;
-        });
-        sheetImageCache.set(url, p);
+    if (sheetImageCache.has(url)) {
+        const existing = sheetImageCache.get(url);
+        sheetImageCache.delete(url);
+        sheetImageCache.set(url, existing);
+        return existing;
     }
-    return sheetImageCache.get(url);
+    const p = loadHtmlImage(url).catch((err) => {
+        sheetImageCache.delete(url);
+        throw err;
+    });
+    sheetImageCache.set(url, p);
+    while (sheetImageCache.size > MAX_SHEET_IMAGE_CACHE) {
+        const oldestKey = sheetImageCache.keys().next().value;
+        sheetImageCache.delete(oldestKey);
+    }
+    return p;
 }
 
-function clearCurrentSceneBg() {
+function collectCocosBaseTextures(assets) {
+    const baseTextures = new Set();
+    if (!assets) return baseTextures;
+    if (assets.textures) {
+        for (const tex of Object.values(assets.textures)) {
+            if (tex?.baseTexture) baseTextures.add(tex.baseTexture);
+        }
+    }
+    if (assets.particles) {
+        for (const p of Object.values(assets.particles)) {
+            if (p?.particleTexture?.baseTexture) baseTextures.add(p.particleTexture.baseTexture);
+        }
+    }
+    return baseTextures;
+}
+
+function disposeCocosAssets(textures, particles, keepBaseTextures = null) {
+    if (particles) {
+        for (const p of Object.values(particles)) {
+            const tex = p?.particleTexture;
+            if (!tex) continue;
+            const bt = tex.baseTexture;
+            const srcUrl = bt?.resource?.url;
+            if (!keepBaseTextures || !keepBaseTextures.has(bt)) {
+                try { tex.destroy(true); } catch {}
+                if (typeof srcUrl === 'string' && srcUrl.startsWith('blob:')) {
+                    try { URL.revokeObjectURL(srcUrl); } catch {}
+                }
+            }
+            p.particleTexture = null;
+        }
+    }
+    if (textures) {
+        const baseTextures = new Set();
+        for (const tex of Object.values(textures)) {
+            if (!tex) continue;
+            if (tex.baseTexture) baseTextures.add(tex.baseTexture);
+            try { tex.destroy(false); } catch {}
+        }
+        for (const bt of baseTextures) {
+            if (bt && !bt.destroyed && (!keepBaseTextures || !keepBaseTextures.has(bt))) {
+                try { bt.destroy(); } catch {}
+            }
+        }
+    }
+}
+
+function clearCurrentSceneBg(keepBaseTextures = null) {
     if (currentBgTicker && window.app?.ticker) {
         try {
             window.app.ticker.remove(currentBgTicker);
@@ -129,26 +185,32 @@ function clearCurrentSceneBg() {
     currentBgTicker = null;
 
     if (currentBgNode) {
+        const node = currentBgNode;
+        const kind = currentBgKind;
+        currentBgNode = null;
+        currentBgKind = null;
         try {
-            if (typeof currentBgNode.stop === 'function') {
-                currentBgNode.stop();
+            if (typeof node.stop === 'function') {
+                node.stop();
             }
-            if (currentBgNode.parent) {
-                currentBgNode.parent.removeChild(currentBgNode);
+            if (node.parent) {
+                node.parent.removeChild(node);
             }
-            if (currentBgKind === 'story' || currentBgKind === 'home-jpg') {
+            if (kind === 'story' || kind === 'home-jpg') {
                 // Release GPU baseTexture created specifically for this background image.
-                currentBgNode.destroy({ children: true, texture: true, baseTexture: true });
+                node.destroy({ children: true, texture: true, baseTexture: true });
             } else {
-                // Keep shared BaseTextureCache entries intact across repeat Cocos loads.
-                currentBgNode.destroy({ children: true });
+                const textures = node.textures;
+                const particles = node.particles;
+                node.destroy({ children: true });
+                disposeCocosAssets(textures, particles, keepBaseTextures);
             }
         } catch (err) {
             console.warn('[viewer-bg] Teardown failed:', err);
         }
-        currentBgNode = null;
+    } else {
+        currentBgKind = null;
     }
-    currentBgKind = null;
 }
 
 function applyMovementScale(armature) {
@@ -213,8 +275,12 @@ async function applyBackground(entry, previousBgId) {
 
         if (entry.kind === 'cocos') {
             const assets = await loadCocosStudioAssets(`${imageNativeBase}/bg/${entry.dir}/${entry.file}`);
-            if (token !== bgLoadToken) return;
+            if (token !== bgLoadToken) {
+                disposeCocosAssets(assets?.textures, assets?.particles, collectCocosBaseTextures(currentBgNode));
+                return;
+            }
 
+            const keepBaseTextures = collectCocosBaseTextures(assets);
             const armature = new CocosStudioArmature(assets.json, assets.textures, assets.particles);
             armature.x = WORLD_W / 2;
             armature.y = WORLD_H / 2;
@@ -227,13 +293,13 @@ async function applyBackground(entry, previousBgId) {
                 armature.update(0);
             }
 
-            clearCurrentSceneBg();
+            clearCurrentSceneBg(keepBaseTextures);
             sceneBgContainer.addChild(armature);
             currentBgNode = armature;
             currentBgKind = 'home-cocos';
 
             currentBgTicker = (delta) => {
-                if (currentBgNode === armature) {
+                if (currentBgNode === armature && !armature.destroyed) {
                     armature.update(delta / 60);
                 }
             };
@@ -298,8 +364,16 @@ async function loadCardThumbnail(record) {
                 : `${imageNativeBase}/bg/web/${thumb.file}`;
 
             await new Promise((resolve, reject) => {
-                imgEl.onload = () => resolve();
-                imgEl.onerror = () => reject(new Error(`Failed thumbnail: ${thumbUrl}`));
+                imgEl.onload = () => {
+                    imgEl.onload = null;
+                    imgEl.onerror = null;
+                    resolve();
+                };
+                imgEl.onerror = () => {
+                    imgEl.onload = null;
+                    imgEl.onerror = null;
+                    reject(new Error(`Failed thumbnail: ${thumbUrl}`));
+                };
                 imgEl.src = thumbUrl;
             });
             cardEl.dataset.thumbLoaded = '1';
@@ -572,6 +646,12 @@ function closeModal({ commit = false } = {}) {
         pendingBgId = activeBgId;
         modal.hidden = true;
     }
+
+    // Release cached full-resolution spritesheets and pause observers while modal is closed;
+    // already-painted thumbnail <canvas> elements retain their cropped bitmaps.
+    sheetImageCache.clear();
+    thumbObserver?.disconnect?.();
+    moreObserver?.disconnect?.();
 
     if (lastFocusedEl && typeof lastFocusedEl.focus === 'function' && document.contains(lastFocusedEl)) {
         lastFocusedEl.focus({ preventScroll: true });

@@ -26,12 +26,52 @@ async function stopPlayer(player) {
         if (player.audioCtx?.state === 'suspended') await player.audioCtx.resume();
         await player.stop();
     } catch (error) {
+        // HCAWebAudioLoopPlayer.stop() throws before removing its visibilitychange
+        // listener when !player._unlocked; clean up listener, source, and AudioContext manually.
+        try {
+            if (player.visibilityChangeListener) {
+                document.removeEventListener('visibilitychange', player.visibilityChangeListener);
+            }
+        } catch {}
+        try {
+            if (player.bufSrc) {
+                player.bufSrc.onended = null;
+                player.bufSrc.disconnect();
+            }
+        } catch {}
         try { await player.audioCtx?.close(); } catch {}
+        player.closed = true;
     }
 }
 
-export const scenarioCache = new Map();
-export const voiceCache = new Map();
+const MAX_SCENARIO_CACHE = 50;
+const MAX_VOICE_CACHE = 150;
+
+function createLruMap(maxSize) {
+    const map = new Map();
+    const origGet = map.get.bind(map);
+    const origSet = map.set.bind(map);
+    map.get = (key) => {
+        if (!map.has(key)) return undefined;
+        const val = origGet(key);
+        map.delete(key);
+        origSet(key, val);
+        return val;
+    };
+    map.set = (key, val) => {
+        if (map.has(key)) map.delete(key);
+        origSet(key, val);
+        while (map.size > maxSize) {
+            const oldestKey = map.keys().next().value;
+            map.delete(oldestKey);
+        }
+        return map;
+    };
+    return map;
+}
+
+export const scenarioCache = createLruMap(MAX_SCENARIO_CACHE);
+export const voiceCache = createLruMap(MAX_VOICE_CACHE);
 
 export async function preloadScenarioVoices(voices, voicePlayer) {
     if (!voices || voices.length === 0) return;
@@ -63,6 +103,7 @@ class HcaVoicePlayer {
         this.player = null;
         this.analyser = null;
         this.worker = null;
+        this.initPromise = null;
         this.hcaModule = null;
         this.hcaBlobUrl = null;
         this.base = null;
@@ -93,12 +134,21 @@ class HcaVoicePlayer {
 
     async initDecoder() {
         if (this.worker) return;
-        const response = await fetch(HCA_JS_URL.href);
-        this.hcaBlobUrl = URL.createObjectURL(new Blob([await response.arrayBuffer()], {
-            type: 'text/javascript'
-        }));
-        this.hcaModule = await import(this.hcaBlobUrl);
-        this.worker = await this.hcaModule.HCAWorker.create(this.hcaBlobUrl);
+        if (this.initPromise) return this.initPromise;
+        this.initPromise = (async () => {
+            try {
+                const response = await fetch(HCA_JS_URL.href);
+                this.hcaBlobUrl = URL.createObjectURL(new Blob([await response.arrayBuffer()], {
+                    type: 'text/javascript'
+                }));
+                this.hcaModule = await import(this.hcaBlobUrl);
+                this.worker = await this.hcaModule.HCAWorker.create(this.hcaBlobUrl);
+            } catch (err) {
+                this.initPromise = null;
+                throw err;
+            }
+        })();
+        return this.initPromise;
     }
 
     async play(fileName, { onAnalyserReady, onEnded } = {}) {
@@ -134,6 +184,8 @@ class HcaVoicePlayer {
         player.bufSrc.loop = false;
         player.playInBackground = true;
         player.bufSrc.onended = () => {
+            // Always close the finished AudioContext and remove its visibilitychange listener.
+            stopPlayer(player);
             if (token !== this.playToken) return;
             if (this.player === player) {
                 this.player = null;

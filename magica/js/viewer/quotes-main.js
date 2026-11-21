@@ -57,41 +57,83 @@ homeTapVoicePool = [...HOME_TAP_VOICE_IDS];
 // ---- Cocos-to-pixi background ----
 let bgArmature = null;
 let bgTicker = null;
+let bgLoadToken = 0;
+
+function disposeCocosAssets(textures, particles) {
+    if (particles) {
+        for (const p of Object.values(particles)) {
+            const tex = p?.particleTexture;
+            if (!tex) continue;
+            const srcUrl = tex.baseTexture?.resource?.url;
+            try { tex.destroy(true); } catch {}
+            if (typeof srcUrl === 'string' && srcUrl.startsWith('blob:')) {
+                try { URL.revokeObjectURL(srcUrl); } catch {}
+            }
+            p.particleTexture = null;
+        }
+    }
+    if (textures) {
+        const baseTextures = new Set();
+        for (const tex of Object.values(textures)) {
+            if (!tex) continue;
+            if (tex.baseTexture) baseTextures.add(tex.baseTexture);
+            try { tex.destroy(false); } catch {}
+        }
+        for (const bt of baseTextures) {
+            if (bt && !bt.destroyed) {
+                try { bt.destroy(); } catch {}
+            }
+        }
+    }
+}
 
 async function clearBackground() {
+    bgLoadToken++;
     if (bgTicker && window.app?.ticker) {
         window.app.ticker.remove(bgTicker);
     }
     bgTicker = null;
 
     if (bgArmature) {
-        try {
-            if (bgArmature.parent) bgArmature.parent.removeChild(bgArmature);
-            bgArmature.destroy({ children: true });
-        } catch (e) {}
+        const armature = bgArmature;
         bgArmature = null;
+        try {
+            if (typeof armature.stop === 'function') armature.stop();
+            if (armature.parent) armature.parent.removeChild(armature);
+            const textures = armature.textures;
+            const particles = armature.particles;
+            armature.destroy({ children: true });
+            disposeCocosAssets(textures, particles);
+        } catch (e) {}
     }
 }
 
 async function initBackground(exportJsonPath = 'bg/web/web_0015.ExportJson', { visible = true, autoplay = true } = {}) {
     await clearBackground();
+    const token = ++bgLoadToken;
     const assets = await loadCocosStudioAssets(exportJsonPath);
-    bgArmature = new CocosStudioArmature(assets.json, assets.textures, assets.particles);
+    if (token !== bgLoadToken) {
+        disposeCocosAssets(assets?.textures, assets?.particles);
+        return;
+    }
+
+    const armature = new CocosStudioArmature(assets.json, assets.textures, assets.particles);
+    bgArmature = armature;
 
     // Position so the 1024x768 bg content is vertically centered in the 1024x576 home16 view.
     // cameraMask clips to (0,0,1024,576); shifting the armature up by (768-576)/2 = 96px
     // means 96px is clipped from both top and bottom, centering the bg in the view.
-    bgArmature.x = WORLD_W / 2;
-    bgArmature.y = WORLD_H / 2 - (WORLD_H - HOME16_H) / 2;
+    armature.x = WORLD_W / 2;
+    armature.y = WORLD_H / 2 - (WORLD_H - HOME16_H) / 2;
 
     // Add behind the model (worldContainer is index 1; insert at 0).
-    window.cameraContainer.addChildAt(bgArmature, 0);
-    bgArmature.visible = visible;
+    window.cameraContainer.addChildAt(armature, 0);
+    armature.visible = visible;
 
-    if (autoplay) bgArmature.play('action', true);
+    if (autoplay) armature.play('action', true);
 
     bgTicker = (delta) => {
-        if (bgArmature) bgArmature.update(delta / 60);
+        if (bgArmature === armature && !armature.destroyed) armature.update(delta / 60);
     };
     window.app.ticker.add(bgTicker);
 }
@@ -121,10 +163,32 @@ const KEY2 = 0x00000000;
 let hcaModule = null;
 let hcaBlobUrl = null;
 let worker = null;
+let workerPromise = null;
 let player = null;
+let bgmLoadToken = 0;
 let scenarioPlayer = null;
 let _bgmBase = null;
 let _bgmBaseSource = null;
+
+async function safeStopHcaPlayer(hcaPlayer) {
+    if (!hcaPlayer || hcaPlayer.closed) return;
+    try {
+        if (hcaPlayer.bufSrc) hcaPlayer.bufSrc.onended = null;
+        if (hcaPlayer.audioCtx?.state === 'suspended') {
+            await hcaPlayer.audioCtx.resume().catch(() => {});
+        }
+        await hcaPlayer.stop();
+    } catch {
+        try {
+            if (hcaPlayer.visibilityChangeListener) {
+                document.removeEventListener('visibilitychange', hcaPlayer.visibilityChangeListener);
+            }
+        } catch {}
+        try { hcaPlayer.bufSrc?.disconnect(); } catch {}
+        try { await hcaPlayer.audioCtx?.close(); } catch {}
+        hcaPlayer.closed = true;
+    }
+}
 
 async function resolveBgmBase(probeFile = HOME_BGM_FILE) {
     if (_bgmBase) return _bgmBase;
@@ -177,24 +241,35 @@ async function resolveBgmBase(probeFile = HOME_BGM_FILE) {
 
 async function initWorker() {
     if (worker) return worker;
+    if (workerPromise) return workerPromise;
 
-    if (!hcaBlobUrl) {
-        const response = await fetch(HCA_JS_URL.href);
-        const blob = new Blob([await response.arrayBuffer()], { type: "text/javascript" });
-        hcaBlobUrl = URL.createObjectURL(blob);
-    }
+    workerPromise = (async () => {
+        try {
+            if (!hcaBlobUrl) {
+                const response = await fetch(HCA_JS_URL.href);
+                const blob = new Blob([await response.arrayBuffer()], { type: "text/javascript" });
+                hcaBlobUrl = URL.createObjectURL(blob);
+            }
 
-    if (!hcaModule) {
-        hcaModule = await import(hcaBlobUrl);
-    }
+            if (!hcaModule) {
+                hcaModule = await import(hcaBlobUrl);
+            }
 
-    worker = await hcaModule.HCAWorker.create(hcaBlobUrl);
-    return worker;
+            worker = await hcaModule.HCAWorker.create(hcaBlobUrl);
+            return worker;
+        } catch (err) {
+            workerPromise = null;
+            throw err;
+        }
+    })();
+    return workerPromise;
 }
 
 async function playTrack(fileName, { autoplay = true } = {}) {
+    const token = ++bgmLoadToken;
     const activeWorker = await initWorker();
     await resolveBgmBase(fileName);
+    if (token !== bgmLoadToken) return;
 
     const fileResponse = await fetch(`${_bgmBase}/${fileName}`);
     if (!fileResponse.ok) {
@@ -202,11 +277,18 @@ async function playTrack(fileName, { autoplay = true } = {}) {
     }
 
     const hcaData = new Uint8Array(await fileResponse.arrayBuffer());
+    if (token !== bgmLoadToken) return;
     const decrypted = await activeWorker.decrypt(hcaData, KEY1, KEY2);
+    if (token !== bgmLoadToken) return;
     const newPlayer = await hcaModule.HCAWebAudioLoopPlayer.create(decrypted, activeWorker);
 
+    if (token !== bgmLoadToken) {
+        await safeStopHcaPlayer(newPlayer);
+        return;
+    }
+
     if (player) {
-        await player.stop();
+        await safeStopHcaPlayer(player);
     }
     player = newPlayer;
     player.playInBackground = true;
@@ -229,14 +311,25 @@ async function loadCharaAttributes() {
     }
 }
 
+let lastUILayerX = null;
+let lastUILayerY = null;
+let lastUILayerScale = null;
+
 function updateUILayer() {
     const uiLayer = document.getElementById('ui-layer');
     if (!uiLayer) return;
     const camera = window.cameraContainer;
     if (!camera) return;
-    uiLayer.style.left = `${camera.x}px`;
-    uiLayer.style.top = `${camera.y}px`;
-    uiLayer.style.transform = `scale(${camera.scale.x})`;
+    const x = camera.x;
+    const y = camera.y;
+    const scale = camera.scale.x;
+    if (x === lastUILayerX && y === lastUILayerY && scale === lastUILayerScale) return;
+    lastUILayerX = x;
+    lastUILayerY = y;
+    lastUILayerScale = scale;
+    uiLayer.style.left = `${x}px`;
+    uiLayer.style.top = `${y}px`;
+    uiLayer.style.transform = `scale(${scale})`;
 }
 
 function updateHeaderName(nameEl, charaName, charaTitle) {
@@ -319,8 +412,10 @@ function updateVoiceButtonsVisibility(charaId, prefix, availableKeys) {
 }
 
 let sfxPlayer = null;
+let sfxLoadToken = 0;
 
 async function playSfx(filePath) {
+    const token = ++sfxLoadToken;
     try {
         const activeWorker = await initWorker();
         const fileResponse = await fetch(filePath);
@@ -328,15 +423,27 @@ async function playSfx(filePath) {
             throw new Error(`Failed to load SFX ${filePath}: ${fileResponse.status}`);
         }
         const hcaData = new Uint8Array(await fileResponse.arrayBuffer());
+        if (token !== sfxLoadToken) return;
         const decrypted = await activeWorker.decrypt(hcaData, KEY1, KEY2);
+        if (token !== sfxLoadToken) return;
 
-        if (sfxPlayer) {
-            try { await sfxPlayer.stop(); } catch(e) {}
+        const newSfx = await hcaModule.HCAWebAudioLoopPlayer.create(decrypted, activeWorker);
+        if (token !== sfxLoadToken) {
+            await safeStopHcaPlayer(newSfx);
+            return;
         }
 
-        sfxPlayer = await hcaModule.HCAWebAudioLoopPlayer.create(decrypted, activeWorker);
+        if (sfxPlayer) {
+            await safeStopHcaPlayer(sfxPlayer);
+        }
+
+        sfxPlayer = newSfx;
         sfxPlayer.bufSrc.loop = false;
         sfxPlayer.playInBackground = true;
+        sfxPlayer.bufSrc.onended = () => {
+            if (sfxPlayer === newSfx) sfxPlayer = null;
+            safeStopHcaPlayer(newSfx);
+        };
         sfxPlayer.play();
     } catch (e) {
         console.error('[quotes] SFX play failed:', e);
@@ -345,10 +452,26 @@ async function playSfx(filePath) {
 
 let activeEffectArmature = null;
 let activeEffectTick = null;
+let effectLoadToken = 0;
+let effectAssetsPromise = null;
+
+function loadTransformationEffectAssets() {
+    if (!effectAssetsPromise) {
+        effectAssetsPromise = loadCocosStudioAssets('magica/resource/image_native/effect/story/ef_adv_05.ExportJson')
+            .catch((err) => {
+                effectAssetsPromise = null;
+                throw err;
+            });
+    }
+    return effectAssetsPromise;
+}
 
 async function playTransformationEffect(x) {
+    const token = ++effectLoadToken;
     try {
-        const assets = await loadCocosStudioAssets('magica/resource/image_native/effect/story/ef_adv_05.ExportJson');
+        const assets = await loadTransformationEffectAssets();
+        if (token !== effectLoadToken) return;
+
         const effectArmature = new CocosStudioArmature(assets.json, assets.textures, assets.particles);
 
         if (activeEffectArmature) {
@@ -357,7 +480,9 @@ async function playTransformationEffect(x) {
                 activeEffectTick = null;
             }
             try {
-                window.cameraContainer.removeChild(activeEffectArmature);
+                if (activeEffectArmature.parent) {
+                    activeEffectArmature.parent.removeChild(activeEffectArmature);
+                }
                 activeEffectArmature.destroy({ children: true });
             } catch(e) {}
             activeEffectArmature = null;
@@ -385,11 +510,13 @@ async function playTransformationEffect(x) {
                 }
             } else {
                 window.app.ticker.remove(updateTick);
+                try {
+                    if (effectArmature.parent) {
+                        effectArmature.parent.removeChild(effectArmature);
+                    }
+                    effectArmature.destroy({ children: true });
+                } catch(e) {}
                 if (activeEffectArmature === effectArmature) {
-                    try {
-                        window.cameraContainer.removeChild(effectArmature);
-                        effectArmature.destroy({ children: true });
-                    } catch(e) {}
                     activeEffectArmature = null;
                     activeEffectTick = null;
                 }
@@ -404,9 +531,12 @@ async function playTransformationEffect(x) {
 }
 
 async function stopTransformationEffects() {
+    sfxLoadToken++;
+    effectLoadToken++;
     if (sfxPlayer) {
-        try { await sfxPlayer.stop(); } catch (e) {}
+        const oldSfx = sfxPlayer;
         sfxPlayer = null;
+        await safeStopHcaPlayer(oldSfx);
     }
     if (activeEffectArmature) {
         if (activeEffectTick) {
@@ -659,6 +789,8 @@ function syncMyPageOutfitUI() {
     });
 }
 
+let measureTextCtx = null;
+
 // The game cuts long outfit names at a word boundary ("Kamihama University
 // Affiliated") instead of clipping mid-word, so trim the label to the last
 // whole word that fits the row's text area (384px row - 56px icon padding).
@@ -666,7 +798,11 @@ function fitRowLabel(row) {
     const text = row.textContent;
     if (!text) return;
     const font = window.getComputedStyle(row).font;
-    const ctx = document.createElement('canvas').getContext('2d');
+    if (!measureTextCtx) {
+        measureTextCtx = document.createElement('canvas').getContext('2d');
+    }
+    const ctx = measureTextCtx;
+    if (!ctx) return;
     ctx.font = font;
     const maxWidth = 384 - 56;
     if (ctx.measureText(text).width <= maxWidth) return;
@@ -969,42 +1105,57 @@ function setupVoiceDisplaySwitch() {
     });
 }
 
+let metadataPromise = null;
+
+function ensureMetadataLoaded() {
+    if (metadataPromise) return metadataPromise;
+    metadataPromise = (async () => {
+        try {
+            const [charaResponse, live2dResponse] = await Promise.all([
+                fetch('https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/charaList.json'),
+                fetch('https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/live2dList.json')
+            ]);
+
+            const [registeredChars, registeredLive2d] = await Promise.all([
+                charaResponse.json(),
+                live2dResponse.json()
+            ]);
+
+            let missingChars = [];
+            let missingLive2d = [];
+            try {
+                const [missingCharsResponse, missingLive2dResponse] = await Promise.all([
+                    fetch('assets/missingCharaList.json'),
+                    fetch('assets/missingLive2dList.json')
+                ]);
+                if (missingCharsResponse.ok) missingChars = await missingCharsResponse.json();
+                if (missingLive2dResponse.ok) missingLive2d = await missingLive2dResponse.json();
+            } catch (e) {
+                // Optional missing list
+            }
+
+            const registeredCharIds = new Set(registeredChars.map(c => Number(c.id)));
+            const registeredLive2dKeys = new Set(
+                registeredLive2d.map(o => `${Number(o.charaId)}-${String(o.live2dId).padStart(2, '0')}`)
+            );
+
+            const appendedChars = missingChars.filter(c => !registeredCharIds.has(Number(c.id)));
+            const appendedLive2d = missingLive2d.filter(o => !registeredLive2dKeys.has(`${Number(o.charaId)}-${String(o.live2dId).padStart(2, '0')}`));
+
+            state.charaListData = registeredChars.concat(appendedChars);
+            state.live2dListData = registeredLive2d.concat(appendedLive2d);
+            state.registeredLive2dKeys = registeredLive2dKeys;
+        } catch (e) {
+            metadataPromise = null;
+            throw e;
+        }
+    })();
+    return metadataPromise;
+}
+
 async function initMetadata(charaId) {
     try {
-        const [charaResponse, live2dResponse] = await Promise.all([
-            fetch('https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/charaList.json'),
-            fetch('https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/live2dList.json')
-        ]);
-
-        const [registeredChars, registeredLive2d] = await Promise.all([
-            charaResponse.json(),
-            live2dResponse.json()
-        ]);
-
-        let missingChars = [];
-        let missingLive2d = [];
-        try {
-            const [missingCharsResponse, missingLive2dResponse] = await Promise.all([
-                fetch('assets/missingCharaList.json'),
-                fetch('assets/missingLive2dList.json')
-            ]);
-            if (missingCharsResponse.ok) missingChars = await missingCharsResponse.json();
-            if (missingLive2dResponse.ok) missingLive2d = await missingLive2dResponse.json();
-        } catch (e) {
-            // Optional missing list
-        }
-
-        const registeredCharIds = new Set(registeredChars.map(c => Number(c.id)));
-        const registeredLive2dKeys = new Set(
-            registeredLive2d.map(o => `${Number(o.charaId)}-${String(o.live2dId).padStart(2, '0')}`)
-        );
-
-        const appendedChars = missingChars.filter(c => !registeredCharIds.has(Number(c.id)));
-        const appendedLive2d = missingLive2d.filter(o => !registeredLive2dKeys.has(`${Number(o.charaId)}-${String(o.live2dId).padStart(2, '0')}`));
-
-        state.charaListData = registeredChars.concat(appendedChars);
-        state.live2dListData = registeredLive2d.concat(appendedLive2d);
-        state.registeredLive2dKeys = registeredLive2dKeys;
+        await ensureMetadataLoaded();
 
         // Update the character name text and kana
         const chara = state.charaListData.find(c => Number(c.id) === Number(charaId));
@@ -1024,6 +1175,8 @@ async function initMetadata(charaId) {
 function setupVoiceButtons() {
     const voiceBtns = document.querySelectorAll('.voiceBtn');
     voiceBtns.forEach(btn => {
+        if (btn.getAttribute('data-has-listener')) return;
+        btn.setAttribute('data-has-listener', 'true');
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
 
@@ -1441,7 +1594,10 @@ function fadeModelTo(model, ms, toAlpha, onDone) {
             filter.alpha = toAlpha;
             if (toAlpha >= 1) {
                 const fl = model.filters;
-                if (fl) model.filters = fl.filter(f => f !== filter);
+                if (fl) {
+                    const remaining = fl.filter(f => f !== filter);
+                    model.filters = remaining.length ? remaining : null;
+                }
             }
             if (onDone) onDone();
         }
@@ -1732,6 +1888,8 @@ async function teardownHomeScreen() {
         const pendingLoad = homeLoadPromise;
         if (pendingLoad) await pendingLoad;
 
+        clearTimeout(live2dHoldTimer);
+        live2dHoldTimer = null;
         scenarioPlayer?.stop();
         // Close any open wearWrap popup and restore the hidden global chrome
         // (leave with the popup open would otherwise keep #globalMenu/#sideMenu
@@ -1744,9 +1902,11 @@ async function teardownHomeScreen() {
 
         destroyCurrentModels();
         await clearBackground();
+        bgmLoadToken++;
         if (player) {
-            try { await player.stop(); } catch (e) {}
+            const oldPlayer = player;
             player = null;
+            await safeStopHcaPlayer(oldPlayer);
         }
 
         setHomePositioning(false);
@@ -1880,10 +2040,11 @@ function setupHomeInteractions() {
 async function init() {
     document.body.classList.add('connecting');
 
-    // Initialize UI scaling immediately so it is positioned correctly from the start.
+    // Initialize UI scaling immediately and react to viewport/resize updates
+    // instead of mutating DOM styles every animation frame on app.ticker.
     updateUILayer();
     window.addEventListener('resize', updateUILayer);
-    window.app.ticker.add(updateUILayer);
+    window.addEventListener('mrv2:viewportChange', updateUILayer);
 
     // Make UI layer visible now that it is correctly positioned and scaled
     const uiLayer = document.getElementById('ui-layer');
