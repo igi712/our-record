@@ -5,9 +5,7 @@ PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.LINEAR;
 const MAX_DPR = 2; // clamp to prevent huge memory/scrolling issues on mobile
 function getAppliedDPR() { return Math.max(1, Math.min(MAX_DPR, Math.ceil(window.devicePixelRatio || 1))); }
 
-const viewerBgState = window.__QUOTES_CONFIG?.noGameBg
-    ? { type: 'home', color: 0x000000 }
-    : { type: 'solid', color: 0x999999 };
+const viewerBgState = { type: 'home', color: 0x000000 };
 
 const app = new PIXI.Application({
     backgroundColor: viewerBgState.color,

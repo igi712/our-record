@@ -2,7 +2,7 @@
   "solid": [
     {
       "id": "solid:gray",
-      "label": "Default Gray",
+      "label": "Gray",
       "hex": "#999999",
       "color": 10066329
     },

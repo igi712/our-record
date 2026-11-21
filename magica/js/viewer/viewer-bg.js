@@ -5,6 +5,8 @@ import { setAssetPreloadConnecting } from './model-assets.js';
 import { loadCocosStudioAssets, CocosStudioArmature } from '../../../lib/cocos-to-pixi.js';
 
 const CATALOG_URL = 'assets/bgCatalog.json';
+const DEFAULT_BG_ID = 'home:web_0011';
+const FALLBACK_BG_ID = 'solid:gray';
 const WORLD_W = 1024;
 const WORLD_H = 768;
 const INITIAL_LIMIT = 40;
@@ -13,8 +15,8 @@ const LOAD_MORE_STEP = 80;
 let catalogPromise = null;
 let imageNativeBasePromise = null;
 
-let activeBgId = 'solid:gray';
-let pendingBgId = 'solid:gray';
+let activeBgId = DEFAULT_BG_ID;
+let pendingBgId = DEFAULT_BG_ID;
 let bgLoadToken = 0;
 
 let currentBgNode = null;
@@ -577,6 +579,31 @@ function closeModal({ commit = false } = {}) {
     lastFocusedEl = null;
 }
 
+async function applyDefaultBackground() {
+    try {
+        await loadCatalog();
+        if (activeBgId !== DEFAULT_BG_ID || bgLoadToken !== 0) return;
+        const entry = recordsById.get(DEFAULT_BG_ID)?.entry;
+        if (!entry) return;
+        await applyBackground(entry, FALLBACK_BG_ID);
+        if (activeBgId === FALLBACK_BG_ID) {
+            const fallback = recordsById.get(FALLBACK_BG_ID)?.entry;
+            if (fallback) {
+                pendingBgId = fallback.id;
+                if (isBackgroundModalOpen()) syncSelection();
+                await applyBackground(fallback, null);
+            }
+        }
+    } catch (err) {
+        console.warn('[viewer-bg] Failed to apply default background:', err);
+        if (bgLoadToken === 0) {
+            activeBgId = FALLBACK_BG_ID;
+            pendingBgId = FALLBACK_BG_ID;
+            window.setViewerBackgroundState?.({ type: 'solid', color: 0x999999 });
+        }
+    }
+}
+
 export function setupBackgroundSelector() {
     const changeBgBtn = document.getElementById('changeBgBtn');
     const modal = document.getElementById('bgSelectorModal');
@@ -642,4 +669,6 @@ export function setupBackgroundSelector() {
             closeModal({ commit: false });
         }
     });
+
+    applyDefaultBackground();
 }
