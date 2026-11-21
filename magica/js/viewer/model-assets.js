@@ -2,6 +2,57 @@
 
 import { state } from './model.js';
 
+export function normalizeExpressionName(raw) {
+    const base = String(raw || '').split('/').pop() || '';
+    return base.replace(/\.exp3\.json$/, '').replace(/\.exp\.json$/, '').replace(/\.json$/, '');
+}
+
+/**
+ * Pick the default expression for a model: `mtn_ex_010` if available,
+ * otherwise the lowest-numbered `mtn_ex_XXX` (or the first listed entry).
+ */
+export function findDefaultExpression(expressions) {
+    if (!Array.isArray(expressions) || expressions.length === 0) return null;
+
+    let lowestMtnEx = null;
+    for (const expr of expressions) {
+        const fullName = String(expr?.Name ?? expr?.name ?? '');
+        const rawForMatch = fullName || String(expr?.File ?? expr?.file ?? '');
+        if (!rawForMatch) continue;
+        const name = normalizeExpressionName(rawForMatch);
+        const candidate = fullName || rawForMatch;
+        if (name === 'mtn_ex_010') return candidate;
+
+        const match = /^mtn_ex_(\d+)$/.exec(name);
+        if (match) {
+            const num = Number(match[1]);
+            if (!lowestMtnEx || num < lowestMtnEx.num) {
+                lowestMtnEx = { num, originalName: candidate };
+            }
+        }
+    }
+
+    if (lowestMtnEx) return lowestMtnEx.originalName;
+    const first = expressions[0];
+    return first ? String(first.Name ?? first.name ?? first.File ?? first.file ?? '') || null : null;
+}
+
+function collectExpressionFiles(expressions, allowedExpressions, filesToFetch) {
+    if (!Array.isArray(expressions)) return;
+    const defaultNorm = allowedExpressions ? normalizeExpressionName(findDefaultExpression(expressions)) : '';
+    for (const e of expressions) {
+        const file = e?.File ?? e?.file;
+        if (!file) continue;
+        if (allowedExpressions) {
+            const normName = normalizeExpressionName(file);
+            if (!allowedExpressions.has(normName) && normName !== defaultNorm) {
+                continue;
+            }
+        }
+        filesToFetch.add(file);
+    }
+}
+
 // --- Module-private mutable state ---
 let __mrResolvedAssetsBase = null;
 let __mrResolvedAssetsBaseSource = null;
@@ -201,21 +252,7 @@ export async function preloadModelToRam(modelId, options = {}) {
                 });
             }
 
-            if (Array.isArray(fr.Expressions)) {
-                fr.Expressions.forEach(e => {
-                    if (e.File) {
-                        if (allowedExpressions) {
-                            const fileName = e.File.split('/').pop();
-                            const normName = fileName.replace(/\.exp3\.json$/, '').replace(/\.exp\.json$/, '').replace(/\.json$/, '');
-                            const isDefault = normName.includes('mtn_ex_01');
-                            if (!allowedExpressions.has(normName) && !isDefault) {
-                                return;
-                            }
-                        }
-                        filesToFetch.add(e.File);
-                    }
-                });
-            }
+            collectExpressionFiles(fr.Expressions, allowedExpressions, filesToFetch);
         }
         // Cubism 2
         else {
@@ -250,21 +287,7 @@ export async function preloadModelToRam(modelId, options = {}) {
                     }
                 });
             }
-            if (Array.isArray(mainJson.expressions)) {
-                mainJson.expressions.forEach(e => {
-                    if (e.file) {
-                        if (allowedExpressions) {
-                            const fileName = e.file.split('/').pop();
-                            const normName = fileName.replace(/\.exp3\.json$/, '').replace(/\.exp\.json$/, '').replace(/\.json$/, '');
-                            const isDefault = normName.includes('mtn_ex_01');
-                            if (!allowedExpressions.has(normName) && !isDefault) {
-                                return;
-                            }
-                        }
-                        filesToFetch.add(e.file);
-                    }
-                });
-            }
+            collectExpressionFiles(mainJson.expressions, allowedExpressions, filesToFetch);
         }
 
         // --- Fetch All in Parallel ---

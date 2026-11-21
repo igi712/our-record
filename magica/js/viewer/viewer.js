@@ -58,9 +58,9 @@ const VIEW43_H = WORLD_H;
 const VIEW43_LEFT = 0;
 const VIEW43_TOP = 0;
 
-// Full (taller) view: tuned taller height to show more of the model without floating
+// Full (taller) view: tuned taller height to show more of the model
 const VIEWFULL_W = WORLD_W;
-const VIEWFULL_H = 928;
+const VIEWFULL_H = 955;
 const VIEWFULL_LEFT = 0;
 const VIEWFULL_TOP = (WORLD_H - VIEWFULL_H) / 2;
 

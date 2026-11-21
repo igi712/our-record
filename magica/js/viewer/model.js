@@ -1,7 +1,7 @@
 // model loading, assets resolution, and follow behavior.
 
-import { resolveMaReAssetsBase, primePreloadForInitialModel, preloadModelToRam, ramFolderCache, nextLoadToken, isLoadTokenStale } from './model-assets.js';
-export { resolveMaReAssetsBase, persistAssetsBaseOverride, clearAssetsBaseOverride } from './model-assets.js';
+import { resolveMaReAssetsBase, primePreloadForInitialModel, preloadModelToRam, ramFolderCache, nextLoadToken, isLoadTokenStale, findDefaultExpression } from './model-assets.js';
+export { resolveMaReAssetsBase, persistAssetsBaseOverride, clearAssetsBaseOverride, findDefaultExpression } from './model-assets.js';
 import { setupFollowForModel, cleanupOldModelHandlers } from './model-follow.js';
 export { setFollowEnabledGlobal } from './model-follow.js';
 
@@ -259,30 +259,6 @@ export function applySoulGem(enabled) {
 
 export { downloadModelSnapshot } from './model-snapshot.js';
 
-function findBestMtnExExpression(expressions) {
-    if (!Array.isArray(expressions)) return null;
-
-    // Find all expressions that match mtn_ex_01X pattern
-    const mtnExMatches = [];
-    for (const expr of expressions) {
-        const fullName = String(expr.Name ?? expr.name ?? '');
-        // Strip common extensions from the name for pattern matching
-        const name = fullName.replace(/\.exp3\.json$/, '').replace(/\.json$/, '');
-        const match = name.match(/^mtn_ex_01(\d+)$/);
-        if (match) {
-            const number = Number(match[1]);
-            mtnExMatches.push({ originalName: fullName, name, number });
-        }
-    }
-
-    // If no mtn_ex_01X expressions found, return null
-    if (mtnExMatches.length === 0) return null;
-
-    // Sort by number and return the lowest
-    mtnExMatches.sort((a, b) => a.number - b.number);
-    return mtnExMatches[0].originalName;
-}
-
 function setupControlsForModel(model, modelJson) {
     const motionSelect = document.getElementById('motionSelect');
     const expressionSelect = document.getElementById('expressionSelect');
@@ -345,16 +321,11 @@ function setupControlsForModel(model, modelJson) {
 
         fillSelect(expressionSelect, expressionOptions);
 
-        // Attempt to set the best mtn_ex_01X expression, fallback to first option
-        let selectedExpression = null;
+        // Prefer mtn_ex_010, falling back to lowest mtn_ex_XXX or first listed option.
         if (expressionOptions.length > 0) {
-            const bestMtnEx = findBestMtnExExpression(expressions);
-            if (bestMtnEx) {
-                selectedExpression = bestMtnEx;
-            } else {
-                selectedExpression = expressionOptions[0].value;
-            }
-            expressionSelect.value = selectedExpression;
+            const defaultExpr = findDefaultExpression(expressions);
+            if (defaultExpr) setSelectValue(expressionSelect, defaultExpr);
+            if (!expressionSelect.value) expressionSelect.value = expressionOptions[0].value;
         }
 
         expressionSelect.onchange = () => {

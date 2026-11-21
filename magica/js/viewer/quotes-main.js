@@ -2,7 +2,7 @@
 // Wires up: cocos-to-pixi background, HCA BGM loop, and the default Live2D model.
 // Differences from viewer.html: no controls, no follow-on-click.
 import { loadCocosStudioAssets, CocosStudioArmature } from '../../../lib/cocos-to-pixi.js';
-import { loadModel, loadAdditionalModel, destroyCurrentModels, state, getOutfitsForCharacter, buildModelId, resolveMaReAssetsBase } from './model.js';
+import { loadModel, loadAdditionalModel, destroyCurrentModels, state, getOutfitsForCharacter, buildModelId, resolveMaReAssetsBase, findDefaultExpression } from './model.js';
 import { preloadModelToRam, ramFolderCache, setAssetPreloadConnecting } from './model-assets.js';
 import { ScenarioSequencePlayer, preloadScenarioVoices, scenarioCache } from './quotes-sequence.js';
 import { fetchScenarioJson, checkScenarioUrlExists, getDualUnitConfig } from './model-scenario.js';
@@ -564,23 +564,7 @@ function setupOutfitButtons(charaId) {
                     if (jsonFile) {
                         const modelJson = JSON.parse(await jsonFile.text());
                         const expressions = modelJson?.FileReferences?.Expressions ?? [];
-
-                        const mtnExMatches = [];
-                        for (const expr of expressions) {
-                            const fullName = String(expr.Name ?? expr.name ?? '');
-                            const name = fullName.replace(/\.exp3\.json$/, '').replace(/\.json$/, '');
-                            const match = name.match(/^mtn_ex_01(\d+)$/);
-                            if (match) {
-                                const number = Number(match[1]);
-                                mtnExMatches.push({ originalName: fullName, name, number });
-                            }
-                        }
-                        if (mtnExMatches.length > 0) {
-                            mtnExMatches.sort((a, b) => a.number - b.number);
-                            bestExpression = mtnExMatches[0].originalName;
-                        } else if (expressions.length > 0) {
-                            bestExpression = expressions[0].Name ?? expressions[0].name;
-                        }
+                        bestExpression = findDefaultExpression(expressions);
                     }
                 }
 
