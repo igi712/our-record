@@ -682,6 +682,10 @@
                 try {
                     const em = im?.motionManager?.expressionManager;
                     if (em && typeof em.resetExpression === 'function') {
+                        em.reserveExpressionIndex = -1;
+                        if (em.defaultExpression) {
+                            em.currentExpression = em.defaultExpression;
+                        }
                         em.resetExpression();
                         return true;
                     }
