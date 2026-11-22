@@ -345,6 +345,9 @@ async function openProfilePopup() {
                 onChangeBackground: () => {
                     const q = window.location.hash.split('?')[1];
                     window.location.hash = q ? `#/BackgroundSet?${q}` : '#/BackgroundSet';
+                },
+                onChangeFavorite: () => {
+                    window.location.hash = `#/CharaListTop?id=${charaId}`;
                 }
             });
         }

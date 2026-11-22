@@ -1,0 +1,1264 @@
+@charset "UTF-8";
+/* chara-top.css — Magical Girls (#/CharaListTop) + CardSort + Favorite Changed popup styles
+ * Ported from puella-historia CharaTop.css, CharaCommon.css, and common.css,
+ * with official NA English labels/sprites from MagiRecoStatic.
+ */
+
+#globalBackBtn {
+  z-index: 1002 !important;
+}
+
+#CharaTop {
+  width: 1024px;
+  height: 576px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  color: #5b5b5b;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+}
+
+#CharaTop *,
+#sortFilterPop #sortfilter,
+#sortFilterPop #sortfilter * {
+  box-sizing: border-box;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+}
+
+#CharaTop ul,
+#CharaTop li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#CharaTop p {
+  margin: 0;
+  padding: 0;
+}
+
+#CharaTop .flexBox {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+#CharaTop .c_purple {
+  color: #5b3072;
+}
+
+#CharaTop .c_gold {
+  color: #a47122;
+}
+
+#CharaTop .c_pink {
+  color: #ff4f9e;
+}
+
+#CharaTop .ts_white {
+  text-shadow: -1px -1px 1px #ffffff, 1px -1px 1px #ffffff, -1px 1px 1px #ffffff, 1px 1px 1px #ffffff, -1px -1px #ffffff, 1px -1px #ffffff, -1px 1px #ffffff, 1px 1px #ffffff, -1px -1px 2px #ffffff, 1px -1px 2px #ffffff, -1px 1px 2px #ffffff, 1px 1px 2px #ffffff, -1px -1px 2px #ffffff, 1px -1px 2px #ffffff, -1px 1px 2px #ffffff, 1px 1px 2px #ffffff, -1px -1px 3px #ffffff, 1px -1px 3px #ffffff, -1px 1px 3px #ffffff, 1px 1px 3px #ffffff;
+}
+
+/* ===== Left Stats Card (#charaData) ===== */
+@-webkit-keyframes readyFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes readyFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+#CharaTop #charaData {
+  width: 252px;
+  height: 382px;
+  padding: 62px 0 0;
+  background: url("../resource/image_web/page/chara/bg_chara_data.png") left top no-repeat;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  z-index: 1000;
+  pointer-events: auto;
+  -webkit-filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5));
+          filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5));
+}
+
+#CharaTop #charaData.show {
+  -webkit-animation: readyFadeIn .2s ease-in;
+          animation: readyFadeIn .2s ease-in;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards;
+}
+
+#CharaTop #charaData #detailBtn {
+  width: 43px;
+  height: 34px;
+  background: url("../resource/image_web/common/btn/btn_common_mini.png") left top no-repeat;
+  display: block;
+  position: absolute;
+  top: 97px;
+  right: 0;
+  cursor: pointer;
+}
+
+#CharaTop #charaData #detailBtn.touch {
+  transform: scale(0.95);
+  filter: brightness(120%);
+}
+
+#CharaTop #charaData #attribute {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 0;
+  display: block;
+  -webkit-filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+          filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+}
+
+#CharaTop #charaData #attribute span {
+  width: 36px;
+  height: 36px;
+  background-repeat: no-repeat;
+  background-size: 36px 36px;
+  display: block;
+}
+
+#CharaTop #charaData #attribute .FIRE.type_f { background-image: url("../resource/image_web/common/chara/att_fire_f.png"); }
+#CharaTop #charaData #attribute .WATER.type_f { background-image: url("../resource/image_web/common/chara/att_water_f.png"); }
+#CharaTop #charaData #attribute .TIMBER.type_f { background-image: url("../resource/image_web/common/chara/att_timber_f.png"); }
+#CharaTop #charaData #attribute .LIGHT.type_f { background-image: url("../resource/image_web/common/chara/att_light_f.png"); }
+#CharaTop #charaData #attribute .DARK.type_f { background-image: url("../resource/image_web/common/chara/att_dark_f.png"); }
+#CharaTop #charaData #attribute .VOID.type_f { background-image: url("../resource/image_web/common/chara/att_void_f.png"); }
+
+#CharaTop #charaData #rare {
+  margin: 7px 0 2px -2px;
+  display: flex;
+  justify-content: center;
+}
+
+#CharaTop #charaData #rare span {
+  width: 19px;
+  height: 19px;
+  margin: 0 -1px;
+  background: url("../resource/image_web/common/chara/star_off.png") left top no-repeat;
+  background-size: contain;
+  display: block;
+  position: relative;
+  z-index: 1;
+  -webkit-filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.4));
+          filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.4));
+}
+
+#CharaTop #charaData #rare.RANK_1 span:nth-child(1),
+#CharaTop #charaData #rare.RANK_2 span:nth-child(-n+2),
+#CharaTop #charaData #rare.RANK_3 span:nth-child(-n+3),
+#CharaTop #charaData #rare.RANK_4 span:nth-child(-n+4),
+#CharaTop #charaData #rare.RANK_5 span:nth-child(-n+5) {
+  background: url("../resource/image_web/common/chara/star_on.png") left top no-repeat;
+  background-size: 100% 100%;
+  z-index: 10;
+}
+
+#CharaTop #charaData #name {
+  height: 44px;
+  display: flex;
+  flex-direction: column;
+  font-size: 20px;
+  line-height: 1.2;
+  text-align: center;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 10px;
+}
+
+#CharaTop #charaData #name p {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#CharaTop #charaData #name .title {
+  font-size: 16px;
+}
+
+#CharaTop #charaData #lv {
+  display: flex;
+  position: absolute;
+  top: 168px;
+  left: 22px;
+  justify-content: flex-end;
+  align-items: center;
+  color: #5b5b5b;
+  font-size: 14px;
+}
+
+#CharaTop #charaData #lv .before {
+  margin-left: 5px;
+}
+
+#CharaTop #charaData #lv .sla {
+  margin: 0 -2px;
+}
+
+#CharaTop #charaData #lv #currentLv {
+  font-size: 22px;
+}
+
+#CharaTop #charaData #lv .small {
+  font-size: 14px;
+  color: #5b5b5b;
+}
+
+#CharaTop #charaData #lv .lvMaxFlag {
+  width: 74px;
+  height: 22px;
+  margin-left: 24px;
+  background: url("../resource/image_web/common/chara/lv_max.png") left top no-repeat;
+  display: none;
+}
+
+#CharaTop #charaData #lv .lvMaxFlag.on {
+  display: inline-block;
+}
+
+#CharaTop #charaData .expGaugeWrap {
+  width: 206px;
+  height: 18px;
+  padding: 4px 9px;
+  position: absolute;
+  top: 198px;
+  left: 22px;
+}
+
+#CharaTop #charaData .expGaugeWrap .expGaugeInner {
+  height: 10px;
+  background: url("../resource/image_web/page/chara/exp_gauge_l.png") left top no-repeat,
+    url("../resource/image_web/page/chara/exp_gauge_r.png") right top no-repeat,
+    url("../resource/image_web/page/chara/exp_gauge_c.png") left top repeat-x;
+  position: relative;
+  z-index: 100;
+}
+
+#CharaTop #charaData .expGaugeWrap .expGaugeInner3 {
+  height: 10px;
+  background: url("../resource/image_web/common/chara/eplv_gauge_l.png") left top no-repeat,
+    url("../resource/image_web/common/chara/eplv_gauge_r.png") right top no-repeat,
+    url("../resource/image_web/common/chara/eplv_gauge_c.png") left top repeat-x;
+  position: relative;
+  z-index: 100;
+}
+
+#CharaTop #charaData .expGaugeWrap:before,
+#CharaTop #charaData .expGaugeWrap:after {
+  width: 16px;
+  height: 18px;
+  display: block;
+  position: absolute;
+  top: 0;
+  content: "";
+  z-index: 2;
+}
+
+#CharaTop #charaData .expGaugeWrap:before {
+  background: url("../resource/image_web/page/chara/bg_exp_gauge_l.png") left top no-repeat;
+  left: 0;
+}
+
+#CharaTop #charaData .expGaugeWrap:after {
+  background: url("../resource/image_web/page/chara/bg_exp_gauge_r.png") left top no-repeat;
+  right: 0;
+}
+
+#CharaTop #charaData .expGaugeWrap .bg {
+  width: calc(100% - 28px);
+  height: 18px;
+  margin: 0 auto;
+  background: url("../resource/image_web/page/chara/bg_exp_gauge_c.png") left top repeat-x;
+  position: absolute;
+  top: 0;
+  left: 14px;
+  z-index: 1;
+}
+
+#CharaTop #charaData .expGaugeWrap.episode {
+  left: 90px;
+  top: 354px;
+  width: 140px;
+}
+
+#CharaTop #charaData .status {
+  position: absolute;
+  top: 222px;
+  left: 22px;
+}
+
+#CharaTop #charaData .status li {
+  height: 20px;
+  display: flex;
+}
+
+#CharaTop #charaData .status li:not(:last-child) {
+  margin-bottom: 3px;
+}
+
+#CharaTop #charaData .status .thStyle,
+#CharaTop #charaData .status .tdStyle {
+  font-size: 14px;
+  line-height: 20px;
+  text-shadow: 0 0;
+  color: #5b5b5b;
+}
+
+#CharaTop #charaData .status .thStyle {
+  width: 60px;
+  height: 20px;
+  background: #b28750;
+  color: #ffffff;
+  text-align: center;
+  border-radius: 5px 0 0 5px;
+}
+
+#CharaTop #charaData .status .tdStyle {
+  padding: 0 0 0 6px;
+}
+
+#CharaTop #charaData .status .tdStyle.c_pink {
+  color: #ff4f9e;
+}
+
+#CharaTop #charaData .revisionWrap,
+#CharaTop #charaData .magiaLvWrap,
+#CharaTop #charaData .episodeLvWrap {
+  align-items: center;
+}
+
+#CharaTop #charaData .revisionWrap .title,
+#CharaTop #charaData .magiaLvWrap .title,
+#CharaTop #charaData .episodeLvWrap .title {
+  font-size: 14px;
+  width: 85px;
+}
+
+#CharaTop #charaData .revisionWrap .num,
+#CharaTop #charaData .magiaLvWrap .num,
+#CharaTop #charaData .episodeLvWrap .num {
+  color: #5b5b5b;
+  font-size: 14px;
+}
+
+#CharaTop #charaData .revisionWrap {
+  position: absolute;
+  top: 288px;
+  left: 24px;
+}
+
+#CharaTop #charaData .magiaLvWrap {
+  position: absolute;
+  top: 310px;
+  left: 24px;
+}
+
+#CharaTop #charaData .episodeLvWrap {
+  position: absolute;
+  top: 332px;
+  left: 24px;
+}
+
+#CharaTop #charaData .episodeLvWrap .episodeLvMaxFlag {
+  width: 62px;
+  height: 18px;
+  margin-left: 40px;
+  background: url("../resource/image_web/common/chara/lv_max.png") left top no-repeat;
+  background-size: contain;
+  display: none;
+}
+
+#CharaTop #charaData .episodeLvWrap .episodeLvMaxFlag.on {
+  display: inline-block;
+}
+
+#CharaTop .revisionIcon {
+  margin: 0 0 0 8px;
+}
+
+#CharaTop .revisionIcon li {
+  width: 18px;
+  height: 18px;
+  background: url("../resource/image_web/common/chara/icon_lb_off.png") left top no-repeat;
+  background-size: 100% 100%;
+}
+
+#CharaTop .revisionIcon li:not(:last-child) {
+  margin-right: 4px;
+}
+
+#CharaTop .revisionIcon li.on {
+  background: url("../resource/image_web/common/chara/icon_lb_on.png") left top no-repeat;
+  background-size: 100% 100%;
+}
+
+#CharaTop .magiaLvIcon {
+  margin: 0 0 0 8px;
+}
+
+#CharaTop .magiaLvIcon li {
+  width: 18px;
+  height: 20px;
+  background: url("../resource/image_web/common/chara/icon_magia_off.png") left top no-repeat;
+  background-size: 100% 100%;
+}
+
+#CharaTop .magiaLvIcon li:not(:last-child) {
+  margin-right: 4px;
+}
+
+#CharaTop .magiaLvIcon li.on {
+  background: url("../resource/image_web/common/chara/icon_magia_on.png") left top no-repeat;
+  background-size: 100% 100%;
+}
+
+#CharaTop .magiaLvIcon li.none {
+  background: url("../resource/image_web/common/chara/icon_magia_none.png") left top no-repeat;
+  background-size: 100% 100%;
+}
+
+/* ===== Faded Card Illustration (#charaImg) ===== */
+@-webkit-keyframes chara_L_frame_in {
+  0% {
+    -webkit-transform: translateX(-50px);
+    opacity: 0;
+  }
+  100% {
+    -webkit-transform: translateX(0px);
+    opacity: 1;
+  }
+}
+
+@keyframes chara_L_frame_in {
+  0% {
+    transform: translateX(-50px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0px);
+    opacity: 1;
+  }
+}
+
+#CharaTop #charaImg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#CharaTop #charaImg .imgL {
+  width: 680px;
+  height: 510px;
+  position: absolute;
+  top: calc(50% - 268px);
+  left: 314px;
+  opacity: 0;
+  z-index: 10;
+}
+
+#CharaTop #charaImg .imgL.anim {
+  -webkit-animation: chara_L_frame_in .4s ease-out .5s 1 alternate;
+          animation: chara_L_frame_in .4s ease-out .5s 1 alternate;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards;
+}
+
+#CharaTop #charaImg .imgL img {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 680px;
+  height: 510px;
+  opacity: .6;
+  -webkit-mask-image: -webkit-gradient(linear, left top, right top, from(rgba(0, 0, 0, 0)), color-stop(30%, rgba(0, 0, 0, 0)), color-stop(45%, black), color-stop(65%, black), to(rgba(0, 0, 0, 0)));
+          mask-image: linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 30%, black 45%, black 65%, rgba(0, 0, 0, 0) 100%);
+}
+
+/* ===== Mini Character Tap Area, Favorite & Pose Buttons ===== */
+#CharaTop .miniCharaWrap {
+  width: 282px;
+  height: 320px;
+  display: block;
+  position: absolute;
+  top: calc(50% - 170px);
+  left: 260px;
+  z-index: 1000;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+#CharaTop #leaderChangeBtn {
+  width: 150px;
+  height: 32px;
+  background: url("../resource/image_web/page/chara/conf_leader_off.png?v=2") left top no-repeat;
+  position: absolute;
+  top: 393px;
+  left: 51px;
+  opacity: 0;
+  z-index: 1000;
+  pointer-events: auto;
+  cursor: pointer;
+  -webkit-animation: readyFadeIn .25s ease-in;
+          animation: readyFadeIn .25s ease-in;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards;
+}
+
+#CharaTop #leaderChangeBtn.off {
+  background: url("../resource/image_web/page/chara/conf_leader_on.png?v=2") left top no-repeat;
+  cursor: default;
+}
+
+#CharaTop #leaderChangeBtn.touch:not(.off) {
+  transform: scale(0.95);
+  filter: brightness(120%);
+}
+
+#CharaTop #poseChangeBtn {
+  width: 66px;
+  height: 66px;
+  background: url("../resource/image_web/page/chara/btn_pose.png?v=2") left top no-repeat;
+  position: absolute;
+  top: 365px;
+  left: 234px;
+  opacity: 0;
+  z-index: 1000;
+  pointer-events: auto;
+  cursor: pointer;
+  -webkit-animation: readyFadeIn .25s ease-in;
+          animation: readyFadeIn .25s ease-in;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards;
+}
+
+#CharaTop #poseChangeBtn.touch {
+  transform: scale(0.95);
+  filter: brightness(120%);
+}
+
+/* ===== Right Enhancement Diamond Cluster (#btnArea.top) ===== */
+#CharaTop #btnArea {
+  width: 313px;
+  height: 403px;
+  position: absolute;
+  top: calc(50% - 234px);
+  right: 14px;
+  opacity: 0;
+  z-index: 1000;
+  pointer-events: auto;
+  -webkit-animation: readyFadeIn .25s ease-in;
+          animation: readyFadeIn .25s ease-in;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards;
+}
+
+#CharaTop #btnArea .touch {
+  transform: scale(0.96);
+  filter: brightness(120%);
+}
+
+#CharaTop #btnArea.top ul li {
+  -webkit-clip-path: polygon(44% 0%, 56% 0%, 100% 44%, 100% 56%, 56% 100%, 44% 100%, 0% 56%, 0% 44%);
+  clip-path: polygon(44% 0%, 56% 0%, 100% 44%, 100% 56%, 56% 100%, 44% 100%, 0% 56%, 0% 44%);
+  width: 142px;
+  height: 195px;
+  position: absolute;
+  cursor: pointer;
+}
+
+#CharaTop #btnArea.top ul li span {
+  width: 100%;
+  height: 100%;
+  display: block;
+  -webkit-clip-path: polygon(44% 0%, 56% 0%, 100% 44%, 100% 56%, 56% 100%, 44% 100%, 0% 56%, 0% 44%);
+  clip-path: polygon(44% 0%, 56% 0%, 100% 44%, 100% 56%, 56% 100%, 44% 100%, 0% 56%, 0% 44%);
+}
+
+#CharaTop #btnArea.top ul li.compose {
+  background: url("../resource/image_web/page/chara/btn_top_compose_a.png?v=2") center top no-repeat;
+  background-size: contain;
+  top: -22px;
+  left: -5px;
+}
+
+#CharaTop #btnArea.top ul li.composeMagia {
+  background: url("../resource/image_web/page/chara/btn_top_magia_a.png?v=2") center top no-repeat;
+  background-size: contain;
+  top: -22px;
+  right: 20px;
+}
+
+#CharaTop #btnArea.top ul li.customize {
+  background: url("../resource/image_web/page/chara/btn_top_customize_a.png?v=2") center top no-repeat;
+  background-size: contain;
+  bottom: 36px;
+  left: -5px;
+}
+
+#CharaTop #btnArea.top ul li.equip {
+  background: url("../resource/image_web/page/chara/btn_top_limitbreak_a.png?v=2") center top no-repeat;
+  background-size: contain;
+  bottom: 36px;
+  right: 20px;
+}
+
+#CharaTop #btnArea.top ul li.enhance {
+  background: url("../resource/image_web/page/chara/btn_top_emotion.png?v=2") center top no-repeat;
+  background-size: contain;
+  top: 72px;
+  right: 98px;
+}
+
+#CharaTop #btnArea.top ul li.enhance.off {
+  pointer-events: none;
+  background: url("../resource/image_web/page/chara/btn_top_emotion_off.png") center top no-repeat;
+  background-size: contain;
+}
+
+#CharaTop #btnArea.top ul li.composeAttribute {
+  top: 269px;
+  right: 119px;
+  width: 100px;
+  height: 152px;
+}
+
+#CharaTop #btnArea.top ul li.composeAttribute.fire { background: url("../resource/image_web/page/chara/top/btn_top_attribute_fire.png") center top no-repeat; background-size: contain; }
+#CharaTop #btnArea.top ul li.composeAttribute.water { background: url("../resource/image_web/page/chara/top/btn_top_attribute_water.png") center top no-repeat; background-size: contain; }
+#CharaTop #btnArea.top ul li.composeAttribute.timber { background: url("../resource/image_web/page/chara/top/btn_top_attribute_timber.png") center top no-repeat; background-size: contain; }
+#CharaTop #btnArea.top ul li.composeAttribute.light { background: url("../resource/image_web/page/chara/top/btn_top_attribute_light.png") center top no-repeat; background-size: contain; }
+#CharaTop #btnArea.top ul li.composeAttribute.dark { background: url("../resource/image_web/page/chara/top/btn_top_attribute_dark.png") center top no-repeat; background-size: contain; }
+#CharaTop #btnArea.top ul li.composeAttribute.void { background: url("../resource/image_web/page/chara/top/btn_top_attribute_void.png") center top no-repeat; background-size: contain; }
+
+/* ===== Bottom Character Strip (#charaListWrap) ===== */
+#CharaTop #charaListWrap {
+  width: 1024px;
+  height: 108px;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  z-index: 1000;
+  pointer-events: auto;
+  -webkit-animation: readyFadeIn .25s ease-in;
+          animation: readyFadeIn .25s ease-in;
+  -webkit-animation-fill-mode: forwards;
+          animation-fill-mode: forwards;
+}
+
+#CharaTop #charaListWrap .touch {
+  filter: brightness(120%);
+}
+
+#CharaTop #charaListWrap #charaList {
+  width: 1034px;
+  height: 115px;
+  background: url("../resource/image_web/common/chara/bg_chara_list_a.png") left top no-repeat;
+  position: absolute;
+  top: 0;
+  left: -10px;
+  overflow: hidden;
+}
+
+#CharaTop #charaListWrap #charaList .charaListCaution {
+  width: 350px;
+  height: 30px;
+  position: absolute;
+  top: calc(50% - 12px);
+  left: calc(50% - 175px);
+  font-size: 20px;
+  line-height: 30px;
+  text-align: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
+#CharaTop #charaListWrap #charaList .charaListCaution.hide {
+  display: none;
+}
+
+#CharaTop #charaListWrap #charaList #charaListScrollWrap {
+  width: 830px;
+  height: 108px;
+  padding: 18px 0 0;
+  position: relative;
+  left: 28px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+}
+
+#CharaTop #charaListWrap #charaList #charaListScrollWrap::-webkit-scrollbar {
+  display: none;
+}
+
+#CharaTop #charaListWrap #charaList #charaListScrollWrap.dragging {
+  cursor: grabbing;
+}
+
+#CharaTop #charaListWrap #charaList .list {
+  width: max-content;
+  min-width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  padding-right: 10px;
+}
+
+#CharaTop #charaListWrap #charaList .list .hide {
+  display: none !important;
+}
+
+#CharaTop #charaListWrap #charaList .list .prm {
+  display: none;
+}
+
+#CharaTop #charaListWrap #charaList .list li {
+  width: 78px;
+  height: 78px;
+  margin: 0 5px 0 0;
+  display: block;
+  position: relative;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+#CharaTop #charaListWrap #charaList .list li.select:after {
+  width: 53px;
+  height: 40px;
+  background: url("../resource/image_web/common/chara/icon_select.png") left top no-repeat;
+  display: block;
+  position: absolute;
+  top: calc(50% - 20px);
+  left: calc(50% - 26px);
+  content: "";
+  z-index: 12;
+  pointer-events: none;
+}
+
+#CharaTop #charaListWrap #charaList .list li.select:before {
+  width: 74px;
+  height: 74px;
+  background: radial-gradient(circle, rgba(255, 49, 74, 0.3), rgba(255, 49, 74, 0.6));
+  display: block;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  content: "";
+  border-radius: 39px;
+  z-index: 8;
+  pointer-events: none;
+}
+
+#CharaTop .userCharaIcon {
+  width: 78px;
+  height: 78px;
+  position: relative;
+}
+
+#CharaTop .userCharaIcon img {
+  width: 74px;
+  height: 74px;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  border-radius: 39px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+#CharaTop .userCharaIcon .att,
+#CharaTop .userCharaIcon .rank,
+#CharaTop .userCharaIcon .star,
+#CharaTop .userCharaIcon .bg {
+  width: 78px;
+  height: 78px;
+  background-size: 78px 78px;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+#CharaTop .userCharaIcon .bg { z-index: 1; }
+#CharaTop .userCharaIcon .rank { z-index: 8; }
+#CharaTop .userCharaIcon .star { z-index: 9; }
+#CharaTop .userCharaIcon .att { z-index: 10; }
+
+#CharaTop .userCharaIcon .lv,
+#CharaTop .userCharaIcon .atk,
+#CharaTop .userCharaIcon .def,
+#CharaTop .userCharaIcon .hp,
+#CharaTop .userCharaIcon .get,
+#CharaTop .userCharaIcon .eplv,
+#CharaTop .userCharaIcon .rev,
+#CharaTop .userCharaIcon .mlv,
+#CharaTop .userCharaIcon .enhance,
+#CharaTop .userCharaIcon .composeAttribute {
+  min-width: 18px;
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: #ffffff;
+  font-size: 14px;
+  text-align: right;
+  text-shadow: -1px -1px 1px #342510, 1px -1px 1px #342510, -1px 1px 1px #342510, 1px 1px 1px #342510, -1px 0 1px #342510, 1px 0 1px #342510, 0 -1px 1px #342510, 0 1px 1px #342510, -1px -1px #342510, 1px -1px #342510, -1px 1px #342510, 1px 1px #342510, -1px 0 #342510, 1px 0 #342510, 0 -1px #342510, 0 1px #342510, -1px -1px 2px #342510, 1px -1px 2px #342510, -1px 1px 2px #342510, 1px 1px 2px #342510;
+  z-index: 11;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+#CharaTop .userCharaIcon .lv:before,
+#CharaTop .userCharaIcon .atk:before,
+#CharaTop .userCharaIcon .def:before,
+#CharaTop .userCharaIcon .hp:before,
+#CharaTop .userCharaIcon .eplv:before,
+#CharaTop .userCharaIcon .rev:before,
+#CharaTop .userCharaIcon .mlv:before,
+#CharaTop .userCharaIcon .enhance:before,
+#CharaTop .userCharaIcon .composeAttribute:before {
+  text-shadow: -1px -1px 1px #342510, 1px -1px 1px #342510, -1px 1px 1px #342510, 1px 1px 1px #342510, -1px 0 1px #342510, 1px 0 1px #342510, 0 -1px 1px #342510, 0 1px 1px #342510, -1px -1px #342510, 1px -1px #342510, -1px 1px #342510, 1px 1px #342510, -1px 0 #342510, 1px 0 #342510, 0 -1px #342510, 0 1px #342510, -1px -1px 2px #342510, 1px -1px 2px #342510, -1px 1px 2px #342510, 1px 1px 2px #342510;
+}
+
+#CharaTop .userCharaIcon .lv span,
+#CharaTop .userCharaIcon .atk span,
+#CharaTop .userCharaIcon .def span,
+#CharaTop .userCharaIcon .hp span,
+#CharaTop .userCharaIcon .get span,
+#CharaTop .userCharaIcon .eplv span,
+#CharaTop .userCharaIcon .rev span,
+#CharaTop .userCharaIcon .mlv span,
+#CharaTop .userCharaIcon .enhance span,
+#CharaTop .userCharaIcon .composeAttribute span {
+  color: #ffffff;
+}
+
+#CharaTop .userCharaIcon .lv:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "Lvl."; }
+#CharaTop .userCharaIcon .atk:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "ATK"; }
+#CharaTop .userCharaIcon .def:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "DEF"; }
+#CharaTop .userCharaIcon .hp:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "HP"; }
+#CharaTop .userCharaIcon .eplv:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "Episode Lvl."; }
+#CharaTop .userCharaIcon .rev:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "Magic Lvl."; }
+#CharaTop .userCharaIcon .mlv:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "Magia Lvl."; }
+#CharaTop .userCharaIcon .enhance:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "Spirit"; }
+#CharaTop .userCharaIcon .composeAttribute:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "Attr."; }
+
+#CharaTop #charaListElms.sortLv .userCharaIcon .lv,
+#CharaTop #charaListElms.sortRank .userCharaIcon .lv,
+#CharaTop #charaListElms.sortAtk .userCharaIcon .atk,
+#CharaTop #charaListElms.sortDef .userCharaIcon .def,
+#CharaTop #charaListElms.sortHp .userCharaIcon .hp,
+#CharaTop #charaListElms.sortGet .userCharaIcon .get,
+#CharaTop #charaListElms.sortEplv .userCharaIcon .eplv,
+#CharaTop #charaListElms.sortRev .userCharaIcon .rev,
+#CharaTop #charaListElms.sortMlv .userCharaIcon .mlv,
+#CharaTop #charaListElms.sortEnhance .userCharaIcon .enhance,
+#CharaTop #charaListElms.sortComposeAttribute .userCharaIcon .composeAttribute {
+  display: block;
+}
+
+#CharaTop #charaListWrap .scrollIndicatorX {
+  width: 100%;
+  height: 5px;
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#CharaTop #charaListWrap .scrollIndicatorInnerX {
+  height: 5px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+#CharaTop #charaListWrap .scrollIndicatorInnerX.onScroll {
+  opacity: 1;
+}
+
+#CharaTop #charaListWrap #sortPopup,
+#CharaTop #charaListWrap #sortBtn {
+  width: 166px;
+  height: 45px;
+  padding: 0 0 0 20px;
+  background: url("../resource/image_web/common/chara/btn_chara_list_a.png") left top no-repeat;
+  display: block;
+  position: absolute;
+  font-size: 15px;
+  line-height: 42px;
+  text-align: left;
+  z-index: 100;
+  cursor: pointer;
+}
+
+#CharaTop #charaListWrap #sortBtn {
+  padding: 1px 0 0 16px;
+  top: 12px;
+  right: -22px;
+  font-size: 13px;
+  line-height: 39px;
+}
+
+#CharaTop #charaListWrap .orderBtn {
+  width: 48px;
+  height: 54px;
+  display: block;
+  position: absolute;
+  right: 0;
+  bottom: 61px;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+#CharaTop #charaListWrap .orderBtn.asc {
+  background: url("../resource/image_web/common/filter/btn_chara_ascending.png?v=2") left top no-repeat;
+  background-size: 48px 54px;
+}
+
+#CharaTop #charaListWrap .orderBtn.desc {
+  background: url("../resource/image_web/common/filter/btn_chara_descending.png?v=2") left top no-repeat;
+  background-size: 48px 54px;
+}
+
+#CharaTop #charaListWrap #sortPopup {
+  right: -22px;
+  bottom: 6px;
+}
+
+#CharaTop #charaListWrap #sortPopup:after {
+  width: 44px;
+  height: 24px;
+  background: url("../resource/image_web/common/filter/icon_filter_off.png") left top no-repeat;
+  display: block;
+  position: absolute;
+  top: 9px;
+  right: 26px;
+  content: "";
+}
+
+#CharaTop #charaListWrap #sortPopup.filterOn:after {
+  background: url("../resource/image_web/common/filter/icon_filter_on.png") left top no-repeat;
+}
+
+/* ===== Popup Buttons (.b_white) & Favorite Changed Popup ===== */
+#popupArea .b_white {
+  background: url("../resource/image_web/common/btn/btn_white_c.png") center top no-repeat;
+  background-size: calc(100% - 62px) 64px;
+}
+
+#popupArea .b_white,
+#popupArea .b_white span {
+  color: #a47122;
+}
+
+#popupArea .b_white:before {
+  background: url("../resource/image_web/common/btn/btn_white_l.png") left top no-repeat;
+}
+
+#popupArea .b_white:after {
+  background: url("../resource/image_web/common/btn/btn_white_r.png") left top no-repeat;
+}
+
+#favChangePop .popupInner {
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+}
+
+#favChangePop .popupCloseBtn.closeDefault {
+  width: 52px;
+  height: 51px;
+  background: url("../resource/image_web/common/popup/popup_close.png") left top no-repeat;
+  display: inline-block;
+  position: absolute;
+  top: -18px;
+  right: -18px;
+  z-index: 20;
+  cursor: pointer;
+}
+
+#favChangePop .popupTextArea {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+#favChangePop .popupBtnArea {
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* ===== Filter Popup (#sortFilterPop / #sortfilter.chara) ===== */
+#sortFilterPop .popupInner {
+  pointer-events: auto;
+}
+
+#sortFilterPop .popupInner .closeDefault {
+  width: 52px;
+  height: 51px;
+  background: url("../resource/image_web/common/popup/popup_close.png") left top no-repeat;
+  display: inline-block;
+  position: absolute;
+  top: -18px;
+  right: -18px;
+  z-index: 20;
+  cursor: pointer;
+}
+
+#sortFilterPop .popupInner .popupTextArea {
+  display: block;
+  width: 948px;
+  height: 500px;
+  position: relative;
+  color: #555555;
+  overflow: visible;
+}
+
+#sortfilter.chara {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  text-align: left;
+  color: #555555;
+}
+
+#sortfilter.chara .flexBox {
+  display: flex;
+}
+
+#sortfilter.chara .filterAtt,
+#sortfilter.chara .filterRank,
+#sortfilter.chara .filterEnhance,
+#sortfilter.chara .filterInitial {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  width: 136px;
+  cursor: pointer;
+  color: #555555;
+}
+
+#sortfilter.chara .filterBar {
+  width: 508px;
+  height: 44px;
+  margin: 0 auto 16px;
+  padding-right: 23px;
+  padding-left: 66px;
+  background: url("../resource/image_web/common/filter/filter_header_s_04.png") left top no-repeat;
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#sortfilter.chara .filterBar p {
+  margin: 0;
+  color: #ffffff;
+}
+
+#sortfilter.chara .filterBar p:before {
+  width: 50px;
+  height: 54px;
+  background: url("../resource/image_web/common/filter/filter_icon_chara.png") left top no-repeat;
+  display: block;
+  position: absolute;
+  top: -9px;
+  left: 18px;
+  content: "";
+}
+
+#sortfilter.chara .filterBar .filterAtt,
+#sortfilter.chara .filterBar .filterRank,
+#sortfilter.chara .filterBar .filterEnhance,
+#sortfilter.chara .filterBar .filterInitial {
+  font-size: 20px;
+  width: auto;
+  color: #ffffff;
+}
+
+#sortfilter.chara .filterBar .checkBox {
+  margin-right: 11px;
+}
+
+#sortfilter.chara .filterAtt .checkBox,
+#sortfilter.chara .filterRank .checkBox,
+#sortfilter.chara .filterEnhance .checkBox,
+#sortfilter.chara .filterInitial .checkBox {
+  margin-right: 8px;
+}
+
+#sortfilter.chara .checkBox {
+  width: 32px;
+  height: 32px;
+  background-image: url("../resource/image_web/common/icon/icon_checkbox.png");
+  background-size: 32px 32px;
+  display: block;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+#sortfilter.chara .current .checkBox:before {
+  width: 27px;
+  height: 21px;
+  background-image: url("../resource/image_web/common/icon/icon_checkbox_check.png");
+  background-repeat: no-repeat;
+  position: absolute;
+  top: 6px;
+  left: 3px;
+  content: "";
+}
+
+#sortfilter #filterAttList .FIRE:after,
+#sortfilter #filterAttList .WATER:after,
+#sortfilter #filterAttList .TIMBER:after,
+#sortfilter #filterAttList .LIGHT:after,
+#sortfilter #filterAttList .DARK:after,
+#sortfilter #filterAttList .VOID:after {
+  width: 32px;
+  height: 32px;
+  display: inline-block;
+  content: "";
+  pointer-events: none;
+}
+
+#sortfilter #filterAttList .FIRE:after { background: url("../resource/image_web/common/chara/att_fire_f.png") left top no-repeat; background-size: 32px 32px; }
+#sortfilter #filterAttList .WATER:after { background: url("../resource/image_web/common/chara/att_water_f.png") left top no-repeat; background-size: 32px 32px; }
+#sortfilter #filterAttList .TIMBER:after { background: url("../resource/image_web/common/chara/att_timber_f.png") left top no-repeat; background-size: 32px 32px; }
+#sortfilter #filterAttList .LIGHT:after { background: url("../resource/image_web/common/chara/att_light_f.png") left top no-repeat; background-size: 32px 32px; }
+#sortfilter #filterAttList .DARK:after { background: url("../resource/image_web/common/chara/att_dark_f.png") left top no-repeat; background-size: 32px 32px; }
+#sortfilter #filterAttList .VOID:after { background: url("../resource/image_web/common/chara/att_void_f.png") left top no-repeat; background-size: 32px 32px; }
+
+#sortfilter.chara .filterRank .star {
+  width: 30px;
+  height: 30px;
+  background: url("../resource/image_web/common/icon/icon_rarity_chara.png") left top no-repeat;
+  background-size: 30px 30px;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+#sortfilter.chara .filterText,
+#sortfilter.chara #filterAttList,
+#sortfilter.chara #filterRankList,
+#sortfilter.chara #filterEnhanceList,
+#sortfilter.chara #filterInitialList {
+  position: absolute;
+  font-size: 22px;
+}
+
+#sortfilter.chara .filterText {
+  width: 100%;
+  margin: 8px 0 0;
+  text-align: center;
+  top: 20px;
+  left: 0px;
+  color: #555555;
+}
+
+#sortfilter.chara #filterAttList,
+#sortfilter.chara #filterRankList {
+  width: 508px;
+  left: 32px;
+}
+
+#sortfilter.chara #filterAttList {
+  top: 92px;
+}
+
+#sortfilter.chara #filterRankList {
+  top: 215px;
+  margin: 0 0 28px;
+}
+
+#sortfilter.chara #filterAttList .flexBox,
+#sortfilter.chara #filterRankList .flexBox {
+  width: 486px;
+  margin: 0 0 0 18px;
+  align-items: center;
+}
+
+#sortfilter.chara #filterRankList .flexBox .filterRank {
+  width: 140px;
+}
+
+#sortfilter.chara #filterEnhanceList,
+#sortfilter.chara #filterInitialList {
+  width: 342px;
+  right: 32px;
+}
+
+#sortfilter.chara #filterEnhanceList .filterBar,
+#sortfilter.chara #filterInitialList .filterBar {
+  background: url("../resource/image_web/common/filter/filter_header_s_03.png") left top no-repeat;
+  width: 342px;
+}
+
+#sortfilter.chara #filterEnhanceList .flexBox,
+#sortfilter.chara #filterInitialList .flexBox {
+  width: 342px;
+  margin: 0 0 0 18px;
+  align-items: center;
+}
+
+#sortfilter.chara #filterEnhanceList {
+  top: 92px;
+}
+
+#sortfilter.chara #filterEnhanceList .flexBox .filterEnhance {
+  width: 136px;
+  font-size: 22px;
+}
+
+#sortfilter.chara #filterInitialList {
+  top: 215px;
+}
+
+#sortfilter.chara #filterInitialList .flexBox {
+  flex-wrap: wrap;
+}
+
+#sortfilter.chara #filterInitialList .flexBox .filterInitial {
+  width: 156px;
+  font-size: 18px;
+  margin-bottom: 14px;
+}
+
+#sortfilter.chara #cardSortBtnsArea {
+  width: 100%;
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  bottom: 20px;
+  text-align: center;
+}
+
+#sortfilter.chara #cardSortBtnsArea .btn {
+  pointer-events: auto;
+}

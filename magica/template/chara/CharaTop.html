@@ -1,0 +1,101 @@
+<div id="CharaTop">
+    <div id="charaData" class="top show">
+        <span id="detailBtn" class="TE se_decide"><span class="b_screen"></span></span>
+        <span id="attribute"><span class="type_f LIGHT" id="charaDataAtt"></span></span>
+        <span id="rare" class="RANK_5">
+            <span></span><span></span><span></span><span></span><span></span>
+        </span>
+        <div id="name">
+            <p class="c_purple" id="charaDataName"></p>
+            <p class="title c_purple" id="charaDataTitle" style="display: none;"></p>
+        </div>
+        <p id="lv">
+            <span>Lvl.</span>
+            <span class="before">
+                <span id="currentLv" class="c_purple">100</span>
+                <span class="sla">/</span>
+                <span id="currentMaxLv" class="small">100</span>
+            </span>
+            <span class="lvMaxFlag on" id="charaDataLvMax"></span>
+        </p>
+        <div class="expGaugeWrap">
+            <div class="expGaugeInner" id="charaDataExpGauge" style="width: 100%;"></div>
+            <div class="bg"></div>
+        </div>
+        <div class="status">
+            <ul class="statusList">
+                <li>
+                    <span class="thStyle">HP</span>
+                    <span class="tdStyle" id="charaDataHp">0</span>
+                    <span class="tdStyle c_pink" id="charaDataHpBonus" style="display: none;"></span>
+                </li>
+                <li>
+                    <span class="thStyle">ATK</span>
+                    <span class="tdStyle" id="charaDataAtk">0</span>
+                    <span class="tdStyle c_pink" id="charaDataAtkBonus" style="display: none;"></span>
+                </li>
+                <li>
+                    <span class="thStyle">DEF</span>
+                    <span class="tdStyle" id="charaDataDef">0</span>
+                    <span class="tdStyle c_pink" id="charaDataDefBonus" style="display: none;"></span>
+                </li>
+            </ul>
+        </div>
+        <div class="revisionWrap flexBox">
+            <p class="c_gold title">Magic Lvl.</p><p class="num" id="charaDataRevision">3</p>
+            <ul class="flexBox revisionIcon" id="charaDataRevisionIcons">
+                <li class="on"></li><li class="on"></li><li class="on"></li>
+            </ul>
+        </div>
+        <div class="magiaLvWrap flexBox">
+            <p class="c_gold title">Magia Lvl. </p><p class="num" id="charaDataMagiaLv">5</p>
+            <ul class="flexBox magiaLvIcon" id="charaDataMagiaIcons">
+                <li class="on"></li><li class="on"></li><li class="on"></li><li class="on"></li><li class="on"></li>
+            </ul>
+        </div>
+        <div class="episodeLvWrap flexBox">
+            <p class="c_gold title">Episode Lvl.</p><p id="episodeLv" class="num">5</p>
+            <span class="episodeLvMaxFlag on" id="charaDataEpLvMax"></span>
+        </div>
+        <div class="expGaugeWrap episode">
+            <div class="expGaugeInner3" id="charaDataEpGauge" style="width: 100%;"></div>
+            <div class="bg"></div>
+        </div>
+    </div>
+
+    <div id="charaImg">
+        <div class="imgL" id="charaImgL">
+            <img id="charaLargeImg" alt="">
+        </div>
+    </div>
+
+    <div class="miniCharaWrap" id="miniCharaTapArea"></div>
+
+    <p id="leaderChangeBtn" class="c_white se_decide TE" data-type="changeLeader"></p>
+
+    <div id="poseChangeBtn" class="se_decide TE"></div>
+
+    <div id="btnArea" class="top">
+        <ul>
+            <li class="TE compose"><span class="linkBtn se_decide"></span></li>
+            <li class="TE composeMagia"><span class="linkBtn se_decide"></span></li>
+            <li class="TE customize"><span class="linkBtn se_decide"></span></li>
+            <li class="TE enhance"><span class="enhanceLink se_decide"></span></li>
+            <li class="TE equip"><span class="linkBtn se_decide"></span></li>
+            <li class="TE composeAttribute light"><span class="linkBtn se_decide"></span></li>
+        </ul>
+    </div>
+
+    <div id="charaListWrap">
+        <span class="orderBtn se_tabs TE desc" data-id="desc"></span>
+        <span id="sortBtn" class="se_tabs TE c_gold" data-id="rank">Rarity</span>
+        <span id="sortPopup" class="se_tabs TE c_gold">Filter</span>
+        <div id="charaList">
+            <p class="charaListCaution ts_white hide">No Applicable Magical Girls</p>
+            <div id="charaListScrollWrap">
+                <ul id="charaListElms" class="list sortRank"></ul>
+                <div class="scrollIndicatorX"><div class="scrollIndicatorInnerX"></div></div>
+            </div>
+        </div>
+    </div>
+</div>

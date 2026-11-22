@@ -3,9 +3,10 @@
 import { loadViewTemplate } from './view-loader.js';
 import { destroyCurrentModels } from './viewer/model.js';
 import { renderCharaCollectionGrid } from './viewer/chara-collection.js';
-import { initHomeMenu, resetHomeMenu } from './home-menu.js';
+import { initHomeMenu, resetHomeMenu, initGlobalMenuForPage } from './home-menu.js';
 import { initMyPage, resetMyPage } from './mypage.js';
 import { initBackgroundSet, resetBackgroundSet } from './background-set.js';
+import { initCharaTop, resetCharaTop } from './chara-top.js';
 
 let routeGeneration = 0;
 
@@ -28,20 +29,24 @@ async function loadRouteTemplate(path, generation, ...staleHideIds) {
     return false;
 }
 
-export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, loadBackgroundSetScreen) {
+export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, loadBackgroundSetScreen, loadCharaListTopScreen) {
     const generation = ++routeGeneration;
     const hash = window.location.hash || '#/CharaCollection';
     const uiLayer = document.getElementById('ui-layer');
     if (!uiLayer) return;
 
-    const isHomeFamily = hash.startsWith('#/MyPage') || hash.startsWith('#/BackgroundSet');
+    const isHomeFamily = hash.startsWith('#/MyPage') || hash.startsWith('#/BackgroundSet') || hash.startsWith('#/CharaListTop');
     if (!isHomeFamily && window.stopHomeScreen) {
         await window.stopHomeScreen();
         if (generation !== routeGeneration) return;
     }
+    if (!hash.startsWith('#/CharaListTop') && typeof window.hideCharaTopMini === 'function') {
+        window.hideCharaTopMini();
+    }
     resetHomeMenu();
     resetMyPage();
     resetBackgroundSet();
+    resetCharaTop();
 
     const setupBackBtn = () => {
         const handleBack = (e) => {
@@ -52,6 +57,8 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, lo
             } else if (currentHash.startsWith('#/BackgroundSet')) {
                 const q = currentHash.split('?')[1];
                 window.location.hash = q ? `#/MyPage?${q}` : '#/MyPage';
+            } else if (currentHash.startsWith('#/CharaListTop')) {
+                window.location.hash = '#/MyPage';
             } else {
                 window.location.href = 'index.html';
             }
@@ -81,11 +88,13 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, lo
         const charaCollectionEl = document.getElementById('CharaCollection');
         const cardDetailEl = document.getElementById('cardDetail');
         const bgSetEl = document.getElementById('BackgroundSet');
+        const charaTopEl = document.getElementById('CharaTop');
         const myPageEl = document.getElementById('MyPage');
         const globalBackBtn = document.getElementById('globalBackBtn');
         if (charaCollectionEl) charaCollectionEl.style.display = 'none';
         if (cardDetailEl) cardDetailEl.style.display = 'none';
         if (bgSetEl) bgSetEl.style.display = 'none';
+        if (charaTopEl) charaTopEl.style.display = 'none';
         if (homeMenuEl) homeMenuEl.style.display = 'block';
         if (myPageEl) myPageEl.style.display = 'block';
         if (globalBackBtn) globalBackBtn.style.display = 'none';
@@ -109,12 +118,14 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, lo
         const charaCollectionEl = document.getElementById('CharaCollection');
         const cardDetailEl = document.getElementById('cardDetail');
         const myPageEl = document.getElementById('MyPage');
+        const charaTopEl = document.getElementById('CharaTop');
         const homeMenuEl = document.getElementById('globalMenu');
         const sideMenuEl = document.getElementById('sideMenu');
         const globalBackBtn = document.getElementById('globalBackBtn');
         if (charaCollectionEl) charaCollectionEl.style.display = 'none';
         if (cardDetailEl) cardDetailEl.style.display = 'none';
         if (myPageEl) myPageEl.style.display = 'none';
+        if (charaTopEl) charaTopEl.style.display = 'none';
         if (homeMenuEl) homeMenuEl.style.display = 'none';
         if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
         if (bgSetEl) bgSetEl.style.display = 'block';
@@ -126,6 +137,42 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, lo
         if (typeof loadBackgroundSetScreen === 'function') {
             await loadBackgroundSetScreen();
         }
+    } else if (hash.startsWith('#/CharaListTop')) {
+        let homeMenuEl = document.getElementById('globalMenu');
+        if (!homeMenuEl) {
+            if (!await loadRouteTemplate('magica/template/base/GlobalMenu.html', generation, 'globalMenu', 'sideMenu')) return;
+            homeMenuEl = document.getElementById('globalMenu');
+        }
+        let charaTopEl = document.getElementById('CharaTop');
+        if (!charaTopEl) {
+            if (!await loadRouteTemplate('magica/template/chara/CharaTop.html', generation, 'CharaTop')) return;
+            charaTopEl = document.getElementById('CharaTop');
+        }
+
+        const charaCollectionEl = document.getElementById('CharaCollection');
+        const cardDetailEl = document.getElementById('cardDetail');
+        const myPageEl = document.getElementById('MyPage');
+        const bgSetEl = document.getElementById('BackgroundSet');
+        const globalBackBtn = document.getElementById('globalBackBtn');
+        if (charaCollectionEl) charaCollectionEl.style.display = 'none';
+        if (cardDetailEl) cardDetailEl.style.display = 'none';
+        if (myPageEl) myPageEl.style.display = 'none';
+        if (bgSetEl) bgSetEl.style.display = 'none';
+        if (homeMenuEl) homeMenuEl.style.display = 'block';
+        if (charaTopEl) charaTopEl.style.display = 'block';
+        if (globalBackBtn) globalBackBtn.style.display = 'block';
+
+        setupBackBtn();
+        initGlobalMenuForPage();
+        if (typeof loadCharaListTopScreen === 'function') {
+            await loadCharaListTopScreen();
+            if (generation !== routeGeneration) return;
+        }
+        const urlParams = new URLSearchParams(hash.split('?')[1] || '');
+        const pathMatch = hash.match(/^#\/CharaListTop\/(\d{4})\b/);
+        const rawId = urlParams.get('id') || (pathMatch ? pathMatch[1] : '');
+        const initialCharaId = /^\d{4}$/.test(rawId) ? Number(rawId) : undefined;
+        await initCharaTop({ initialCharaId });
     } else if (hash.startsWith('#/CharaCollectionDetail')) {
         let charaDetailEl = document.getElementById('cardDetail');
         if (!charaDetailEl) {
@@ -136,10 +183,12 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, lo
         const charaCollectionEl = document.getElementById('CharaCollection');
         const myPageEl = document.getElementById('MyPage');
         const bgSetEl = document.getElementById('BackgroundSet');
+        const charaTopEl = document.getElementById('CharaTop');
         if (charaCollectionEl) charaCollectionEl.style.display = 'none';
         if (charaDetailEl) charaDetailEl.style.display = 'block';
         if (myPageEl) myPageEl.style.display = 'none';
         if (bgSetEl) bgSetEl.style.display = 'none';
+        if (charaTopEl) charaTopEl.style.display = 'none';
         const sideMenuEl = document.getElementById('sideMenu');
         if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
         const globalBackBtn = document.getElementById('globalBackBtn');
@@ -173,6 +222,8 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, lo
         if (myPageEl) myPageEl.style.display = 'none';
         const bgSetEl = document.getElementById('BackgroundSet');
         if (bgSetEl) bgSetEl.style.display = 'none';
+        const charaTopEl = document.getElementById('CharaTop');
+        if (charaTopEl) charaTopEl.style.display = 'none';
         if (charaCollectionEl) charaCollectionEl.style.display = 'block';
         const globalBackBtn = document.getElementById('globalBackBtn');
         if (globalBackBtn) globalBackBtn.style.display = 'block';

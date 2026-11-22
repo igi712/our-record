@@ -69,6 +69,8 @@ function setMenuOpen(open, { chrome = true } = {}) {
     const sideMenuBg = document.getElementById('sideMenuBg');
     if (!sideMenu) return;
 
+    const isMyPage = window.location.hash.startsWith('#/MyPage');
+
     if (open) {
         sideMenu.classList.remove('close');
         sideMenu.classList.add('anim');
@@ -76,7 +78,7 @@ function setMenuOpen(open, { chrome = true } = {}) {
             sideMenuBg.classList.remove('close');
             sideMenuBg.classList.add('anim');
         }
-        if (chrome && typeof window.mypageMenuShow === 'function') {
+        if (chrome && isMyPage && typeof window.mypageMenuShow === 'function') {
             window.mypageMenuShow();
         }
     } else {
@@ -86,14 +88,14 @@ function setMenuOpen(open, { chrome = true } = {}) {
             sideMenuBg.classList.remove('anim');
             sideMenuBg.classList.add('close');
         }
-        if (chrome && typeof window.mypageMenuHide === 'function') {
+        if (chrome && isMyPage && typeof window.mypageMenuHide === 'function') {
             window.mypageMenuHide();
         }
     }
     // chrome:false (initial reveal) animates only the right-side menu; the
     // column/status/Live2D choreography is skipped so they stay static until
     // their own reveal points (MyPage visibility, revealHomeScreen).
-    if (chrome && typeof window.mypageMenuChoreography === 'function') {
+    if (chrome && isMyPage && typeof window.mypageMenuChoreography === 'function') {
         window.mypageMenuChoreography(open);
     }
 }
@@ -177,7 +179,7 @@ function onClick(e) {
 
     const href = link.dataset.href;
     if (href === '#/CharaListTop') {
-        window.location.hash = '#/CharaCollection';
+        window.location.hash = '#/CharaListTop';
     } else if (href === '#/MyPage') {
         window.location.hash = '#/MyPage';
     }
@@ -200,6 +202,12 @@ export function initHomeMenu() {
     const sideMenu = document.getElementById('sideMenu');
     if (!sideMenu) return;
 
+    document.querySelector('#globalMenu #status')?.classList.remove('noneDisp');
+    const helpBtn = document.querySelector('#globalMenu .helpBtn');
+    if (helpBtn) {
+        helpBtn.classList.remove('on');
+        helpBtn.classList.add('off');
+    }
     fillStatusDemo();
     bindEvents();
 
@@ -208,6 +216,22 @@ export function initHomeMenu() {
     // side menu's closed state already renders it invisible — same pattern).
     setMenuClosed();
     hideMenuUI();
+}
+
+export function initGlobalMenuForPage() {
+    const sideMenu = document.getElementById('sideMenu');
+    if (!sideMenu) return;
+
+    document.querySelector('#globalMenu #status')?.classList.remove('noneDisp');
+    const helpBtn = document.querySelector('#globalMenu .helpBtn');
+    if (helpBtn) {
+        helpBtn.classList.remove('off');
+        helpBtn.classList.add('on');
+    }
+    fillStatusDemo();
+    bindEvents();
+    setMenuClosed();
+    showMenuUI();
 }
 
 export function revealHomeMenu() {
@@ -246,6 +270,11 @@ function scheduleColumnReveal() {
 export function resetHomeMenu() {
     clearPress();
     columnRevealId++;
+    const helpBtn = document.querySelector('#globalMenu .helpBtn');
+    if (helpBtn) {
+        helpBtn.classList.remove('on');
+        helpBtn.classList.add('off');
+    }
     showMenuUI();
     setMenuClosed();
     const myPage = document.getElementById('MyPage');

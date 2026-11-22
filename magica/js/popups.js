@@ -1,4 +1,4 @@
-// js/popups.js — Shared Magia Record popup controller (EtcPopup, MyProfilePopup, BgChangedPopup)
+// js/popups.js — Shared Magia Record popup controller (EtcPopup, MyProfilePopup, BgChangedPopup, FavChangedPopup, CharaFilterPopup)
 //
 // Lazily creates #popupArea + #popupCurtain on <body> (position: fixed,
 // z-index 1000000; CSS in mypage.css & profile.css). Mounted outside the
@@ -10,6 +10,7 @@ import { resolveMaReAssetsBase } from './viewer/model.js';
 
 const ETC_TEMPLATE = 'magica/template/etc/EtcPopup.html';
 const PROFILE_TEMPLATE = 'magica/template/user/MyProfilePopup.html';
+const CARD_SORT_TEMPLATE = 'magica/template/card/CardSort.html';
 const CLOSE_ANIM_MS = 200;
 
 const PROFILE_DEMO = {
@@ -34,15 +35,22 @@ const TOUCH_SELECTOR = [
     '#popupArea #myProfile .leaderChangeBtn',
     '#popupArea #myProfile .totalForcesHelpBtn',
     '#popupArea #myProfile .arenaHelpBtn',
-    '#popupArea #bgChangePop .decideBtn'
+    '#popupArea #bgChangePop .decideBtn',
+    '#popupArea #favChangePop .popupCloseBtn',
+    '#popupArea #sortFilterPop .filterAtt',
+    '#popupArea #sortFilterPop .filterRank',
+    '#popupArea #sortFilterPop .filterEnhance',
+    '#popupArea #sortFilterPop .filterInitial',
+    '#popupArea #sortFilterPop #cardSortBtnsArea .sort'
 ].join(', ');
 
 let popupArea = null;
-let activePopup = null; // { kind: 'etc' | 'profile' | 'bgChanged', el, canClose, onChangeBackground, onConfirm }
+let activePopup = null; // { kind: 'etc' | 'profile' | 'bgChanged' | 'favChanged' | 'sortFilter', el, canClose, onChangeBackground, onChangeFavorite, onConfirm, onApply }
 let pending = false;
 let bound = false;
 let etcTemplateCache = null;
 let profileTemplateCache = null;
+let cardSortTemplateCache = null;
 let cardArtRequestToken = 0;
 
 function ensurePopupArea() {
@@ -76,11 +84,13 @@ function applyPopupScale(innerEl) {
 async function fetchTemplate(url, kind) {
     if (kind === 'etc' && etcTemplateCache) return etcTemplateCache;
     if (kind === 'profile' && profileTemplateCache) return profileTemplateCache;
+    if (kind === 'sortFilter' && cardSortTemplateCache) return cardSortTemplateCache;
     const resp = await fetch(url);
     if (!resp.ok) throw new Error(`Failed to fetch ${url}: ${resp.status}`);
     const html = await resp.text();
     if (kind === 'etc') etcTemplateCache = html;
     if (kind === 'profile') profileTemplateCache = html;
+    if (kind === 'sortFilter') cardSortTemplateCache = html;
     return html;
 }
 
@@ -191,7 +201,7 @@ function populateProfileDemo(rootEl) {
     setText('#followImageWrap .messageInner', PROFILE_DEMO.comment);
 }
 
-export async function openProfilePopup({ charaId = 1001, onChangeBackground } = {}) {
+export async function openProfilePopup({ charaId = 1001, onChangeBackground, onChangeFavorite } = {}) {
     if (activePopup?.kind === 'profile' || pending) return;
     if (activePopup) closeActivePopup({ immediate: true });
     pending = true;
@@ -216,7 +226,8 @@ export async function openProfilePopup({ charaId = 1001, onChangeBackground } = 
             kind: 'profile',
             el,
             canClose: true,
-            onChangeBackground: typeof onChangeBackground === 'function' ? onChangeBackground : null
+            onChangeBackground: typeof onChangeBackground === 'function' ? onChangeBackground : null,
+            onChangeFavorite: typeof onChangeFavorite === 'function' ? onChangeFavorite : null
         };
         bindEvents();
 
@@ -279,6 +290,146 @@ export function openBgChangedPopup(bgName, onConfirm) {
     bindEvents();
 }
 
+export function openFavoriteChangedPopup(charaName) {
+    if (activePopup) closeActivePopup({ immediate: true });
+    const area = ensurePopupArea();
+
+    const el = document.createElement('div');
+    el.id = 'favChangePop';
+    el.className = 'popupContent open typeC';
+
+    const inner = document.createElement('div');
+    inner.className = 'popupInner';
+
+    const closeX = document.createElement('span');
+    closeX.className = 'popupCloseBtn closeDefault se_cancel TE';
+
+    const title = document.createElement('div');
+    title.className = 'popupTitle';
+    title.textContent = 'Changed';
+
+    const textArea = document.createElement('div');
+    textArea.className = 'popupTextArea';
+    textArea.textContent = `${charaName || 'Magical Girl'} has been set as your favorite.`;
+
+    const btnTable = document.createElement('table');
+    btnTable.className = 'popupBtnArea';
+    btnTable.innerHTML = `
+        <tr>
+            <td><span class="popupCloseBtn btn b_white TE se_decide"><span class="b_screen"></span>Close</span></td>
+        </tr>`;
+
+    inner.appendChild(closeX);
+    inner.appendChild(title);
+    inner.appendChild(textArea);
+    inner.appendChild(btnTable);
+    el.appendChild(inner);
+    area.appendChild(el);
+
+    applyPopupScale(inner);
+
+    const curtain = area.querySelector('#popupCurtain');
+    if (curtain) curtain.classList.add('show');
+    activePopup = {
+        kind: 'favChanged',
+        el,
+        canClose: true
+    };
+    bindEvents();
+}
+
+const FILTER_GROUPS = [
+    { selector: '.filterAtt', dataKey: 'typeFilter', prmIndex: 2, single: false },
+    { selector: '.filterRank', dataKey: 'rankfilterId', prmIndex: 3, single: false },
+    { selector: '.filterEnhance', dataKey: 'enhancefilterId', prmIndex: 4, single: true },
+    { selector: '.filterInitial', dataKey: 'initialfilterId', prmIndex: 5, single: false }
+];
+
+function applyFilterStateToPopup(root, sortPrm) {
+    for (const group of FILTER_GROUPS) {
+        const raw = sortPrm?.[group.prmIndex] || null;
+        const selected = raw ? new Set(String(raw).split(',').filter(Boolean)) : null;
+        const buttons = root.querySelectorAll(group.selector);
+        buttons.forEach((btn) => btn.classList.remove('current'));
+        if (!selected || selected.size === 0 || selected.has('ALL')) {
+            const allBtn = root.querySelector(`${group.selector}.ALL`);
+            if (allBtn) allBtn.classList.add('current');
+        } else {
+            let matched = false;
+            buttons.forEach((btn) => {
+                const val = btn.dataset[group.dataKey];
+                if (val && val !== 'ALL' && selected.has(val)) {
+                    btn.classList.add('current');
+                    matched = true;
+                }
+            });
+            if (!matched) {
+                const allBtn = root.querySelector(`${group.selector}.ALL`);
+                if (allBtn) allBtn.classList.add('current');
+            }
+        }
+    }
+}
+
+function readFilterStateFromPopup(root) {
+    return FILTER_GROUPS.map((group) => {
+        const allBtn = root.querySelector(`${group.selector}.ALL`);
+        if (allBtn?.classList.contains('current')) return null;
+        const vals = [];
+        root.querySelectorAll(`${group.selector}.current`).forEach((btn) => {
+            const val = btn.dataset[group.dataKey];
+            if (val && val !== 'ALL') vals.push(val);
+        });
+        return vals.length ? vals.join(',') : null;
+    });
+}
+
+export async function openCharaFilterPopup(currentSortPrm, onApply) {
+    if (pending) return;
+    if (activePopup) closeActivePopup({ immediate: true });
+    pending = true;
+    try {
+        const area = ensurePopupArea();
+        const template = await fetchTemplate(CARD_SORT_TEMPLATE, 'sortFilter');
+
+        const el = document.createElement('div');
+        el.id = 'sortFilterPop';
+        el.className = 'popupContent open typeB';
+
+        const inner = document.createElement('div');
+        inner.className = 'popupInner';
+
+        const closeX = document.createElement('span');
+        closeX.className = 'popupCloseBtn closeDefault se_cancel TE';
+
+        const textArea = document.createElement('div');
+        textArea.className = 'popupTextArea';
+        textArea.innerHTML = template;
+
+        inner.appendChild(closeX);
+        inner.appendChild(textArea);
+        el.appendChild(inner);
+        area.appendChild(el);
+
+        applyFilterStateToPopup(inner, currentSortPrm);
+        applyPopupScale(inner);
+
+        const curtain = area.querySelector('#popupCurtain');
+        if (curtain) curtain.classList.add('show');
+        activePopup = {
+            kind: 'sortFilter',
+            el,
+            canClose: true,
+            onApply: typeof onApply === 'function' ? onApply : null
+        };
+        bindEvents();
+    } catch (err) {
+        console.error('[popups] CharaFilterPopup open failed:', err);
+    } finally {
+        pending = false;
+    }
+}
+
 function onPointerDown(e) {
     const btn = e.target.closest(TOUCH_SELECTOR);
     if (!btn) return;
@@ -308,6 +459,46 @@ function onPopupClick(e) {
             if (cb) cb();
         }
         return;
+    }
+
+    if (activePopup.kind === 'sortFilter') {
+        const applyBtn = e.target.closest('#sortFilterPop #cardSortBtnsArea .sort');
+        if (applyBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const filters = readFilterStateFromPopup(activePopup.el);
+            const cb = activePopup.onApply;
+            closeActivePopup();
+            if (cb) cb(filters);
+            return;
+        }
+        for (const group of FILTER_GROUPS) {
+            const btn = e.target.closest(`#sortFilterPop ${group.selector}`);
+            if (!btn) continue;
+            e.preventDefault();
+            e.stopPropagation();
+            const val = btn.dataset[group.dataKey];
+            const buttons = activePopup.el.querySelectorAll(group.selector);
+            const allBtn = activePopup.el.querySelector(`${group.selector}.ALL`);
+            if (val === 'ALL') {
+                buttons.forEach((b) => b.classList.remove('current'));
+                if (allBtn) allBtn.classList.add('current');
+            } else if (group.single) {
+                const wasCurrent = btn.classList.contains('current');
+                buttons.forEach((b) => b.classList.remove('current'));
+                if (wasCurrent) {
+                    if (allBtn) allBtn.classList.add('current');
+                } else {
+                    btn.classList.add('current');
+                }
+            } else {
+                if (allBtn) allBtn.classList.remove('current');
+                btn.classList.toggle('current');
+                const anyActive = Array.from(buttons).some((b) => b !== allBtn && b.classList.contains('current'));
+                if (!anyActive && allBtn) allBtn.classList.add('current');
+            }
+            return;
+        }
     }
 
     if (e.target.closest('.popupCloseBtn')) {
@@ -341,6 +532,14 @@ function onPopupClick(e) {
             if (cb) cb();
             return;
         }
+        if (e.target.closest('#myProfile .leaderChangeBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            const cb = activePopup.onChangeFavorite;
+            closeActivePopup();
+            if (cb) cb();
+            return;
+        }
         if (e.target.closest('#myProfile .se_decide')) {
             e.preventDefault();
             e.stopPropagation();
@@ -350,8 +549,7 @@ function onPopupClick(e) {
 
 function onBackdropClick(e) {
     if (!activePopup || !activePopup.canClose) return;
-    if (e.target.closest('.etcPop .etcPopInner')) return;
-    if (e.target.closest('.userProfile .popupInner')) return;
+    if (e.target.closest('#popupArea .etcPopInner, #popupArea .popupInner')) return;
     if (e.target.closest('#popupArea')) closeActivePopup();
 }
 
