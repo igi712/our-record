@@ -333,6 +333,26 @@ async function openEtcPopup() {
     }
 }
 
+async function openProfilePopup() {
+    try {
+        const module = await import('./popups.js');
+        if (module && typeof module.openProfilePopup === 'function') {
+            const charaId = typeof window.getHomeCharacterId === 'function'
+                ? window.getHomeCharacterId()
+                : 1001;
+            module.openProfilePopup({
+                charaId,
+                onChangeBackground: () => {
+                    const q = window.location.hash.split('?')[1];
+                    window.location.hash = q ? `#/BackgroundSet?${q}` : '#/BackgroundSet';
+                }
+            });
+        }
+    } catch (err) {
+        console.error('[mypage] ProfilePopup open failed:', err);
+    }
+}
+
 function onClick(e) {
     const portraitButton = e.target.closest('#portraitBtn');
     if (portraitButton && !uiHidden) {
@@ -347,6 +367,14 @@ function onClick(e) {
         e.preventDefault();
         e.stopPropagation();
         showUiHidePrompt();
+        return;
+    }
+
+    const favoriteBtn = e.target.closest('#favoriteChara');
+    if (favoriteBtn && !uiHidden) {
+        e.preventDefault();
+        e.stopPropagation();
+        openProfilePopup();
         return;
     }
 

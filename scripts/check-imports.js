@@ -23,7 +23,10 @@ const FILES = [
   'magica/js/viewer/quotes-main.js',
   'magica/js/router.js',
   'magica/js/home-menu.js',
+  'magica/js/home-bg.js',
   'magica/js/mypage.js',
+  'magica/js/background-set.js',
+  'magica/js/popups.js',
   'magica/js/view-loader.js',
   'lib/cocos-to-pixi.js',
 ];

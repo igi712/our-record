@@ -2,7 +2,8 @@
 
 import { resolveMaReAssetsBase, showToast } from './model.js';
 import { setAssetPreloadConnecting } from './model-assets.js';
-import { loadCocosStudioAssets, CocosStudioArmature } from '../../../lib/cocos-to-pixi.js';
+import { CocosStudioArmature } from '../../../lib/cocos-to-pixi.js';
+import { loadCocosBackgroundAssets } from '../home-bg.js';
 
 const CATALOG_URL = 'assets/bgCatalog.json';
 const DEFAULT_BG_ID = 'home:web_0011';
@@ -170,7 +171,11 @@ function disposeCocosAssets(textures, particles, keepBaseTextures = null) {
         }
         for (const bt of baseTextures) {
             if (bt && !bt.destroyed && (!keepBaseTextures || !keepBaseTextures.has(bt))) {
+                const srcUrl = bt.resource?.url;
                 try { bt.destroy(); } catch {}
+                if (typeof srcUrl === 'string' && srcUrl.startsWith('blob:')) {
+                    try { URL.revokeObjectURL(srcUrl); } catch {}
+                }
             }
         }
     }
@@ -274,7 +279,7 @@ async function applyBackground(entry, previousBgId) {
         }
 
         if (entry.kind === 'cocos') {
-            const assets = await loadCocosStudioAssets(`${imageNativeBase}/bg/${entry.dir}/${entry.file}`);
+            const assets = await loadCocosBackgroundAssets(`${imageNativeBase}/bg/${entry.dir}/${entry.file}`);
             if (token !== bgLoadToken) {
                 disposeCocosAssets(assets?.textures, assets?.particles, collectCocosBaseTextures(currentBgNode));
                 return;

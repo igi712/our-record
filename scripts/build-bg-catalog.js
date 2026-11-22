@@ -9,6 +9,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const zlib = require('zlib');
 
 const REPO = path.resolve(__dirname, '..');
 const CATALOG_PATH = path.join(REPO, 'assets', 'bgCatalog.json');
@@ -642,6 +643,7 @@ const FALLBACK_FANDOM_BACKGROUNDS = [
     ['New West Ward (Evening)', '新西区 全景(夕)', 'Shinsei Ward Panorama (Sunset)'],
     ['New West Ward (Night)', '新西区 全景(夜)', 'Shinsei Ward Panorama (Night)'],
     ['Magical Halloween Theater ~A Magical Girl Troupe for a Day~', 'マジカルハロウィンシアター', 'Halloween Theater'],
+    ['Magical Halloween Theater ~A Magical Girl Troupe for a Day~', 'ハロウィンシアター', 'Halloween Theater'],
     ['We Passed the First of That Day', 'あの日の一番を超えて', 'Reaching a Happier Height'],
     ['Another Daze', 'Another Daze', 'Another Daze'],
     ["The Crescent Moon Manor's Merry Christmas", 'みかづき荘のMerry Christmas', 'Christmas at Mikazuki Villa'],
@@ -651,13 +653,14 @@ const FALLBACK_FANDOM_BACKGROUNDS = [
     ['Bye Bye, See You Tomorrow', 'バイバイ、また明日', 'See You Tomorrow'],
     ['The Howa-Howa Girl Tries Her Best!', 'ほわほわ少女頑張る！', 'Wait, You Got It Wrong!'],
     ['FM Kamihama Holy Radio Station', 'FM神浜 Holy Radio Station', 'FM Kamihama'],
+    ['FM Kamihama Holy Radio Station', 'FM神浜', 'FM Kamihama'],
     ['Cross Connection', 'CROSS CONNECTION', 'CROSS CONNECTION'],
     ['A Voice From Beyond That Strokes the Ears', '耳を撫でて彼岸の声', 'Voices from Beyond'],
     ['Spurred to Separation', '呼び水となりて綻び', 'Breakpoint'],
     ['Newbie Maid Carefree Kanagi', '駆けだしメイド十七夜', "Let's See What You're Maid Of"],
     ['The Ribbon at the Beach (1)', '波打ち際のリボン①', 'Beachside Bonds Background 1'],
     ['The Ribbon at the Beach (2)', '波打ち際のリボン②', 'Beachside Bonds Background 2'],
-    ["The Crescent Moon Manor's Summer Vacation", 'みかづき荘のSummer Vacation', '-'],
+    ["The Crescent Moon Manor's Summer Vacation", 'みかづき荘のSummer Vacation', 'Summer with Mikazuki Villa'],
     ["Yes, Let's Go to the Baths!", 'うん、水徳湯に行こにう！', "Let's Hit the Suitoku Baths!"],
     ['And From Here On. (1)', 'そしてこれから。①', 'Hereafter ①'],
     ['And From Here On. (2)', 'そしてこれから。②', 'Hereafter ②'],
@@ -1035,8 +1038,8 @@ function loadFandomMaps() {
 
 function loadUserBackgroundItems() {
     const map = new Map();
-    for (const [file, shortDescription, sortKey] of FALLBACK_USER_BACKGROUNDS) {
-        map.set(file.toLowerCase(), { file, shortDescription, sortKey });
+    for (const [file, shortDescription, sortKey, bgm] of FALLBACK_USER_BACKGROUNDS) {
+        map.set(file.toLowerCase(), { file, shortDescription, sortKey, bgm: bgm || null });
     }
 
     const ludPath = path.join(REPO, 'temp', 'localUserData.json');
@@ -1049,6 +1052,7 @@ function loadUserBackgroundItems() {
                 file,
                 shortDescription: u.item.shortDescription || u.item.name || file,
                 sortKey: u.item.sortKey ?? 9999,
+                bgm: u.item.parameter || null,
             });
         }
     }
@@ -1210,7 +1214,11 @@ function readPngDimensions(pngPath) {
 
 function extractPlistCropThumb(dirPath, exportJsonFile) {
     const jsonPath = path.join(dirPath, exportJsonFile);
-    const json = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    const rawBuf = fs.readFileSync(jsonPath);
+    const jsonText = (/\.gz$/i.test(exportJsonFile)
+        ? zlib.gunzipSync(rawBuf).toString('utf8')
+        : rawBuf.toString('utf8')).replace(/\0+$/g, '').trim();
+    const json = JSON.parse(jsonText);
 
     // Identify any background sprite bones rotated +-90deg in the ExportJson armature.
     const rotatedDisplays = new Set();
@@ -1271,7 +1279,8 @@ function extractPlistCropThumb(dirPath, exportJsonFile) {
 }
 
 function buildHomeLabel(file, dir, userItems, fandomByJp, storyByFile, tumblrMap) {
-    if (file === 'web_0011.ExportJson') {
+    const baseFile = file.replace(/\.gz$/i, '');
+    if (baseFile === 'web_0011.ExportJson') {
         return {
             label: 'Blue Skies (Default)',
             subLabel: 'Default Home Background',
@@ -1280,40 +1289,41 @@ function buildHomeLabel(file, dir, userItems, fandomByJp, storyByFile, tumblrMap
         };
     }
 
-    const userItem = userItems.get(file.toLowerCase());
+    const userItem = userItems.get(baseFile.toLowerCase());
     if (userItem) {
         const fandom = fandomByJp.get(normalizeJp(userItem.shortDescription));
-        const label = fandom ? fandom.en : userItem.shortDescription;
+        const label = fandom ? (fandom.na || fandom.en) : userItem.shortDescription;
         const subParts = [];
-        if (fandom?.na && fandom.na !== label) subParts.push(`NA: ${fandom.na}`);
-        subParts.push(file.replace(/\.(exportjson|jpg)$/i, ''));
+        if (fandom?.na && fandom.en && fandom.en !== label) subParts.push(`Fandom: ${fandom.en}`);
+        subParts.push(baseFile.replace(/\.(exportjson|jpg)$/i, ''));
         return {
             label,
             subLabel: subParts.join(' • '),
             category: 'home',
             sortOrder: userItem.sortKey ?? 5000,
+            bgm: userItem.bgm || null,
         };
     }
 
-    if (EXTRA_WEB_LABELS[file]) {
-        const [label, context] = EXTRA_WEB_LABELS[file];
+    if (EXTRA_WEB_LABELS[baseFile]) {
+        const [label, context] = EXTRA_WEB_LABELS[baseFile];
         return {
             label,
-            subLabel: `${context} • ${file.replace(/\.(exportjson|jpg)$/i, '')}`,
+            subLabel: `${context} • ${baseFile.replace(/\.(exportjson|jpg)$/i, '')}`,
             category: 'extra',
             sortOrder: 10000,
         };
     }
 
     // Fallback for additional web_ev_<evId>_<bg5> files using event or story location names.
-    const evMatch = file.match(/^web_ev_(\d{4})_(\d{5})\.exportjson$/i);
+    const evMatch = baseFile.match(/^web_ev_(\d{4})_(\d{5})\.exportjson$/i);
     if (evMatch) {
         const [, evId, bg5] = evMatch;
         let eventName = null;
         for (const item of userItems.values()) {
             if (item.file.toLowerCase().startsWith(`web_ev_${evId}_`)) {
                 const fandom = fandomByJp.get(normalizeJp(item.shortDescription));
-                eventName = (fandom ? fandom.en : item.shortDescription).replace(/\s*\(\d+\)\s*$/, '');
+                eventName = (fandom ? (fandom.na || fandom.en) : item.shortDescription).replace(/\s*\(\d+\)\s*$/, '');
                 break;
             }
         }
@@ -1324,14 +1334,14 @@ function buildHomeLabel(file, dir, userItems, fandomByJp, storyByFile, tumblrMap
         const label = eventName ? `${eventName} (${locName})` : `Event ${evId} — ${locName}`;
         return {
             label,
-            subLabel: `Event Background • ${file.replace(/\.exportjson$/i, '')}`,
+            subLabel: `Event Background • ${baseFile.replace(/\.exportjson$/i, '')}`,
             category: 'extra',
             sortOrder: 11000,
         };
     }
 
     return {
-        label: file.replace(/\.(exportjson|jpg)$/i, ''),
+        label: baseFile.replace(/\.(exportjson|jpg)$/i, ''),
         subLabel: dir === 'quest_top' ? 'Quest Map Background' : 'Web Background',
         category: 'extra',
         sortOrder: 12000,
@@ -1343,23 +1353,33 @@ function buildHomeEntries(webFiles, storyFiles, tumblrMap, fandomByJp, userItems
     const storyEntries = buildStoryEntries(storyFiles, tumblrMap);
     const storyByFile = new Map(storyEntries.map((s) => [s.file, s]));
 
+    const webSetLower = new Set(webFiles.map((f) => f.toLowerCase()));
+    const selectedWebFiles = webFiles.filter((f) => {
+        const base = f.replace(/\.gz$/i, '');
+        if (BROKEN_WEB_EXPORTS.has(f) || BROKEN_WEB_EXPORTS.has(base)) return false;
+        if (/\.exportjson$|\.jpg$/i.test(f)) return true;
+        if (/\.exportjson\.gz$/i.test(f)) {
+            return !webSetLower.has(base.toLowerCase());
+        }
+        return false;
+    });
+
     const rawList = [
-        ...webFiles
-            .filter((f) => (/\.exportjson$|\.jpg$/i.test(f)) && !BROKEN_WEB_EXPORTS.has(f))
-            .map((file) => ({ dir: 'web', file })),
+        ...selectedWebFiles.map((file) => ({ dir: 'web', file })),
         ...QUEST_TOP_HOME_FILES.map((file) => ({ dir: 'quest_top', file })),
     ];
 
     const items = rawList.map(({ dir, file }) => {
-        const kind = /\.jpg$/i.test(file) ? 'jpg' : 'cocos';
-        const id = 'home:' + file.replace(/\.(exportjson|jpg)$/i, '');
+        const baseFile = file.replace(/\.gz$/i, '');
+        const kind = /\.jpg$/i.test(baseFile) ? 'jpg' : 'cocos';
+        const id = 'home:' + baseFile.replace(/\.(exportjson|jpg)$/i, '');
         const meta = buildHomeLabel(file, dir, userItems, fandomByJp, storyByFile, tumblrMap);
 
         let thumb;
         if (kind === 'jpg') {
             thumb = { type: 'webJpg', file };
         } else {
-            const match5 = file.match(/(\d{5})\.exportjson$/i);
+            const match5 = baseFile.match(/(\d{5})\.exportjson$/i);
             const matchedStory = match5 ? `bg_adv_${match5[1]}.jpg` : null;
             if (matchedStory && storySet.has(matchedStory)) {
                 thumb = { type: 'story', file: matchedStory };
@@ -1368,17 +1388,20 @@ function buildHomeEntries(webFiles, storyFiles, tumblrMap, fandomByJp, userItems
             }
         }
 
+        const entry = {
+            id,
+            file,
+            dir,
+            kind,
+            label: meta.label,
+            subLabel: meta.subLabel,
+            category: meta.category,
+            ...(meta.bgm ? { bgm: meta.bgm } : {}),
+            thumb,
+        };
+
         return {
-            entry: {
-                id,
-                file,
-                dir,
-                kind,
-                label: meta.label,
-                subLabel: meta.subLabel,
-                category: meta.category,
-                thumb,
-            },
+            entry,
             sortOrder: meta.sortOrder,
         };
     });

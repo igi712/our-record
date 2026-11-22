@@ -2,7 +2,7 @@
   "solid": [
     {
       "id": "solid:gray",
-      "label": "Gray",
+      "label": "Default Gray",
       "hex": "#999999",
       "color": 10066329
     },
@@ -8885,9 +8885,10 @@
       "file": "web_ev_1003_21028.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "A Diary to Write With You",
-      "subLabel": "NA: My Diary With You • web_ev_1003_21028",
+      "label": "My Diary With You",
+      "subLabel": "Fandom: A Diary to Write With You • web_ev_1003_21028",
       "category": "home",
+      "bgm": "bgm03_story07",
       "thumb": {
         "type": "story",
         "file": "bg_adv_21028.jpg"
@@ -8898,8 +8899,8 @@
       "file": "web_ev_1006_21281.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "ハロウィンシアター",
-      "subLabel": "web_ev_1006_21281",
+      "label": "Halloween Theater",
+      "subLabel": "Fandom: Magical Halloween Theater ~A Magical Girl Troupe for a Day~ • web_ev_1006_21281",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -8911,8 +8912,8 @@
       "file": "web_ev_1007_19061.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "We Passed the First of That Day",
-      "subLabel": "NA: Reaching a Happier Height • web_ev_1007_19061",
+      "label": "Reaching a Happier Height",
+      "subLabel": "Fandom: We Passed the First of That Day • web_ev_1007_19061",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -8937,9 +8938,10 @@
       "file": "web_ev_1010_13014.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "The Crescent Moon Manor's Merry Christmas",
-      "subLabel": "NA: Christmas at Mikazuki Villa • web_ev_1010_13014",
+      "label": "Christmas at Mikazuki Villa",
+      "subLabel": "Fandom: The Crescent Moon Manor's Merry Christmas • web_ev_1010_13014",
       "category": "home",
+      "bgm": "bgm05_event01",
       "thumb": {
         "type": "story",
         "file": "bg_adv_13014.jpg"
@@ -8950,9 +8952,10 @@
       "file": "web_ev_1011_12061.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "Happy New Year at the Mizuna Shrine!",
-      "subLabel": "NA: New Year's at Mizuna Shrine • web_ev_1011_12061",
+      "label": "New Year's at Mizuna Shrine",
+      "subLabel": "Fandom: Happy New Year at the Mizuna Shrine! • web_ev_1011_12061",
       "category": "home",
+      "bgm": "bgm05_event02",
       "thumb": {
         "type": "story",
         "file": "bg_adv_12061.jpg"
@@ -8963,8 +8966,8 @@
       "file": "web_ev_1014_20151.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "À La Carte Valentine",
-      "subLabel": "NA: À la Carte Valentines • web_ev_1014_20151",
+      "label": "À la Carte Valentines",
+      "subLabel": "Fandom: À La Carte Valentine • web_ev_1014_20151",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -8976,9 +8979,10 @@
       "file": "web_ev_1015_20111.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "The Chiming Bell that Transcends Time",
-      "subLabel": "NA: The Maiden of Hope • web_ev_1015_20111",
+      "label": "The Maiden of Hope",
+      "subLabel": "Fandom: The Chiming Bell that Transcends Time • web_ev_1015_20111",
       "category": "home",
+      "bgm": "bgm05_event05",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20111.jpg"
@@ -8989,9 +8993,10 @@
       "file": "web_ev_1017_17102.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "Bye Bye, See You Tomorrow",
-      "subLabel": "NA: See You Tomorrow • web_ev_1017_17102",
+      "label": "See You Tomorrow",
+      "subLabel": "Fandom: Bye Bye, See You Tomorrow • web_ev_1017_17102",
       "category": "home",
+      "bgm": "bgm05_event06",
       "thumb": {
         "type": "story",
         "file": "bg_adv_17102.jpg"
@@ -9002,8 +9007,8 @@
       "file": "web_ev_1019_12091.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "The Howa-Howa Girl Tries Her Best!",
-      "subLabel": "NA: Wait, You Got It Wrong! • web_ev_1019_12091",
+      "label": "Wait, You Got It Wrong!",
+      "subLabel": "Fandom: The Howa-Howa Girl Tries Her Best! • web_ev_1019_12091",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -9015,8 +9020,8 @@
       "file": "web_ev_1021_20241.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "FM神浜",
-      "subLabel": "web_ev_1021_20241",
+      "label": "FM Kamihama",
+      "subLabel": "Fandom: FM Kamihama Holy Radio Station • web_ev_1021_20241",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -9028,8 +9033,8 @@
       "file": "web_ev_1023_13091.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "Cross Connection",
-      "subLabel": "NA: CROSS CONNECTION • web_ev_1023_13091",
+      "label": "CROSS CONNECTION",
+      "subLabel": "Fandom: Cross Connection • web_ev_1023_13091",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -9041,8 +9046,8 @@
       "file": "web_ev_1025_21221.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "A Voice From Beyond That Strokes the Ears",
-      "subLabel": "NA: Voices from Beyond • web_ev_1025_21221",
+      "label": "Voices from Beyond",
+      "subLabel": "Fandom: A Voice From Beyond That Strokes the Ears • web_ev_1025_21221",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -9054,8 +9059,8 @@
       "file": "web_ev_1027_14051.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "Spurred to Separation",
-      "subLabel": "NA: Breakpoint • web_ev_1027_14051",
+      "label": "Breakpoint",
+      "subLabel": "Fandom: Spurred to Separation • web_ev_1027_14051",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -9067,8 +9072,8 @@
       "file": "web_ev_1028_15081.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "Newbie Maid Carefree Kanagi",
-      "subLabel": "NA: Let's See What You're Maid Of • web_ev_1028_15081",
+      "label": "Let's See What You're Maid Of",
+      "subLabel": "Fandom: Newbie Maid Carefree Kanagi • web_ev_1028_15081",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -9080,8 +9085,8 @@
       "file": "web_ev_1030_20271.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "The Ribbon at the Beach (1)",
-      "subLabel": "NA: Beachside Bonds Background 1 • web_ev_1030_20271",
+      "label": "Beachside Bonds Background 1",
+      "subLabel": "Fandom: The Ribbon at the Beach (1) • web_ev_1030_20271",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -9093,8 +9098,8 @@
       "file": "web_ev_1030_20281.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "The Ribbon at the Beach (2)",
-      "subLabel": "NA: Beachside Bonds Background 2 • web_ev_1030_20281",
+      "label": "Beachside Bonds Background 2",
+      "subLabel": "Fandom: The Ribbon at the Beach (2) • web_ev_1030_20281",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -9106,9 +9111,10 @@
       "file": "web_ev_1032_20251.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "The Crescent Moon Manor's Summer Vacation",
-      "subLabel": "web_ev_1032_20251",
+      "label": "Summer with Mikazuki Villa",
+      "subLabel": "Fandom: The Crescent Moon Manor's Summer Vacation • web_ev_1032_20251",
       "category": "home",
+      "bgm": "bgm03_story21",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20251.jpg"
@@ -9119,8 +9125,8 @@
       "file": "web_ev_1033_13101.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "Yes, Let's Go to the Baths!",
-      "subLabel": "NA: Let's Hit the Suitoku Baths! • web_ev_1033_13101",
+      "label": "Let's Hit the Suitoku Baths!",
+      "subLabel": "Fandom: Yes, Let's Go to the Baths! • web_ev_1033_13101",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -9132,8 +9138,8 @@
       "file": "web_ev_1033_20411.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "And From Here On. (1)",
-      "subLabel": "NA: Hereafter ① • web_ev_1033_20411",
+      "label": "Hereafter ①",
+      "subLabel": "Fandom: And From Here On. (1) • web_ev_1033_20411",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -9145,8 +9151,8 @@
       "file": "web_ev_1033_21207.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "And From Here On. (2)",
-      "subLabel": "NA: Hereafter ② • web_ev_1033_21207",
+      "label": "Hereafter ②",
+      "subLabel": "Fandom: And From Here On. (2) • web_ev_1033_21207",
       "category": "home",
       "thumb": {
         "type": "plistCrop",
@@ -9178,8 +9184,8 @@
       "file": "web_ev_1042_16071.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "Whereabouts of the Feather",
-      "subLabel": "NA: Wings in the Wind • web_ev_1042_16071",
+      "label": "Wings in the Wind",
+      "subLabel": "Fandom: Whereabouts of the Feather • web_ev_1042_16071",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -9191,9 +9197,10 @@
       "file": "web_ev_1045_15024.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "Alina Is Coming to Town (1)",
-      "subLabel": "NA: Alina is Comin' to Town 1 • web_ev_1045_15024",
+      "label": "Alina is Comin' to Town 1",
+      "subLabel": "Fandom: Alina Is Coming to Town (1) • web_ev_1045_15024",
       "category": "home",
+      "bgm": "bgm05_event11",
       "thumb": {
         "type": "story",
         "file": "bg_adv_15024.jpg"
@@ -9204,9 +9211,10 @@
       "file": "web_ev_1045_21334.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "Alina Is Coming to Town (2)",
-      "subLabel": "NA: Alina is Comin' to Town 2 • web_ev_1045_21334",
+      "label": "Alina is Comin' to Town 2",
+      "subLabel": "Fandom: Alina Is Coming to Town (2) • web_ev_1045_21334",
       "category": "home",
+      "bgm": "bgm05_event11",
       "thumb": {
         "type": "story",
         "file": "bg_adv_21334.jpg"
@@ -9217,9 +9225,10 @@
       "file": "web_ev_1046_17151.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "Mitama and the Delicious New Year's Party",
-      "subLabel": "NA: Mitama's Festive Feast • web_ev_1046_17151",
+      "label": "Mitama's Festive Feast",
+      "subLabel": "Fandom: Mitama and the Delicious New Year's Party • web_ev_1046_17151",
       "category": "home",
+      "bgm": "bgm05_event02",
       "thumb": {
         "type": "story",
         "file": "bg_adv_17151.jpg"
@@ -9230,9 +9239,10 @@
       "file": "web_ev_1049_23011.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "Beginning and Eternal",
-      "subLabel": "NA: Endless Beginnings • web_ev_1049_23011",
+      "label": "Endless Beginnings",
+      "subLabel": "Fandom: Beginning and Eternal • web_ev_1049_23011",
       "category": "home",
+      "bgm": "bgm01_anime11",
       "thumb": {
         "type": "story",
         "file": "bg_adv_23011.jpg"
@@ -9246,6 +9256,7 @@
       "label": "Madogatari Exhibition Collaboration",
       "subLabel": "web_ev_1051_31011",
       "category": "home",
+      "bgm": "bgm90_monoga04",
       "thumb": {
         "type": "plistCrop",
         "file": "web_ev_1051_310111.png",
@@ -9296,8 +9307,8 @@
       "file": "web_ev_1057_21141.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "Leaving the Nest Looking Skyward",
-      "subLabel": "NA: A Fledgling's First Flight • web_ev_1057_21141",
+      "label": "A Fledgling's First Flight",
+      "subLabel": "Fandom: Leaving the Nest Looking Skyward • web_ev_1057_21141",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -9325,6 +9336,7 @@
       "label": "Sayuki Steps Up! (2)",
       "subLabel": "web_ev_1062_21101",
       "category": "home",
+      "bgm": "bgm05_event12",
       "thumb": {
         "type": "story",
         "file": "bg_adv_21101.jpg"
@@ -9335,9 +9347,10 @@
       "file": "web_ev_1064_20255.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "The Ephemeral Summer Night",
-      "subLabel": "NA: One Fleeting Summer Night • web_ev_1064_20255",
+      "label": "One Fleeting Summer Night",
+      "subLabel": "Fandom: The Ephemeral Summer Night • web_ev_1064_20255",
       "category": "home",
+      "bgm": "bgm01_anime03",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20255.jpg"
@@ -9348,9 +9361,10 @@
       "file": "web_ev_1065_20121.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "Rebels from the Land of Everlasting Night",
-      "subLabel": "NA: Rebel of a Dawnless Land • web_ev_1065_20121",
+      "label": "Rebel of a Dawnless Land",
+      "subLabel": "Fandom: Rebels from the Land of Everlasting Night • web_ev_1065_20121",
       "category": "home",
+      "bgm": "bgm03_story23",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20121.jpg"
@@ -9374,9 +9388,10 @@
       "file": "web_ev_1067_20481.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "SamaTore! The Summer Treasure that Disappeared into the Fire (1)",
-      "subLabel": "NA: Summer Treasures (1) • web_ev_1067_20481",
+      "label": "Summer Treasures (1)",
+      "subLabel": "Fandom: SamaTore! The Summer Treasure that Disappeared into the Fire (1) • web_ev_1067_20481",
       "category": "home",
+      "bgm": "bgm03_story21",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20481.jpg"
@@ -9387,9 +9402,10 @@
       "file": "web_ev_1067_20501.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "SamaTore! The Summer Treasure that Disappeared into the Fire (2)",
-      "subLabel": "NA: Summer Treasures (2) • web_ev_1067_20501",
+      "label": "Summer Treasures (2)",
+      "subLabel": "Fandom: SamaTore! The Summer Treasure that Disappeared into the Fire (2) • web_ev_1067_20501",
       "category": "home",
+      "bgm": "bgm01_anime02",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20501.jpg"
@@ -9507,6 +9523,7 @@
       "label": "Rumors in Disguise",
       "subLabel": "web_ev_1075_21511",
       "category": "home",
+      "bgm": "bgm03_story02",
       "thumb": {
         "type": "story",
         "file": "bg_adv_21511.jpg"
@@ -9670,6 +9687,7 @@
       "label": "KamiFest",
       "subLabel": "web_ev_1093_31051",
       "category": "home",
+      "bgm": "bgm20_song12",
       "thumb": {
         "type": "story",
         "file": "bg_adv_31051.jpg"
@@ -9839,6 +9857,7 @@
       "label": "Halloween Castle of Prayers and Funeral",
       "subLabel": "web_ev_1115_20631",
       "category": "home",
+      "bgm": "bgm03_story17",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20631.jpg"
@@ -9852,6 +9871,7 @@
       "label": "Angels on the Road",
       "subLabel": "web_ev_1119_20641",
       "category": "home",
+      "bgm": "bgm05_event11",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20641.jpg"
@@ -9865,6 +9885,7 @@
       "label": "Christmas String",
       "subLabel": "web_ev_1120_18111",
       "category": "home",
+      "bgm": "bgm05_event01",
       "thumb": {
         "type": "story",
         "file": "bg_adv_18111.jpg"
@@ -9878,6 +9899,7 @@
       "label": "Memorable Flower",
       "subLabel": "web_ev_1123_21751",
       "category": "home",
+      "bgm": "bgm03_story03",
       "thumb": {
         "type": "story",
         "file": "bg_adv_21751.jpg"
@@ -9904,6 +9926,7 @@
       "label": "Where's the JP Horror!?",
       "subLabel": "web_ev_1126_20671",
       "category": "home",
+      "bgm": "bgm03_story13",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20671.jpg"
@@ -9917,6 +9940,7 @@
       "label": "Dependence Blue",
       "subLabel": "web_ev_1129_19311",
       "category": "home",
+      "bgm": "bgm23_magus02",
       "thumb": {
         "type": "story",
         "file": "bg_adv_19311.jpg"
@@ -9930,6 +9954,7 @@
       "label": "Kamihama Armageddon (1)",
       "subLabel": "web_ev_1130_31082",
       "category": "home",
+      "bgm": "bgm03_story17",
       "thumb": {
         "type": "plistCrop",
         "file": "web_ev_1130_310821.png",
@@ -9950,6 +9975,7 @@
       "label": "Kamihama Armageddon (2)",
       "subLabel": "web_ev_1130_31081",
       "category": "home",
+      "bgm": "bgm03_story17",
       "thumb": {
         "type": "plistCrop",
         "file": "web_ev_1130_310810.png",
@@ -10048,6 +10074,7 @@
       "label": "The Masked Student Council Strikes Back",
       "subLabel": "web_ev_1134_31092",
       "category": "home",
+      "bgm": "bgm03_movie12",
       "thumb": {
         "type": "story",
         "file": "bg_adv_31092.jpg"
@@ -10100,6 +10127,7 @@
       "label": "Night Fairytale",
       "subLabel": "web_ev_1140_18121",
       "category": "home",
+      "bgm": "bgm01_anime02",
       "thumb": {
         "type": "story",
         "file": "bg_adv_18121.jpg"
@@ -10126,6 +10154,7 @@
       "label": "The Great Banquet that Transcends Time",
       "subLabel": "web_ev_1142_20692",
       "category": "home",
+      "bgm": "bgm02_anime14",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20692.jpg"
@@ -10139,6 +10168,7 @@
       "label": "Moon Viewing Pajama Party",
       "subLabel": "web_cp_20701",
       "category": "home",
+      "bgm": "bgm05_event11",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20701.jpg"
@@ -10152,6 +10182,7 @@
       "label": "Only Dreamers (1)",
       "subLabel": "web_ev_1144_19272",
       "category": "home",
+      "bgm": "bgm24_story08",
       "thumb": {
         "type": "story",
         "file": "bg_adv_19272.jpg"
@@ -10165,6 +10196,7 @@
       "label": "Only Dreamers (2)",
       "subLabel": "web_ev_1144_20711",
       "category": "home",
+      "bgm": "bgm24_story07",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20711.jpg"
@@ -10178,6 +10210,7 @@
       "label": "The Cuddly Despairs",
       "subLabel": "web_ev_1147_31101",
       "category": "home",
+      "bgm": "bgm05_event07",
       "thumb": {
         "type": "story",
         "file": "bg_adv_31101.jpg"
@@ -10191,6 +10224,7 @@
       "label": "Dream Halloween Festa",
       "subLabel": "web_ev_1148_20702",
       "category": "home",
+      "bgm": "bgm03_story16",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20702.jpg"
@@ -10217,6 +10251,7 @@
       "label": "Yukari Miyuri's Current Training!",
       "subLabel": "web_ev_1150_21821",
       "category": "home",
+      "bgm": "bgm03_story02",
       "thumb": {
         "type": "story",
         "file": "bg_adv_21821.jpg"
@@ -10230,6 +10265,7 @@
       "label": "Snow Thawing Befana",
       "subLabel": "web_ev_1153_21086",
       "category": "home",
+      "bgm": "bgm05_event01",
       "thumb": {
         "type": "story",
         "file": "bg_adv_21086.jpg"
@@ -10243,6 +10279,7 @@
       "label": "Tokime Clan Tale",
       "subLabel": "web_ev_1154_50083",
       "category": "home",
+      "bgm": "bgm23_tokime01",
       "thumb": {
         "type": "story",
         "file": "bg_adv_50083.jpg"
@@ -10256,6 +10293,7 @@
       "label": "Gray Revolution",
       "subLabel": "web_ev_1156_53013",
       "category": "home",
+      "bgm": "bgm23_folklore01",
       "thumb": {
         "type": "story",
         "file": "bg_adv_53013.jpg"
@@ -10269,6 +10307,7 @@
       "label": "Homecoming",
       "subLabel": "web_ev_1157_23101",
       "category": "home",
+      "bgm": "bgm03_movie20",
       "thumb": {
         "type": "story",
         "file": "bg_adv_23101.jpg"
@@ -10282,6 +10321,7 @@
       "label": "The Inheritors of Our Souls",
       "subLabel": "web_ev_1159_31121",
       "category": "home",
+      "bgm": "bgm01_anime02",
       "thumb": {
         "type": "story",
         "file": "bg_adv_31121.jpg"
@@ -10308,6 +10348,7 @@
       "label": "Kamihama Spa Adventure",
       "subLabel": "web_ev_1161_31151",
       "category": "home",
+      "bgm": "bgm03_story21",
       "thumb": {
         "type": "story",
         "file": "bg_adv_31151.jpg"
@@ -10321,6 +10362,7 @@
       "label": "My Only Salvation",
       "subLabel": "web_ev_1165_31131",
       "category": "home",
+      "bgm": "bgm03_story05",
       "thumb": {
         "type": "story",
         "file": "bg_adv_31131.jpg"
@@ -10360,6 +10402,7 @@
       "label": "Rainbow Colored Summer",
       "subLabel": "web_ev_1170_20831",
       "category": "home",
+      "bgm": "bgm03_story19",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20831.jpg"
@@ -10373,6 +10416,7 @@
       "label": "Stardust Mirage",
       "subLabel": "web_ev_1171_20841",
       "category": "home",
+      "bgm": "bgm03_story05",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20841.jpg"
@@ -10399,6 +10443,7 @@
       "label": "Sayonara Storage",
       "subLabel": "web_ev_1173_21184",
       "category": "home",
+      "bgm": "bgm21_system01",
       "thumb": {
         "type": "story",
         "file": "bg_adv_21184.jpg"
@@ -10432,6 +10477,7 @@
       "label": "Dark Halloween is The Color of Love!?",
       "subLabel": "web_ev_1176_21892",
       "category": "home",
+      "bgm": "bgm03_story07",
       "thumb": {
         "type": "story",
         "file": "bg_adv_21892.jpg"
@@ -10445,6 +10491,7 @@
       "label": "Winter Recollection An Ancient Tale",
       "subLabel": "web_ev_1179_21205",
       "category": "home",
+      "bgm": "bgm05_event01",
       "thumb": {
         "type": "story",
         "file": "bg_adv_21205.jpg"
@@ -10458,6 +10505,7 @@
       "label": "Winter Recollection A Phantom Tale",
       "subLabel": "web_ev_1180_20851",
       "category": "home",
+      "bgm": "bgm24_story08",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20851.jpg"
@@ -10484,6 +10532,7 @@
       "label": "Valentine Message",
       "subLabel": "web_ev_1184_14124",
       "category": "home",
+      "bgm": "bgm23_puella01",
       "thumb": {
         "type": "story",
         "file": "bg_adv_14124.jpg"
@@ -10516,6 +10565,87 @@
       }
     },
     {
+      "id": "home:web_ev_1190_62041",
+      "file": "web_ev_1190_62041.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Valkyrie of Vik Chapter",
+      "subLabel": "web_ev_1190_62041",
+      "category": "home",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_62041.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1191_63011",
+      "file": "web_ev_1191_63011.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Rakshasi of Tibet Chapter",
+      "subLabel": "web_ev_1191_63011",
+      "category": "home",
+      "bgm": "bgm03_story18",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_63011.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1193_14032",
+      "file": "web_ev_1193_14032.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "A Bouquet for Tomorrow's Happiness",
+      "subLabel": "web_ev_1193_14032",
+      "category": "home",
+      "bgm": "bgm03_story02",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_14032.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1194_64011",
+      "file": "web_ev_1194_64011.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Family Heir of Yamataikoku Chapter",
+      "subLabel": "web_ev_1194_64011",
+      "category": "home",
+      "bgm": "bgm05_event10",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_64011.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1195_20603",
+      "file": "web_ev_1195_20603.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Summer Pop Festival!",
+      "subLabel": "web_ev_1195_20603",
+      "category": "home",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_20603.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1196_65031",
+      "file": "web_ev_1196_65031.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Sweetheart of Pax Romana Chapter",
+      "subLabel": "web_ev_1196_65031",
+      "category": "home",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_65031.jpg"
+      }
+    },
+    {
       "id": "home:web_ev_1139_20311",
       "file": "web_ev_1139_20311.ExportJson",
       "dir": "web",
@@ -10523,9 +10653,23 @@
       "label": "Kagome's Hundred Monsters",
       "subLabel": "web_ev_1139_20311",
       "category": "home",
+      "bgm": "bgm03_story19",
       "thumb": {
         "type": "story",
         "file": "bg_adv_20311.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1199_23054",
+      "file": "web_ev_1199_23054.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Paradise Shift",
+      "subLabel": "web_ev_1199_23054",
+      "category": "home",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_23054.jpg"
       }
     },
     {
@@ -10536,9 +10680,129 @@
       "label": "Inami Mitsuru Wants to Be Normal",
       "subLabel": "web_ev_1060_21172",
       "category": "home",
+      "bgm": "bgm03_story12",
       "thumb": {
         "type": "story",
         "file": "bg_adv_21172.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1201_31181",
+      "file": "web_ev_1201_31181.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Agent Magica",
+      "subLabel": "web_ev_1201_31181",
+      "category": "home",
+      "bgm": "bgm90_lycoris01",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_31181.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1203_21911",
+      "file": "web_ev_1203_21911.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Brethren Come Back To Life On Halloween",
+      "subLabel": "web_ev_1203_21911",
+      "category": "home",
+      "bgm": "bgm23_promised04",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_21911.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1205_21189",
+      "file": "web_ev_1205_21189.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Memory Drops",
+      "subLabel": "web_ev_1205_21189",
+      "category": "home",
+      "bgm": "bgm21_system01",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_21189.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1206_12124",
+      "file": "web_ev_1206_12124.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Happy New Year! Dragon Rush!",
+      "subLabel": "web_ev_1206_12124",
+      "category": "home",
+      "bgm": "bgm05_event02",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_12124.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1208_17092",
+      "file": "web_ev_1208_17092.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "From There To You",
+      "subLabel": "web_ev_1208_17092",
+      "category": "home",
+      "bgm": "bgm03_story07",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_17092.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1210_15121",
+      "file": "web_ev_1210_15121.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Alina's Atelier",
+      "subLabel": "web_ev_1210_15121",
+      "category": "home",
+      "bgm": "bgm01_battle11",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_15121.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1212_31201",
+      "file": "web_ev_1212_31201.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Kamihama Big Sports Day",
+      "subLabel": "web_ev_1212_31201",
+      "category": "home",
+      "bgm": "bgm03_story16",
+      "thumb": {
+        "type": "plistCrop",
+        "file": "web_ev_1212_312010.png",
+        "x": 0,
+        "y": 1001,
+        "w": 1024,
+        "h": 768,
+        "sheetW": 2048,
+        "sheetH": 2048,
+        "rot": false
+      }
+    },
+    {
+      "id": "home:web_ev_1215_21932",
+      "file": "web_ev_1215_21932.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Last Bird's Hope",
+      "subLabel": "web_ev_1215_21932",
+      "category": "home",
+      "bgm": "bgm24_story07",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_21932.jpg"
       }
     },
     {
@@ -10546,8 +10810,8 @@
       "file": "bg_map_11011.ExportJson",
       "dir": "quest_top",
       "kind": "cocos",
-      "label": "New West Ward (Midday)",
-      "subLabel": "NA: Shinsei Ward Panorama (Day) • bg_map_11011",
+      "label": "Shinsei Ward Panorama (Day)",
+      "subLabel": "Fandom: New West Ward (Midday) • bg_map_11011",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -10559,8 +10823,8 @@
       "file": "bg_map_11012.ExportJson",
       "dir": "quest_top",
       "kind": "cocos",
-      "label": "New West Ward (Evening)",
-      "subLabel": "NA: Shinsei Ward Panorama (Sunset) • bg_map_11012",
+      "label": "Shinsei Ward Panorama (Sunset)",
+      "subLabel": "Fandom: New West Ward (Evening) • bg_map_11012",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -10572,8 +10836,8 @@
       "file": "bg_map_11013.ExportJson",
       "dir": "quest_top",
       "kind": "cocos",
-      "label": "New West Ward (Night)",
-      "subLabel": "NA: Shinsei Ward Panorama (Night) • bg_map_11013",
+      "label": "Shinsei Ward Panorama (Night)",
+      "subLabel": "Fandom: New West Ward (Night) • bg_map_11013",
       "category": "home",
       "thumb": {
         "type": "story",
@@ -11612,7 +11876,7 @@
       "file": "web_ev_1042_19081.ExportJson",
       "dir": "web",
       "kind": "cocos",
-      "label": "Whereabouts of the Feather (Hotel Fendt Hope - Room)",
+      "label": "Wings in the Wind (Hotel Fendt Hope - Room)",
       "subLabel": "Event Background • web_ev_1042_19081",
       "category": "extra",
       "thumb": {
@@ -11964,6 +12228,356 @@
       "thumb": {
         "type": "story",
         "file": "bg_adv_61031.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1190_62011",
+      "file": "web_ev_1190_62011.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Valkyrie of Vik Chapter (Fjord village (Noon))",
+      "subLabel": "Event Background • web_ev_1190_62011",
+      "category": "extra",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_62011.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1191_63021",
+      "file": "web_ev_1191_63021.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Rakshasi of Tibet Chapter (Tibetan town (Noon))",
+      "subLabel": "Event Background • web_ev_1191_63021",
+      "category": "extra",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_63021.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1197_20259",
+      "file": "web_ev_1197_20259.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Event 1197 — Private Beach (Variant 9)",
+      "subLabel": "Event Background • web_ev_1197_20259",
+      "category": "extra",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_20259.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1199_12105",
+      "file": "web_ev_1199_12105.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Paradise Shift (Ryuushinkan dojo (Variant 5))",
+      "subLabel": "Event Background • web_ev_1199_12105",
+      "category": "extra",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_12105.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1203_21134",
+      "file": "web_ev_1203_21134.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Brethren Come Back To Life On Halloween (Riverbank)",
+      "subLabel": "Event Background • web_ev_1203_21134",
+      "category": "extra",
+      "thumb": {
+        "type": "plistCrop",
+        "file": "web_ev_1203_211340.png",
+        "x": 0,
+        "y": 0,
+        "w": 1024,
+        "h": 768,
+        "sheetW": 2048,
+        "sheetH": 2048,
+        "rot": false
+      }
+    },
+    {
+      "id": "home:web_ev_1205_20872",
+      "file": "web_ev_1205_20872.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Memory Drops (Snowfield (Evening))",
+      "subLabel": "Event Background • web_ev_1205_20872",
+      "category": "extra",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_20872.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1208_17021",
+      "file": "web_ev_1208_17021.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "From There To You (Daitou apartment complex (Noon))",
+      "subLabel": "Event Background • web_ev_1208_17021",
+      "category": "extra",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_17021.jpg"
+      }
+    },
+    {
+      "id": "home:web_ev_1215_21153",
+      "file": "web_ev_1215_21153.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "Last Bird's Hope (Back Alley (Night))",
+      "subLabel": "Event Background • web_ev_1215_21153",
+      "category": "extra",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_21153.jpg"
+      }
+    },
+    {
+      "id": "home:web_cp_1420_01",
+      "file": "web_cp_1420_01.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "web_cp_1420_01",
+      "subLabel": "Web Background",
+      "category": "extra",
+      "thumb": {
+        "type": "plistCrop",
+        "file": "web_cp_1420_010.png",
+        "x": 799,
+        "y": 0,
+        "w": 1024,
+        "h": 768,
+        "sheetW": 2048,
+        "sheetH": 2048,
+        "rot": false
+      }
+    },
+    {
+      "id": "home:web_PuellaHistoria_46207_01",
+      "file": "web_PuellaHistoria_46207_01.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "web_PuellaHistoria_46207_01",
+      "subLabel": "Web Background",
+      "category": "extra",
+      "thumb": {
+        "type": "plistCrop",
+        "file": "web_PuellaHistoria_46207_010.png",
+        "x": 349,
+        "y": 979,
+        "w": 1024,
+        "h": 762,
+        "sheetW": 2048,
+        "sheetH": 2048,
+        "rot": false
+      }
+    },
+    {
+      "id": "home:web_regular_battle_bg_13083",
+      "file": "web_regular_battle_bg_13083.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "web_regular_battle_bg_13083",
+      "subLabel": "Web Background",
+      "category": "extra",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_13083.jpg"
+      }
+    },
+    {
+      "id": "home:web_regular_battle_bg_140270",
+      "file": "web_regular_battle_bg_140270.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "web_regular_battle_bg_140270",
+      "subLabel": "Web Background",
+      "category": "extra",
+      "thumb": {
+        "type": "plistCrop",
+        "file": "web_regular_battle_bg_1402700.png",
+        "x": 0,
+        "y": 0,
+        "w": 1024,
+        "h": 768,
+        "sheetW": 2048,
+        "sheetH": 2048,
+        "rot": false
+      }
+    },
+    {
+      "id": "home:web_regular_battle_bg_17213",
+      "file": "web_regular_battle_bg_17213.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "web_regular_battle_bg_17213",
+      "subLabel": "Web Background",
+      "category": "extra",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_17213.jpg"
+      }
+    },
+    {
+      "id": "home:web_regular_battle_bg_18094",
+      "file": "web_regular_battle_bg_18094.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "web_regular_battle_bg_18094",
+      "subLabel": "Web Background",
+      "category": "extra",
+      "thumb": {
+        "type": "story",
+        "file": "bg_adv_18094.jpg"
+      }
+    },
+    {
+      "id": "home:web_regular_battle_bg_464160",
+      "file": "web_regular_battle_bg_464160.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "web_regular_battle_bg_464160",
+      "subLabel": "Web Background",
+      "category": "extra",
+      "thumb": {
+        "type": "plistCrop",
+        "file": "web_regular_battle_bg_4641600.png",
+        "x": 0,
+        "y": 0,
+        "w": 1024,
+        "h": 768,
+        "sheetW": 2048,
+        "sheetH": 2048,
+        "rot": false
+      }
+    },
+    {
+      "id": "home:web_scene0_storyBG_2",
+      "file": "web_scene0_storyBG_2.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "web_scene0_storyBG_2",
+      "subLabel": "Web Background",
+      "category": "extra",
+      "thumb": {
+        "type": "plistCrop",
+        "file": "web_scene0_storyBG_21.png",
+        "x": 0,
+        "y": 0,
+        "w": 1280,
+        "h": 768,
+        "sheetW": 2048,
+        "sheetH": 2048,
+        "rot": false
+      }
+    },
+    {
+      "id": "home:web_scene0_storyBG",
+      "file": "web_scene0_storyBG.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "web_scene0_storyBG",
+      "subLabel": "Web Background",
+      "category": "extra",
+      "thumb": {
+        "type": "plistCrop",
+        "file": "web_scene0_storyBG0.png",
+        "x": 0,
+        "y": 916,
+        "w": 1280,
+        "h": 768,
+        "sheetW": 2048,
+        "sheetH": 2048,
+        "rot": false
+      }
+    },
+    {
+      "id": "home:web_scene0_topBG_2",
+      "file": "web_scene0_topBG_2.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "web_scene0_topBG_2",
+      "subLabel": "Web Background",
+      "category": "extra",
+      "thumb": {
+        "type": "plistCrop",
+        "file": "web_scene0_topBG_20.png",
+        "x": 598,
+        "y": 175,
+        "w": 1280,
+        "h": 768,
+        "sheetW": 2048,
+        "sheetH": 2048,
+        "rot": false
+      }
+    },
+    {
+      "id": "home:web_scene0_topBG_2X",
+      "file": "web_scene0_topBG_2X.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "web_scene0_topBG_2X",
+      "subLabel": "Web Background",
+      "category": "extra",
+      "thumb": {
+        "type": "plistCrop",
+        "file": "web_scene0_topBG_2X0.png",
+        "x": 0,
+        "y": 414,
+        "w": 1024,
+        "h": 568,
+        "sheetW": 2048,
+        "sheetH": 2048,
+        "rot": false
+      }
+    },
+    {
+      "id": "home:web_scene0_topBG_X",
+      "file": "web_scene0_topBG_X.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "web_scene0_topBG_X",
+      "subLabel": "Web Background",
+      "category": "extra",
+      "thumb": {
+        "type": "plistCrop",
+        "file": "web_scene0_topBG_X0.png",
+        "x": 0,
+        "y": 175,
+        "w": 926,
+        "h": 681,
+        "sheetW": 2048,
+        "sheetH": 2048,
+        "rot": false
+      }
+    },
+    {
+      "id": "home:web_scene0_topBG",
+      "file": "web_scene0_topBG.ExportJson.gz",
+      "dir": "web",
+      "kind": "cocos",
+      "label": "web_scene0_topBG",
+      "subLabel": "Web Background",
+      "category": "extra",
+      "thumb": {
+        "type": "plistCrop",
+        "file": "web_scene0_topBG0.png",
+        "x": 0,
+        "y": 858,
+        "w": 1280,
+        "h": 768,
+        "sheetW": 2048,
+        "sheetH": 2048,
+        "rot": false
       }
     }
   ]

@@ -1,7 +1,7 @@
 // quotes-main.js — quotes.html module entry point
 // Wires up: cocos-to-pixi background, HCA BGM loop, and the default Live2D model.
 // Differences from viewer.html: no controls, no follow-on-click.
-import { loadCocosStudioAssets, CocosStudioArmature } from '../../../lib/cocos-to-pixi.js';
+import { CocosStudioArmature } from '../../../lib/cocos-to-pixi.js';
 import { loadModel, loadAdditionalModel, destroyCurrentModels, state, getOutfitsForCharacter, buildModelId, resolveMaReAssetsBase, findDefaultExpression } from './model.js';
 import { preloadModelToRam, ramFolderCache, setAssetPreloadConnecting } from './model-assets.js';
 import { ScenarioSequencePlayer, preloadScenarioVoices, scenarioCache } from './quotes-sequence.js';
@@ -9,6 +9,7 @@ import { fetchScenarioJson, checkScenarioUrlExists, getDualUnitConfig } from './
 import { renderCharaCollectionGrid } from './chara-collection.js';
 import { revealHomeMenu } from '../home-menu.js';
 import { handleRoute } from '../router.js';
+import { resolveSavedHomeBackground, loadCocosBackgroundAssets, DEFAULT_HOME_BG_FILE, DEFAULT_HOME_BGM_FILE } from '../home-bg.js';
 
 let activeVoicePrefix = '00';
 let activeScenarioUrl = '';
@@ -16,9 +17,11 @@ let outfitChangeToken = 0;
 let homeLoadPromise = null;
 let homeGeneration = 0;
 let homeActive = false;
+let bgSetActive = false;
 let homeSceneMounted = false;
 let homeReady = false;
 let homeRevealed = false;
+let homeNeedsRespawn = false;
 let homeLoadedCharaId = null;
 let homePendingCharaId = null;
 let homeTeardownPromise = null;
@@ -27,14 +30,16 @@ let homeRequestToken = 0;
 let homeDesiredActive = false;
 let homeTapVoicePool = [];
 let previousQuotesXOffset = null;
+let committedHomeBg = null;
+let bgPreviewToken = 0;
 
 // ---- World constants (must match viewer.js) ----
 const WORLD_W = 1024;
 const WORLD_H = 768;
 const HOME16_H = 576;
 const DEFAULT_CHARA_ID = 1001;
-const HOME_BGM_FILE = 'bgm01_anime07_hca.hca';
-const HOME_BACKGROUND_FILE = 'bg/web/web_0011.ExportJson';
+const HOME_BGM_FILE = DEFAULT_HOME_BGM_FILE;
+const HOME_BACKGROUND_FILE = `bg/web/${DEFAULT_HOME_BG_FILE}`;
 const HOME_X_OFFSET = -132;
 const HOME_LOGIN_SESSION_KEY = 'mrHomeLoginSeen';
 const HOME_TAP_VOICE_IDS = [33, 34, 35, 36, 37, 38, 39, 40];
@@ -55,16 +60,55 @@ const HOME_OPENED_FROM_INDEX = (() => {
 homeTapVoicePool = [...HOME_TAP_VOICE_IDS];
 
 // ---- Cocos-to-pixi background ----
+const MAX_CACHED_BGS = 8;
+const bgAssetCache = new Map(); // key -> { assets, promise }
 let bgArmature = null;
 let bgTicker = null;
+let outgoingBgArmature = null;
+let outgoingBgTicker = null;
 let bgLoadToken = 0;
+let bgFadeToken = 0;
+let bgPrefetchToken = 0;
+let currentBgKey = null;
+let currentBgMovement = 'action';
+let imageNativeBasePromise = null;
 
-function disposeCocosAssets(textures, particles) {
+function getImageNativeBase() {
+    if (!imageNativeBasePromise) {
+        imageNativeBasePromise = resolveMaReAssetsBase()
+            .then((base) => String(base || '').replace(/\/live2d_v4\/?$/, ''))
+            .catch((err) => {
+                imageNativeBasePromise = null;
+                throw err;
+            });
+    }
+    return imageNativeBasePromise;
+}
+
+function collectCocosBaseTextures(assets) {
+    const baseTextures = new Set();
+    if (!assets) return baseTextures;
+    if (assets.textures) {
+        for (const tex of Object.values(assets.textures)) {
+            if (tex?.baseTexture) baseTextures.add(tex.baseTexture);
+        }
+    }
+    if (assets.particles) {
+        for (const p of Object.values(assets.particles)) {
+            if (p?.particleTexture?.baseTexture) baseTextures.add(p.particleTexture.baseTexture);
+        }
+    }
+    return baseTextures;
+}
+
+function disposeCocosAssets(textures, particles, keepBaseTextures = null) {
     if (particles) {
         for (const p of Object.values(particles)) {
             const tex = p?.particleTexture;
             if (!tex) continue;
-            const srcUrl = tex.baseTexture?.resource?.url;
+            const bt = tex.baseTexture;
+            if (keepBaseTextures && keepBaseTextures.has(bt)) continue;
+            const srcUrl = bt?.resource?.url;
             try { tex.destroy(true); } catch {}
             if (typeof srcUrl === 'string' && srcUrl.startsWith('blob:')) {
                 try { URL.revokeObjectURL(srcUrl); } catch {}
@@ -76,49 +120,173 @@ function disposeCocosAssets(textures, particles) {
         const baseTextures = new Set();
         for (const tex of Object.values(textures)) {
             if (!tex) continue;
-            if (tex.baseTexture) baseTextures.add(tex.baseTexture);
+            const bt = tex.baseTexture;
+            if (keepBaseTextures && keepBaseTextures.has(bt)) continue;
+            if (bt) baseTextures.add(bt);
             try { tex.destroy(false); } catch {}
         }
         for (const bt of baseTextures) {
-            if (bt && !bt.destroyed) {
+            if (bt && !bt.destroyed && (!keepBaseTextures || !keepBaseTextures.has(bt))) {
+                const srcUrl = bt.resource?.url;
                 try { bt.destroy(); } catch {}
+                if (typeof srcUrl === 'string' && srcUrl.startsWith('blob:')) {
+                    try { URL.revokeObjectURL(srcUrl); } catch {}
+                }
             }
         }
     }
 }
 
-async function clearBackground() {
-    bgLoadToken++;
-    if (bgTicker && window.app?.ticker) {
-        window.app.ticker.remove(bgTicker);
+function applyMovementScale(armature) {
+    const sc = Number(armature?.currentMovement?.sc);
+    if (Number.isFinite(sc) && sc > 0) {
+        armature.animationScale = sc;
     }
-    bgTicker = null;
+    if (Array.isArray(armature?.nestedArmatures)) {
+        for (const sub of armature.nestedArmatures) {
+            applyMovementScale(sub);
+        }
+    }
+}
 
-    if (bgArmature) {
-        const armature = bgArmature;
-        bgArmature = null;
+function collectProtectedBgBaseTextures(extraKeep = null) {
+    const keep = new Set();
+    const addAll = (set) => {
+        if (!set) return;
+        for (const bt of set) keep.add(bt);
+    };
+    addAll(extraKeep);
+    addAll(collectCocosBaseTextures(bgArmature));
+    addAll(collectCocosBaseTextures(outgoingBgArmature));
+    for (const cached of bgAssetCache.values()) {
+        if (cached?.assets) addAll(collectCocosBaseTextures(cached.assets));
+    }
+    return keep;
+}
+
+function getOrLoadCachedBgAssets(key, url) {
+    if (bgAssetCache.has(key)) {
+        const entry = bgAssetCache.get(key);
+        bgAssetCache.delete(key);
+        bgAssetCache.set(key, entry);
+        return entry.promise;
+    }
+
+    const record = { assets: null, promise: null };
+    record.promise = loadCocosBackgroundAssets(url)
+        .then((assets) => {
+            record.assets = assets;
+            return assets;
+        })
+        .catch((err) => {
+            if (bgAssetCache.get(key) === record) bgAssetCache.delete(key);
+            throw err;
+        });
+
+    bgAssetCache.set(key, record);
+    while (bgAssetCache.size > MAX_CACHED_BGS) {
+        const oldestKey = bgAssetCache.keys().next().value;
+        const oldest = bgAssetCache.get(oldestKey);
+        bgAssetCache.delete(oldestKey);
+        if (oldest?.assets) {
+            disposeCocosAssets(oldest.assets.textures, oldest.assets.particles, collectProtectedBgBaseTextures());
+        }
+    }
+    return record.promise;
+}
+
+function clearBgAssetCache() {
+    bgPrefetchToken++;
+    const entries = Array.from(bgAssetCache.values());
+    bgAssetCache.clear();
+    const keep = collectProtectedBgBaseTextures();
+    for (const entry of entries) {
+        if (entry?.assets) {
+            disposeCocosAssets(entry.assets.textures, entry.assets.particles, keep);
+        }
+    }
+}
+
+function disposeBgNode(armature, ticker, keepBaseTextures = null) {
+    if (ticker && window.app?.ticker) {
+        window.app.ticker.remove(ticker);
+    }
+    if (armature) {
         try {
             if (typeof armature.stop === 'function') armature.stop();
             if (armature.parent) armature.parent.removeChild(armature);
             const textures = armature.textures;
             const particles = armature.particles;
             armature.destroy({ children: true });
-            disposeCocosAssets(textures, particles);
+            disposeCocosAssets(textures, particles, collectProtectedBgBaseTextures(keepBaseTextures));
         } catch (e) {}
     }
 }
 
-async function initBackground(exportJsonPath = 'bg/web/web_0015.ExportJson', { visible = true, autoplay = true } = {}) {
-    await clearBackground();
+function finishOutgoingBgFade(keepBaseTextures = null) {
+    bgFadeToken++;
+    if (outgoingBgArmature || outgoingBgTicker) {
+        const oldArm = outgoingBgArmature;
+        const oldTick = outgoingBgTicker;
+        outgoingBgArmature = null;
+        outgoingBgTicker = null;
+        disposeBgNode(oldArm, oldTick, keepBaseTextures);
+    }
+    if (bgArmature && !bgArmature.destroyed) {
+        bgArmature.alpha = 1;
+    }
+}
+
+function teardownCurrentBgNode(keepBaseTextures = null) {
+    finishOutgoingBgFade(keepBaseTextures);
+    const arm = bgArmature;
+    const tick = bgTicker;
+    bgArmature = null;
+    bgTicker = null;
+    disposeBgNode(arm, tick, keepBaseTextures);
+}
+
+async function clearBackground() {
+    bgLoadToken++;
+    currentBgKey = null;
+    teardownCurrentBgNode();
+}
+
+async function resolveBackgroundTarget(bgInput) {
+    if (typeof bgInput === 'string') {
+        return { key: bgInput, url: bgInput };
+    }
+    const file = bgInput?.file || DEFAULT_HOME_BG_FILE;
+    const dir = bgInput?.dir || 'web';
+    const key = bgInput?.id || `home:${dir}/${file}`;
+    if (dir === 'web' && (file === 'web_0011.ExportJson' || file === 'web_0015.ExportJson')) {
+        return { key, url: `bg/web/${file}` };
+    }
+    const base = await getImageNativeBase();
+    return { key, url: `${base}/bg/${dir}/${file}` };
+}
+
+async function initBackground(bgInput = 'bg/web/web_0015.ExportJson', { visible = true, autoplay = true, crossfadeMs = 0 } = {}) {
     const token = ++bgLoadToken;
-    const assets = await loadCocosStudioAssets(exportJsonPath);
-    if (token !== bgLoadToken) {
-        disposeCocosAssets(assets?.textures, assets?.particles);
+    const target = await resolveBackgroundTarget(bgInput);
+    if (token !== bgLoadToken) return;
+
+    if (bgArmature && currentBgKey === target.key) {
+        bgArmature.visible = visible;
+        if (autoplay && !bgArmature.isPlaying && currentBgMovement !== null) {
+            bgArmature.play(currentBgMovement, true);
+            applyMovementScale(bgArmature);
+        }
         return;
     }
 
+    const assets = await getOrLoadCachedBgAssets(target.key, target.url);
+    if (token !== bgLoadToken) {
+        return;
+    }
+
+    const keepBaseTextures = collectCocosBaseTextures(assets);
     const armature = new CocosStudioArmature(assets.json, assets.textures, assets.particles);
-    bgArmature = armature;
 
     // Position so the 1024x768 bg content is vertically centered in the 1024x576 home16 view.
     // cameraMask clips to (0,0,1024,576); shifting the armature up by (768-576)/2 = 96px
@@ -126,22 +294,67 @@ async function initBackground(exportJsonPath = 'bg/web/web_0015.ExportJson', { v
     armature.x = WORLD_W / 2;
     armature.y = WORLD_H / 2 - (WORLD_H - HOME16_H) / 2;
 
-    // Add behind the model (worldContainer is index 1; insert at 0).
-    window.cameraContainer.addChildAt(armature, 0);
+    const movData = assets.json?.animation_data?.[0]?.mov_data || [];
+    const hasAction = movData.some((m) => m && m.name === 'action');
+    const movement = movData.length > 0 ? (hasAction ? 'action' : 0) : null;
+
+    const canCrossfade = crossfadeMs > 0 && visible && bgArmature && !bgArmature.destroyed && bgArmature.visible && bgArmature.parent;
+    if (canCrossfade) {
+        finishOutgoingBgFade(keepBaseTextures);
+        outgoingBgArmature = bgArmature;
+        outgoingBgTicker = bgTicker;
+        const insertIdx = outgoingBgArmature.parent.getChildIndex(outgoingBgArmature) + 1;
+        outgoingBgArmature.parent.addChildAt(armature, insertIdx);
+        armature.alpha = 0;
+    } else {
+        teardownCurrentBgNode(keepBaseTextures);
+        // Add behind the model (worldContainer is above index 0).
+        window.cameraContainer.addChildAt(armature, 0);
+        armature.alpha = 1;
+    }
+
+    bgArmature = armature;
+    currentBgKey = target.key;
+    currentBgMovement = movement;
     armature.visible = visible;
 
-    if (autoplay) armature.play('action', true);
+    if (autoplay && movement !== null) {
+        armature.play(movement, true);
+        applyMovementScale(armature);
+        armature.update(0);
+    }
 
     bgTicker = (delta) => {
-        if (bgArmature === armature && !armature.destroyed) armature.update(delta / 60);
+        if (!armature.destroyed && (bgArmature === armature || outgoingBgArmature === armature)) {
+            armature.update(delta / 60);
+        }
     };
     window.app.ticker.add(bgTicker);
+
+    if (canCrossfade) {
+        const fadeId = ++bgFadeToken;
+        const start = performance.now();
+        const step = () => {
+            if (fadeId !== bgFadeToken || bgArmature !== armature || armature.destroyed) return;
+            const t = Math.min(1, (performance.now() - start) / crossfadeMs);
+            armature.alpha = t;
+            if (t < 1) {
+                requestAnimationFrame(step);
+            } else {
+                finishOutgoingBgFade(keepBaseTextures);
+            }
+        };
+        requestAnimationFrame(step);
+    }
 }
 
 function startBackgroundAndMusic() {
     if (bgArmature) {
         bgArmature.visible = true;
-        bgArmature.play('action', true);
+        if (currentBgMovement !== null) {
+            bgArmature.play(currentBgMovement, true);
+            applyMovementScale(bgArmature);
+        }
     }
     if (player) player.play();
 }
@@ -160,22 +373,41 @@ const HCA_JS_URL = new URL("./lib/hca.js", document.baseURI);
 const KEY1 = 0x01395C51;
 const KEY2 = 0x00000000;
 
+const MAX_CACHED_BGM = 10;
+const bgmDecryptedCache = new Map(); // fileName -> Promise<Uint8Array>
+
 let hcaModule = null;
 let hcaBlobUrl = null;
 let worker = null;
 let workerPromise = null;
 let player = null;
+let currentBgmFile = null;
 let bgmLoadToken = 0;
 let scenarioPlayer = null;
 let _bgmBase = null;
 let _bgmBaseSource = null;
 
-async function safeStopHcaPlayer(hcaPlayer) {
+async function safeStopHcaPlayer(hcaPlayer, { fadeMs = 30 } = {}) {
     if (!hcaPlayer || hcaPlayer.closed) return;
     try {
+        if (fadeMs > 0 && hcaPlayer.gainNode && hcaPlayer.audioCtx?.state === 'running') {
+            const now = hcaPlayer.audioCtx.currentTime;
+            const gain = hcaPlayer.gainNode.gain;
+            gain.cancelScheduledValues(now);
+            gain.setValueAtTime(gain.value, now);
+            gain.linearRampToValueAtTime(0, now + fadeMs / 1000);
+            await new Promise((r) => setTimeout(r, fadeMs + 8));
+        }
+        if (hcaPlayer.closed) return;
         if (hcaPlayer.bufSrc) hcaPlayer.bufSrc.onended = null;
         if (hcaPlayer.audioCtx?.state === 'suspended') {
-            await hcaPlayer.audioCtx.resume().catch(() => {});
+            if (hcaPlayer.visibilityChangeListener) {
+                document.removeEventListener('visibilitychange', hcaPlayer.visibilityChangeListener);
+            }
+            try { hcaPlayer.bufSrc?.disconnect(); } catch {}
+            await hcaPlayer.audioCtx.close();
+            hcaPlayer.closed = true;
+            return;
         }
         await hcaPlayer.stop();
     } catch {
@@ -188,6 +420,36 @@ async function safeStopHcaPlayer(hcaPlayer) {
         try { await hcaPlayer.audioCtx?.close(); } catch {}
         hcaPlayer.closed = true;
     }
+}
+
+function getOrFetchDecryptedBgm(fileName) {
+    if (bgmDecryptedCache.has(fileName)) {
+        const p = bgmDecryptedCache.get(fileName);
+        bgmDecryptedCache.delete(fileName);
+        bgmDecryptedCache.set(fileName, p);
+        return p;
+    }
+
+    const p = (async () => {
+        const activeWorker = await initWorker();
+        await resolveBgmBase(fileName);
+        const fileResponse = await fetch(`${_bgmBase}/${fileName}`);
+        if (!fileResponse.ok) {
+            throw new Error(`Failed to load ${fileName}: ${fileResponse.status} ${fileResponse.statusText}`);
+        }
+        const hcaData = new Uint8Array(await fileResponse.arrayBuffer());
+        return activeWorker.decrypt(hcaData, KEY1, KEY2);
+    })().catch((err) => {
+        if (bgmDecryptedCache.get(fileName) === p) bgmDecryptedCache.delete(fileName);
+        throw err;
+    });
+
+    bgmDecryptedCache.set(fileName, p);
+    while (bgmDecryptedCache.size > MAX_CACHED_BGM) {
+        const oldest = bgmDecryptedCache.keys().next().value;
+        bgmDecryptedCache.delete(oldest);
+    }
+    return p;
 }
 
 async function resolveBgmBase(probeFile = HOME_BGM_FILE) {
@@ -266,33 +528,48 @@ async function initWorker() {
 }
 
 async function playTrack(fileName, { autoplay = true } = {}) {
-    const token = ++bgmLoadToken;
-    const activeWorker = await initWorker();
-    await resolveBgmBase(fileName);
-    if (token !== bgmLoadToken) return;
-
-    const fileResponse = await fetch(`${_bgmBase}/${fileName}`);
-    if (!fileResponse.ok) {
-        throw new Error(`Failed to load ${fileName}: ${fileResponse.status} ${fileResponse.statusText}`);
+    if (fileName === currentBgmFile && player && !player.closed) {
+        if (autoplay) {
+            try {
+                if (player.audioCtx?.state === 'suspended') {
+                    await player.audioCtx.resume().catch(() => {});
+                }
+                player.play();
+            } catch {}
+        }
+        return;
     }
 
-    const hcaData = new Uint8Array(await fileResponse.arrayBuffer());
+    const token = ++bgmLoadToken;
+    const activeWorker = await initWorker();
+    const decrypted = await getOrFetchDecryptedBgm(fileName);
     if (token !== bgmLoadToken) return;
-    const decrypted = await activeWorker.decrypt(hcaData, KEY1, KEY2);
-    if (token !== bgmLoadToken) return;
-    const newPlayer = await hcaModule.HCAWebAudioLoopPlayer.create(decrypted, activeWorker);
+    const newPlayer = await hcaModule.HCAWebAudioLoopPlayer.create(decrypted.slice(), activeWorker);
 
     if (token !== bgmLoadToken) {
-        await safeStopHcaPlayer(newPlayer);
+        await safeStopHcaPlayer(newPlayer, { fadeMs: 0 });
         return;
     }
 
     if (player) {
-        await safeStopHcaPlayer(player);
+        await safeStopHcaPlayer(player, { fadeMs: 30 });
     }
+    if (token !== bgmLoadToken) {
+        await safeStopHcaPlayer(newPlayer, { fadeMs: 0 });
+        return;
+    }
+
     player = newPlayer;
+    currentBgmFile = fileName;
     player.playInBackground = true;
-    if (autoplay) player.play();
+    if (autoplay) {
+        if (player.gainNode && player.audioCtx) {
+            const now = player.audioCtx.currentTime;
+            player.gainNode.gain.setValueAtTime(0, now);
+            player.gainNode.gain.linearRampToValueAtTime(1, now + 0.015);
+        }
+        player.play();
+    }
 
     console.info(`[quotes] Prepared ${fileName} (${_bgmBaseSource})${autoplay ? ' and started playback' : ''}`);
 }
@@ -1734,6 +2011,8 @@ function resolveRequestedCharaId() {
 
 async function loadHomeScreen() {
     homeDesiredActive = true;
+    bgSetActive = false;
+    bgPreviewToken++;
     const requestToken = ++homeRequestToken;
     while (homeTeardownPromise || homeStopPromise) {
         await (homeTeardownPromise || homeStopPromise);
@@ -1751,6 +2030,7 @@ async function loadHomeScreen() {
     homeActive = true;
     homeSceneMounted = true;
     document.getElementById('ui-layer')?.classList.add('home-mode');
+    document.getElementById('ui-layer')?.classList.remove('menu-closed');
     state.currentCharacterId = requestedId;
     initMyPageOutfitWiring();
     initFavoriteCharaIcon();
@@ -1759,8 +2039,33 @@ async function loadHomeScreen() {
     }
     syncMyPageOutfitUI();
 
+    const savedBg = await resolveSavedHomeBackground();
+    if (requestToken !== homeRequestToken || !homeActive) return;
+    committedHomeBg = savedBg;
+
     if (homeReady) {
-        // Same-id re-entry: the router hid the home chrome again; re-show it.
+        // Same-id re-entry (e.g. returning from #/BackgroundSet): ensure saved
+        // BG + BGM are active (no-op if already loaded) and restore home layout.
+        setHomePositioning(true);
+        if (typeof window.updateViewerViewport === 'function') {
+            window.updateViewerViewport();
+        }
+        await Promise.all([
+            initBackground(savedBg, { visible: true, autoplay: true }).catch((e) =>
+                console.warn('[quotes] Failed to restore home background:', e)
+            ),
+            playTrack(savedBg.bgmFile, { autoplay: true }).catch((e) =>
+                console.warn('[quotes] Failed to restore home BGM:', e)
+            )
+        ]);
+        if (requestToken !== homeRequestToken || !homeActive) return;
+
+        if (homeNeedsRespawn) {
+            homeNeedsRespawn = false;
+            await respawnHomeModel();
+            if (requestToken !== homeRequestToken || !homeActive) return;
+        }
+
         revealHomeMenu();
         if (homeRevealed) {
             if (typeof window.startBannerCarousel === 'function') {
@@ -1797,8 +2102,14 @@ async function loadHomeScreen() {
         // Phase 1: prepare the scene background and BGM independently, then
         // start both together. The Connecting state remains active over them.
         await Promise.all([
-            initBackground(HOME_BACKGROUND_FILE, { visible: true, autoplay: false }),
-            playTrack(HOME_BGM_FILE, { autoplay: false })
+            initBackground(savedBg, { visible: true, autoplay: false }).catch((err) => {
+                console.warn('[quotes] Saved home background failed, falling back to default:', err);
+                return initBackground(HOME_BACKGROUND_FILE, { visible: true, autoplay: false });
+            }),
+            playTrack(savedBg.bgmFile, { autoplay: false }).catch((err) => {
+                console.warn('[quotes] Saved home BGM failed, falling back to default:', err);
+                return playTrack(HOME_BGM_FILE, { autoplay: false });
+            })
         ]);
         if (!homeActive || generation !== homeGeneration) return;
         startBackgroundAndMusic();
@@ -1873,15 +2184,137 @@ async function loadHomeScreen() {
     return homeLoadPromise;
 }
 
+async function previewHomeBackground(entry) {
+    if (!entry || !bgSetActive) return;
+    bgPrefetchToken++;
+    const token = ++bgPreviewToken;
+    try {
+        await Promise.all([
+            initBackground(entry, { visible: true, autoplay: true, crossfadeMs: 300 }),
+            playTrack(entry.bgmFile, { autoplay: true }).catch((err) => {
+                console.warn('[quotes] Preview BGM failed:', entry.bgmFile, err);
+                if (!player || player.closed) {
+                    return playTrack(HOME_BGM_FILE, { autoplay: true }).catch(() => {});
+                }
+            })
+        ]);
+    } catch (err) {
+        if (token === bgPreviewToken) {
+            console.error('[quotes] Preview background failed:', entry.id, err);
+        }
+    }
+}
+
+async function prefetchHomeBackgrounds(entries) {
+    if (!bgSetActive || !Array.isArray(entries) || entries.length === 0) return;
+    const token = ++bgPrefetchToken;
+    for (const entry of entries) {
+        if (token !== bgPrefetchToken || !bgSetActive) return;
+        try {
+            const target = await resolveBackgroundTarget(entry);
+            if (token !== bgPrefetchToken || !bgSetActive) return;
+            if (!bgAssetCache.has(target.key)) {
+                await getOrLoadCachedBgAssets(target.key, target.url);
+            }
+            if (token !== bgPrefetchToken || !bgSetActive) return;
+            if (entry.bgm && !bgmDecryptedCache.has(entry.bgmFile)) {
+                await getOrFetchDecryptedBgm(entry.bgmFile);
+            }
+        } catch {}
+    }
+}
+
+function commitHomeBackground(entry) {
+    if (entry) committedHomeBg = entry;
+}
+
+window.previewHomeBackground = previewHomeBackground;
+window.prefetchHomeBackgrounds = prefetchHomeBackgrounds;
+window.commitHomeBackground = commitHomeBackground;
+window.getHomeCharacterId = () => state.currentCharacterId || resolveRequestedCharaId();
+
+async function loadBackgroundSetScreen() {
+    homeDesiredActive = true;
+    const requestToken = ++homeRequestToken;
+    while (homeTeardownPromise || homeStopPromise) {
+        await (homeTeardownPromise || homeStopPromise);
+        if (requestToken !== homeRequestToken) return;
+    }
+
+    cancelMenuChoreography();
+    scenarioPlayer?.stop();
+    cancelOutfitChanges();
+
+    homeActive = false;
+    bgSetActive = true;
+    homeSceneMounted = true;
+    homeNeedsRespawn = true;
+    document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
+
+    const requestedId = resolveRequestedCharaId();
+    state.currentCharacterId = requestedId;
+    const live2dId = String(state.currentLive2dId ?? '00').padStart(2, '0');
+
+    const config = window.__QUOTES_CONFIG || (window.__QUOTES_CONFIG = {});
+    if (previousQuotesXOffset === null) previousQuotesXOffset = config.xOffset;
+    config.viewMode = 'home16';
+    config.xOffset = HOME_X_OFFSET;
+    if (typeof window.updateViewerViewport === 'function') {
+        window.updateViewerViewport();
+    }
+
+    const savedBg = committedHomeBg || await resolveSavedHomeBackground();
+    if (requestToken !== homeRequestToken || !bgSetActive) return;
+    committedHomeBg = savedBg;
+
+    setAssetPreloadConnecting(true);
+    try {
+        await Promise.all([
+            initBackground(savedBg, { visible: true, autoplay: true }).catch((err) => {
+                console.warn('[quotes] BackgroundSet BG load failed, falling back to default:', err);
+                return initBackground(HOME_BACKGROUND_FILE, { visible: true, autoplay: true });
+            }),
+            playTrack(savedBg.bgmFile, { autoplay: true }).catch((err) => {
+                console.warn('[quotes] BackgroundSet BGM load failed, falling back to default:', err);
+                return playTrack(HOME_BGM_FILE, { autoplay: true }).catch(() => {});
+            })
+        ]);
+        if (requestToken !== homeRequestToken || !bgSetActive) return;
+
+        destroyCurrentModels();
+        const loadedOk = await loadOutfitModels(requestedId, live2dId, undefined);
+        if (!loadedOk || requestToken !== homeRequestToken || !bgSetActive) {
+            if (!bgSetActive && !homeActive) destroyCurrentModels();
+            return;
+        }
+
+        const targets = Array.from(new Set(
+            Array.from(state.currentModels.values()).map((e) => e && e.model).filter(Boolean)
+        ));
+        if (targets.length === 0 && state.currentModel) targets.push(state.currentModel);
+        targets.forEach((m) => {
+            m.visible = true;
+            setModelFadeAlpha(m, 0);
+            fadeModelTo(m, 250, 1);
+        });
+    } finally {
+        setAssetPreloadConnecting(false);
+        document.body.classList.remove('connecting');
+    }
+}
+
 async function teardownHomeScreen() {
     if (homeTeardownPromise) return homeTeardownPromise;
-    if (!homeActive && !homeSceneMounted && !homeLoadPromise) return;
+    if (!homeActive && !bgSetActive && !homeSceneMounted && !homeLoadPromise) return;
 
     homeTeardownPromise = (async () => {
         cancelMenuChoreography();
         homeActive = false;
+        bgSetActive = false;
+        bgPreviewToken++;
         homeReady = false;
         homeRevealed = false;
+        homeNeedsRespawn = false;
         homeLoadedCharaId = null;
         homePendingCharaId = null;
         homeGeneration++;
@@ -1902,7 +2335,9 @@ async function teardownHomeScreen() {
 
         destroyCurrentModels();
         await clearBackground();
+        clearBgAssetCache();
         bgmLoadToken++;
+        currentBgmFile = null;
         if (player) {
             const oldPlayer = player;
             player = null;
@@ -1945,6 +2380,9 @@ function setupBackBtn() {
         const hash = window.location.hash;
         if (hash.startsWith('#/CharaCollectionDetail')) {
             window.location.hash = '#/CharaCollection';
+        } else if (hash.startsWith('#/BackgroundSet')) {
+            const q = hash.split('?')[1];
+            window.location.hash = q ? `#/MyPage?${q}` : '#/MyPage';
         } else {
             window.location.href = 'index.html';
         }
@@ -2067,7 +2505,7 @@ async function init() {
         history.replaceState(null, '', `${window.location.pathname}${window.location.search}#/MyPage?id=${bareSearchId}`);
     }
 
-    const initialHomeRoute = window.location.hash.startsWith('#/MyPage');
+    const initialHomeRoute = window.location.hash.startsWith('#/MyPage') || window.location.hash.startsWith('#/BackgroundSet');
     if (!initialHomeRoute) {
         await Promise.all([
             initBackground().catch((e) => console.warn('[quotes] background error:', e)),
@@ -2080,10 +2518,10 @@ async function init() {
     setupBackBtn();
 
     window.addEventListener('hashchange', () => {
-        handleRoute(loadCharacterDetail, state, loadHomeScreen)
+        handleRoute(loadCharacterDetail, state, loadHomeScreen, loadBackgroundSetScreen)
             .catch(e => console.error('[quotes] Route change failed:', e));
     });
-    await handleRoute(loadCharacterDetail, state, loadHomeScreen);
+    await handleRoute(loadCharacterDetail, state, loadHomeScreen, loadBackgroundSetScreen);
 
     // Tap effect interaction
     window.addEventListener('pointerdown', showTapEffect, true);

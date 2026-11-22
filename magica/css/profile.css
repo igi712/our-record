@@ -1,0 +1,1022 @@
+/* profile.css — MyProfilePopup, BgChangedPopup, and BackgroundSet styles
+ * Ported from Magia Record common.css + BackgroundSet.css.
+ */
+
+/* ===== Shared Popup Sizes & Buttons ===== */
+.popupContent.typeA .popupInner {
+  width: 868px;
+  height: 460px;
+  position: absolute;
+  top: calc(50% - 230px);
+  left: calc((100% - 868px) / 2);
+}
+
+.popupContent.typeA .popupInner .popupTextArea {
+  width: 825px;
+  height: 290px;
+  color: #555555;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+}
+
+.popupContent.typeA .popupInner .popupTitle {
+  width: 532px;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+}
+
+.popupContent.typeB .popupInner {
+  width: 988px;
+  height: 540px;
+  position: absolute;
+  top: calc(50% - 270px);
+  left: calc((100% - 988px) / 2);
+}
+
+.popupContent.typeC .popupInner {
+  width: 655px;
+  height: 348px;
+  position: absolute;
+  top: calc(50% - 174px);
+  left: calc((100% - 655px) / 2);
+}
+
+.popupContent.typeC .popupInner .popupTextArea {
+  width: 615px;
+  height: 196px;
+  font-size: 22px;
+  color: #555555;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+}
+
+.popupContent.typeC .popupInner .popupTitle {
+  width: 532px;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+}
+
+#BackgroundSet .btn,
+#popupArea .btn {
+  min-width: 190px;
+  height: 64px;
+  padding: 0 35px;
+  box-sizing: border-box;
+  display: inline-block;
+  position: relative;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 64px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+#BackgroundSet .btn:before,
+#BackgroundSet .btn:after,
+#popupArea .btn:before,
+#popupArea .btn:after {
+  width: 35px;
+  height: 64px;
+  display: block;
+  position: absolute;
+  top: 0;
+  content: "";
+}
+
+#BackgroundSet .btn:before,
+#popupArea .btn:before {
+  left: 0;
+}
+
+#BackgroundSet .btn:after,
+#popupArea .btn:after {
+  right: 0;
+}
+
+#BackgroundSet .b_pink,
+#popupArea .b_pink {
+  background: url("../resource/image_web/common/btn/btn_pink_c.png") center top no-repeat;
+  background-size: calc(100% - 62px) 64px;
+}
+
+#BackgroundSet .b_pink,
+#BackgroundSet .b_pink span,
+#popupArea .b_pink,
+#popupArea .b_pink span {
+  color: #ffffff;
+  text-shadow: -1px -1px 2px #ff5e7c, 1px -1px 2px #ff5e7c, -1px 1px 2px #ff5e7c, 1px 1px 2px #ff5e7c, -1px -1px 2px #ff5e7c, 1px -1px 2px #ff5e7c, -1px 1px 2px #ff5e7c, 1px 1px 2px #ff5e7c;
+}
+
+#BackgroundSet .b_pink:before,
+#popupArea .b_pink:before {
+  background: url("../resource/image_web/common/btn/btn_pink_l.png") left top no-repeat;
+}
+
+#BackgroundSet .b_pink:after,
+#popupArea .b_pink:after {
+  background: url("../resource/image_web/common/btn/btn_pink_r.png") left top no-repeat;
+}
+
+#BackgroundSet .b_screen,
+#popupArea .b_screen {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.4) !important;
+  display: block !important;
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  border-radius: 10px;
+  z-index: 1000000 !important;
+}
+
+#BackgroundSet .touch:not(.off) .b_screen,
+#popupArea .touch:not(.off) .b_screen {
+  opacity: 1 !important;
+}
+
+#popupArea .touch {
+  transform: scale(0.95) translateZ(0);
+}
+
+/* ===== Shared Helpers (.pointFrame, .common_dl, .userTitle_m) ===== */
+#myProfile .pointFrame {
+  min-height: 24px;
+  padding: 0 12px;
+  background: url("../resource/image_web/common/frame/point_frame_bg.png") center top no-repeat;
+  background-size: calc(100% - 20px) 100%;
+  display: inline-block;
+  position: relative;
+  color: #ffffff;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+#myProfile .pointFrame:before,
+#myProfile .pointFrame:after {
+  width: 12px;
+  height: 24px;
+  display: block;
+  position: absolute;
+  top: 0;
+  content: "";
+}
+
+#myProfile .pointFrame:before {
+  background: url("../resource/image_web/common/frame/point_frame_l.png") left top no-repeat;
+  left: 0;
+}
+
+#myProfile .pointFrame:after {
+  background: url("../resource/image_web/common/frame/point_frame_r.png") left top no-repeat;
+  right: 0;
+}
+
+#myProfile .common_dl {
+  display: flex;
+  margin: 0;
+}
+
+#myProfile .common_dl dt {
+  padding: 0 10px;
+  background: #b28750;
+  color: #ffffff;
+  text-align: center;
+  border: 1px solid #b28750;
+  border-radius: 5px 0 0 5px;
+  box-sizing: border-box;
+}
+
+#myProfile .common_dl dd {
+  margin: 0;
+  padding: 0 10px;
+  border-top: 1px solid #eadecc;
+  border-right: 1px solid #eadecc;
+  border-bottom: 1px solid #eadecc;
+  border-radius: 0 5px 5px 0;
+  box-sizing: border-box;
+  color: #555555;
+}
+
+#myProfile .userTitle_m {
+  width: 190px;
+  height: 23px;
+  position: relative;
+}
+
+#myProfile .userTitle_m .userTitleText {
+  width: 190px;
+  height: 23px;
+  line-height: 22px;
+  color: #ffffff;
+  text-align: center;
+  font-size: 12px;
+  padding: 0 13px;
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#myProfile .userTitle_m .userTitleBg {
+  width: 190px;
+  height: 23px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+/* ===== MyProfilePopup ===== */
+.userProfile .closeDefault {
+  top: -18px !important;
+  right: -18px !important;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.userProfile .popupInner {
+  background-color: #ffffff !important;
+  border-width: 0 !important;
+  border-radius: 0 !important;
+  -webkit-border-image: none !important;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+}
+
+.userProfile .porfBgWrap {
+  width: 901px;
+  height: 538px;
+  background-image: url("../resource/image_web/page/profile/userProfile_window_M.png");
+  background-repeat: repeat-x;
+  position: absolute;
+  top: 0;
+  left: 43px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.userProfile .porfBgWrap:before,
+.userProfile .porfBgWrap:after {
+  width: 64px;
+  height: 538px;
+  display: block;
+  position: absolute;
+  top: 0;
+  content: "";
+}
+
+.userProfile .porfBgWrap:before {
+  background: url("../resource/image_web/page/profile/userProfile_window_L.png") right top no-repeat;
+  left: -63px;
+}
+
+.userProfile .porfBgWrap:after {
+  background: url("../resource/image_web/page/profile/userProfile_window_R.png") left top no-repeat;
+  right: -63px;
+}
+
+#myProfile {
+  position: relative;
+  z-index: 2;
+  user-select: none;
+}
+
+#myProfile h1,
+#myProfile h2,
+#myProfile p,
+#myProfile ul,
+#myProfile li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  box-sizing: border-box;
+  font-weight: 600;
+}
+
+#myProfile .profBtn {
+  width: 80px;
+  height: 42px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  background: url("../resource/image_web/common/btn/btn_s_gold_02_c.png") center center no-repeat;
+  background-size: 48px 24px;
+  display: inline-block;
+  position: relative;
+  color: #a47122;
+  font-size: 13px;
+  line-height: 42px;
+  text-align: center;
+  cursor: pointer;
+}
+
+#myProfile .profBtn:before,
+#myProfile .profBtn:after {
+  width: 6px;
+  height: 42px;
+  display: block;
+  position: absolute;
+  top: 0;
+  content: "";
+}
+
+#myProfile .profBtn:before {
+  background: url("../resource/image_web/common/btn/btn_s_gold_02_l.png") left center no-repeat;
+  background-size: 6px 24px;
+  left: 10px;
+}
+
+#myProfile .profBtn:after {
+  background: url("../resource/image_web/common/btn/btn_s_gold_02_r.png") left center no-repeat;
+  background-size: 6px 24px;
+  right: 10px;
+}
+
+#myProfile .touch {
+  transform: scale(0.95) !important;
+}
+
+#myProfile #followImageWrap {
+  width: 970px;
+  height: 532px;
+  position: relative;
+  top: 6px;
+  left: 6px;
+  overflow: hidden;
+  clip-path: polygon(10px 0px, 960px 0px, 970px 10px, 970px 517px, 960px 532px, 15px 532px, 0px 517px, 0px 10px);
+}
+
+#myProfile #followImageWrap .leaderChangeBtn {
+  width: 118px;
+  height: 50px;
+  background: url("../resource/image_web/page/profile/btn_chara_change.png") left top no-repeat;
+  background-size: 118px 50px;
+  position: absolute;
+  top: 322px;
+  left: 318px;
+  z-index: 10;
+  cursor: pointer;
+}
+
+#myProfile #followImageWrap .bgChangeBtn {
+  width: 118px;
+  height: 50px;
+  background: url("../resource/image_web/page/profile/btn_background_change.png") left top no-repeat;
+  background-size: 118px 50px;
+  position: absolute;
+  top: 260px;
+  left: 318px;
+  z-index: 10;
+  cursor: pointer;
+}
+
+#myProfile #followImageWrap .charaImage {
+  position: absolute;
+  top: calc(50% - 314px);
+  left: -296px;
+  pointer-events: none;
+}
+
+#myProfile #followImageWrap .messageWrap {
+  width: 410px;
+  height: auto;
+  padding: 50px 0 19px;
+  background: url("../resource/image_web/page/profile/profile_message_t.png") 0px 1px no-repeat,
+              url("../resource/image_web/page/profile/profile_message_b.png") left bottom no-repeat;
+  display: block;
+  position: absolute;
+  bottom: 15px;
+  left: 26px;
+  z-index: 5;
+}
+
+#myProfile #followImageWrap .messageWrap .messageInner {
+  width: 410px;
+  min-height: 44px;
+  max-height: 97px;
+  padding: 0 20px 30px;
+  box-sizing: border-box;
+  background-image: url("../resource/image_web/page/profile/profile_message_c.png");
+  background-repeat: repeat-y;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  color: #555555;
+  font-size: 18px;
+  text-align: left;
+  word-wrap: break-word;
+  text-shadow: 0 0;
+}
+
+#myProfile #followImageWrap .miniBtn {
+  position: absolute;
+  bottom: 14px;
+  left: 357px;
+  z-index: 6;
+}
+
+#myProfile #followerParamDetail {
+  width: 486px;
+  height: 476px;
+  position: absolute;
+  bottom: 8px;
+  right: 42px;
+  font-size: 16px;
+  text-align: left;
+}
+
+#myProfile #followerParamDetail #myProfStone {
+  width: 100px;
+  display: inline-block;
+  text-align: right;
+  position: absolute;
+  right: 204px;
+  top: -36px;
+}
+
+#myProfile #followerParamDetail #myProfStone .pointWrap {
+  width: 100px;
+  padding-right: 15px;
+  display: inline-block;
+  line-height: 24px;
+  text-align: right;
+}
+
+#myProfile #followerParamDetail #myProfStone:before {
+  width: 30px;
+  height: 30px;
+  background-image: url("../resource/image_web/common/icon/icon_money_f.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+  display: block;
+  position: absolute;
+  top: -3px;
+  left: -14px;
+  content: "";
+  z-index: 2;
+}
+
+#myProfile #followerParamDetail #myProfHasRiche {
+  width: 175px;
+  display: inline-block;
+  position: absolute;
+  right: -4px;
+  top: -36px;
+  text-align: right;
+}
+
+#myProfile #followerParamDetail #myProfHasRiche .pointWrap {
+  width: 175px;
+  padding-right: 15px;
+  display: inline-block;
+  line-height: 24px;
+  text-align: right;
+}
+
+#myProfile #followerParamDetail #myProfHasRiche:before {
+  width: 30px;
+  height: 30px;
+  background-image: url("../resource/image_web/common/icon/icon_cursechip_f.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+  display: block;
+  position: absolute;
+  top: -3px;
+  left: -14px;
+  content: "";
+  z-index: 2;
+}
+
+#myProfile #followerParamDetail .detailMainWrap {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 482px;
+  height: 100%;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .userTitle_m {
+  position: absolute;
+  top: 6px;
+  right: 12px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .titleChangeBtn {
+  position: absolute;
+  top: 24px;
+  right: 2px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .userLevel {
+  font-size: 20px;
+  padding-left: 92px;
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  top: 52px;
+  left: 14px;
+  width: 462px;
+  height: 34px;
+  border-bottom: 1px solid #eddbb8;
+  color: #444444;
+  line-height: 34px;
+  text-shadow: none;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .userLevel:before {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  line-height: 34px;
+  color: #b28750;
+  font-size: 16px;
+  content: "Rank";
+}
+
+#myProfile #followerParamDetail .detailMainWrap .reachingAccomplish {
+  display: block;
+  position: absolute;
+  top: 52px;
+  left: 220px;
+  width: 250px;
+  height: 34px;
+  padding-left: 84px;
+  box-sizing: border-box;
+  color: #444444;
+  font-size: 18px;
+  border-bottom: 1px solid #eddbb8;
+  line-height: 36px;
+  text-shadow: none;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .reachingAccomplish:before {
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  content: "";
+  background: url("../resource/image_web/page/mypage/icon_battlemuseum_01.png") no-repeat;
+  width: 24px;
+  height: 24px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .reachingAccomplish:after {
+  position: absolute;
+  bottom: -1px;
+  left: 25px;
+  line-height: 34px;
+  color: #b28750;
+  font-size: 16px;
+  content: "Stage";
+}
+
+#myProfile #followerParamDetail .detailMainWrap .detailWrap1,
+#myProfile #followerParamDetail .detailMainWrap .detailWrap2,
+#myProfile #followerParamDetail .detailMainWrap .totalForcesWrap,
+#myProfile #followerParamDetail .detailMainWrap .helperWrap {
+  width: 482px;
+  position: relative;
+}
+
+#myProfile #followerParamDetail .detailMainWrap h2 {
+  background: url("../resource/image_web/page/profile/bg_title_m.png") left top no-repeat;
+  border-radius: 0;
+  width: 482px;
+  height: 24px;
+  padding: 0 20px;
+  background-size: 482px 24px;
+  font-size: 16px;
+  line-height: 24px;
+  color: #ffffff;
+  position: absolute;
+  top: 0;
+  left: 0;
+  text-shadow: -1px -1px 2px #ff4f92, 1px -1px 2px #ff4f92, -1px 1px 2px #ff4f92, 1px 1px 2px #ff4f92;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .detailWrap1 {
+  height: 86px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .detailWrap1 h1 {
+  width: 478px;
+  height: 50px;
+  background: url("../resource/image_web/page/profile/bg_title_l.png") left top no-repeat;
+  position: absolute;
+  top: 0;
+  left: 0;
+  line-height: 50px;
+  color: #ffffff;
+  font-size: 22px;
+  padding-left: 28px;
+  text-shadow: -1px -1px 2px #ff4f92, 1px -1px 2px #ff4f92, -1px 1px 2px #ff4f92, 1px 1px 2px #ff4f92, -1px -1px 2px #ff4f92, 1px -1px 2px #ff4f92, -1px 1px 2px #ff4f92, 1px 1px 2px #ff4f92;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .totalForcesWrap {
+  height: 70px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .totalForcesWrap #totalForces {
+  font-size: 20px;
+  height: 26px;
+  padding-left: 106px;
+  display: block;
+  position: absolute;
+  bottom: 35px;
+  left: 14px;
+  color: #444444;
+  line-height: 24px;
+  text-shadow: none;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .totalForcesWrap #totalForces:before {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  color: #b28750;
+  font-size: 16px;
+  content: "Total Power";
+}
+
+#myProfile #followerParamDetail .detailMainWrap .totalForcesWrap .totalForcesHelpBtn {
+  position: absolute;
+  bottom: 35px;
+  left: 254px;
+  width: 30px;
+  height: 30px;
+  background: url("../resource/image_web/page/profile/btn_help_s.png") left top no-repeat;
+  cursor: pointer;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .totalForcesWrap .totalForcesRanking {
+  position: absolute;
+  bottom: 35px;
+  right: 12px;
+  margin: 0;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .totalForcesWrap .totalForcesRanking dt {
+  width: 63px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .totalForcesWrap .totalForcesRanking dd {
+  width: 117px;
+  line-height: 22px;
+  text-align: right;
+  padding-right: 20px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .totalForcesWrap #totalForcesRequire {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  font-size: 14px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .friendWrap {
+  height: 59px;
+  position: relative;
+  width: 100%;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .friendWrap:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 6px;
+  width: 470px;
+  height: 44px;
+  background: #eddbb8;
+  border-radius: 5px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .friendWrap .userFollow,
+#myProfile #followerParamDetail .detailMainWrap .friendWrap .userFollower {
+  color: #555555;
+  text-shadow: 0 0;
+  box-sizing: border-box;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .friendWrap .userFollow {
+  width: 90px;
+  height: 28px;
+  padding-left: 32px;
+  background-image: url("../resource/image_web/page/follow/iconFollow.png");
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  display: block;
+  position: absolute;
+  top: 8px;
+  left: 20px;
+  line-height: 26px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .friendWrap .userFollower {
+  width: 90px;
+  height: 28px;
+  padding-left: 32px;
+  background-image: url("../resource/image_web/page/follow/iconRecived.png");
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  display: block;
+  position: absolute;
+  top: 8px;
+  left: 110px;
+  line-height: 26px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .friendWrap .myprofUserId {
+  position: absolute;
+  top: 10px;
+  left: 196px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .friendWrap .myprofUserId dt {
+  width: 90px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .friendWrap .myprofUserId dd {
+  width: 122px;
+  background: #ffffff;
+  padding-left: 6px;
+  font-size: 14px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .friendWrap .userIdCopyBtn {
+  position: absolute;
+  top: 1px;
+  right: 8px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .detailWrap2 {
+  height: 126px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .detailWrap2 .arenaHelpBtn {
+  position: absolute;
+  top: -4px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  background: url("../resource/image_web/page/profile/btn_help_s.png") left top no-repeat;
+  cursor: pointer;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .detailWrap2 .arenaFreeTitle {
+  position: absolute;
+  left: 21px;
+  top: 31px;
+  font-size: 14px;
+  color: #ff4f92;
+  text-shadow: none;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .detailWrap2 .arenaRankingTitle {
+  position: absolute;
+  left: 309px;
+  top: 31px;
+  font-size: 14px;
+  color: #ff4f92;
+  text-shadow: none;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .detailWrap2 .arenaSettingPopupBtn {
+  position: absolute;
+  right: 50px;
+  top: -9px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .detailWrap2 .markWrap {
+  height: 50px;
+  line-height: 50px;
+  text-align: center;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .detailWrap2 .markWrap.freeRank {
+  background: url("../resource/image_web/page/arena/infinite_diamond.png") center center no-repeat;
+  background-size: 50px 50px;
+  min-width: 72px;
+  position: absolute;
+  left: 216px;
+  bottom: 18px;
+  color: #ffffff;
+  font-size: 16px;
+  text-shadow: 3px 0 3px #0e91ce, -3px 0 3px #0e91ce, 0 3px 3px #0e91ce, 0 -3px 3px #0e91ce, 3px 3px 3px #0e91ce, -3px 3px 3px #0e91ce, 3px -3px 3px #0e91ce, -3px -3px 3px #0e91ce;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .detailWrap2 .markWrap.myself.ranking {
+  width: 99px;
+  height: 99px;
+  background: url("../resource/image_web/event/arenaranking/common/emblem/emblem_null.png") left top no-repeat;
+  background-size: 100%;
+  position: absolute;
+  bottom: 2px;
+  right: 8px;
+  display: block;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .detailWrap2 .arenaParams {
+  position: absolute;
+  left: 21px;
+  bottom: 12px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .detailWrap2 .arenaParams .common_dl {
+  width: 188px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .detailWrap2 .arenaParams .common_dl .colName {
+  width: 92px;
+  display: block;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .detailWrap2 .arenaParams .common_dl .colValue {
+  width: 94px;
+  text-align: right;
+  display: block;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .rowWrap {
+  margin: 0 0 6px;
+  position: relative;
+  font-size: 16px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .rowWrap .colName {
+  width: 112px;
+  height: 24px;
+  padding: 0 5px;
+  line-height: 22px;
+}
+
+#myProfile #followerParamDetail .detailMainWrap .rowWrap .colValue {
+  width: 152px;
+  height: 24px;
+  padding: 0 10px;
+  line-height: 22px;
+}
+
+#myProfile #followerParamDetail .helperWrap {
+  width: 482px;
+  height: 136px;
+  padding: 10px 20px;
+  box-sizing: border-box;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+#myProfile #followerParamDetail .helperWrap .helperList {
+  width: 449px;
+  height: 68px;
+  background: url("../resource/image_web/page/profile/profile_support.png") left top no-repeat;
+  display: block;
+  position: absolute;
+  top: 32px;
+  left: 17px;
+}
+
+#myProfile #followerParamDetail .helperWrap .helpBtnWrap {
+  position: absolute;
+  bottom: -2px;
+  right: 2px;
+}
+
+/* ===== BackgroundSet Screen (#/BackgroundSet) ===== */
+#BackgroundSet {
+  width: 1024px;
+  height: 100%;
+  position: relative;
+  pointer-events: auto;
+  user-select: none;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+}
+
+#BackgroundSet .touch {
+  transform: scale(0.95) translateZ(0);
+}
+
+#BackgroundSet #backgroundList {
+  width: 442px;
+  height: 436px;
+  background: linear-gradient(rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.65) 100%);
+  position: absolute;
+  top: 70px;
+  right: 17px;
+}
+
+#BackgroundSet #backgroundList #listTitle {
+  width: calc(100% - 35px);
+  margin: 0;
+  padding-left: 25px;
+  background: url("../resource/image_web/common/frame/frame_title.png") left top no-repeat;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 32px;
+  border-radius: 15px 15px 0 0;
+}
+
+#BackgroundSet #backgroundList #scrollOuter {
+  width: 413px;
+  height: 294px;
+  position: absolute;
+  top: 50px;
+  left: 15px;
+  overflow: hidden;
+}
+
+#BackgroundSet #backgroundList #scrollOuter .scrollInner {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 12px 0 53px 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+#BackgroundSet #backgroundList #scrollOuter .scrollInner::-webkit-scrollbar {
+  display: none;
+}
+
+#BackgroundSet #backgroundList #scrollOuter .scrollInner .commonFrame4 {
+  width: 384px;
+  height: 52px;
+  box-sizing: border-box;
+  margin-bottom: 14px;
+  padding: 0 14px 0 56px;
+  color: #864d16;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 48px;
+  position: relative;
+  cursor: pointer;
+}
+
+#BackgroundSet #backgroundList #scrollOuter .scrollInner .commonFrame4 .bgName {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#BackgroundSet #backgroundList #scrollOuter .scrollInner .commonFrame4.current {
+  box-shadow: 0 0 0 4px #ff3b81, 0 0 5px #e1c08d inset !important;
+}
+
+#BackgroundSet #backgroundList #scrollOuter .scrollInner .commonFrame4:before {
+  width: 34px;
+  height: 34px;
+  background: url("../resource/image_web/page/profile/icon_home.png") left top no-repeat;
+  display: block;
+  position: absolute;
+  top: 7px;
+  left: 10px;
+  content: "";
+}
+
+#BackgroundSet #backgroundList #scrollOuter .scrollInner .commonFrame4.bgmIcon:after {
+  width: 28px;
+  height: 28px;
+  background: url("../resource/image_web/page/profile/icon_bgm.png") left top no-repeat;
+  display: block;
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  z-index: 1000;
+  content: "";
+}
+
+#BackgroundSet #backgroundList #mainBtn {
+  width: 190px;
+  min-width: 190px;
+  position: absolute;
+  bottom: 14px;
+  left: calc(50% - 95px);
+  z-index: 100;
+}
+
+#BackgroundSet #backgroundList .bg {
+  width: 100%;
+  height: 44px;
+  background: #ffffff;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  border-radius: 0 0 30px 30px;
+}
