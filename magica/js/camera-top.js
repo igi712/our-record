@@ -1,13 +1,41 @@
 // js/camera-top.js — Photo Mode (#/CameraTop) controller
 
-import { resolveMaReAssetsBase } from './viewer/model.js';
+import { state, buildModelId } from './viewer/model.js';
+import { preloadModelToRam, setAssetPreloadConnecting } from './viewer/model-assets.js';
 import { getFavoriteCharaId } from './chara-top.js';
 import { openCharaFilterPopup, openCameraSavedPopup, openCameraHelpPopup } from './popups.js';
+import { repoUrl } from './paths.js';
+import { resolveSavedHomeBackground, DEFAULT_HOME_BG_FILE, DEFAULT_HOME_BGM_FILE } from './home-bg.js';
+import { getCommittedHomeBg, setCommittedHomeBg } from './background-set.js';
+import { changeBg, getImageNativeBase, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
+import { startBgm, startSe } from './engine/audio.js';
+import { updateUILayer, markDragScroll } from './engine/common-events.js';
+import {
+    WORLD_W,
+    HOME16_H,
+    DEFAULT_CHARA_ID,
+    setStageContext,
+    setStageXOffset,
+    applySubtitlePlacement,
+    ensureMetadataLoaded,
+    getHomeOutfits,
+    loadScenarioForOutfit,
+    loadOutfitModels,
+    performOutfitSwap,
+    cancelOutfitChanges,
+    bumpOutfitChangeToken,
+    getActiveScenario,
+    getScenarioPlayer,
+    stopVoice,
+    destroyStageModels
+} from './engine/l2d-stage.js';
 
-const CHARA_CARDS_URL = 'assets/charaCards.json';
+const CHARA_CARDS_URL = repoUrl('assets/charaCards.json');
 const STORAGE_SORT_KEY = 'SortFilterMemoryList';
 const SORT_MEMORY_BUCKET = 'Camera_chara';
 const DEFAULT_SORT_PRM = ['rank', 'desc', null, null, null, null, null];
+const HOME_TAP_VOICE_IDS = [33, 34, 35, 36, 37, 38, 39, 40];
+const HOME_TAP9_VOICE_ID = 41;
 
 const SORT_ITEMS = [
     { key: 'get', label: 'Date', className: 'sortGet' },
@@ -27,13 +55,12 @@ const SORT_BY_KEY = new Map(SORT_ITEMS.map((item, index) => [item.key, { ...item
 const ATTR_ORDER = { FIRE: 0, WATER: 1, TIMBER: 2, LIGHT: 3, DARK: 4, VOID: 5 };
 
 let cardsCache = null;
-let imageNativeBaseCache = null;
 let activeController = null;
 let iconObserver = null;
 let scrollFadeTimer = null;
 let didDragScroll = false;
 
-let currentCharaId = 1001;
+let currentCharaId = DEFAULT_CHARA_ID;
 let currentLive2dId = '00';
 let currentIsDual = false;
 let currentOutfits = [];
@@ -44,6 +71,9 @@ let wearChanging = false;
 let charaDrawerOpen = false;
 let shutterBusy = false;
 let lastCharaToggleAt = 0;
+let cameraTopActive = false;
+let cameraRequestToken = 0;
+let cameraSpawnToken = 0;
 
 let posCooldownTimer = null;
 let wearBlockTimer = null;
@@ -55,7 +85,6 @@ let webcamVideoEl = null;
 let currentSortPrm = [...DEFAULT_SORT_PRM];
 let charaListBuilt = false;
 const iconElementsByCharaId = new Map();
-let cardsByIdMap = new Map();
 
 function loadSortMemory() {
     try {
@@ -86,13 +115,6 @@ function saveSortMemory(sortPrm) {
         next[SORT_MEMORY_BUCKET] = sortPrm;
         localStorage.setItem(STORAGE_SORT_KEY, JSON.stringify(next));
     } catch {}
-}
-
-async function getImageNativeRoot() {
-    if (imageNativeBaseCache) return imageNativeBaseCache;
-    const live2dBase = await resolveMaReAssetsBase();
-    imageNativeBaseCache = String(live2dBase).replace(/\/live2d_v4\/?$/, '');
-    return imageNativeBaseCache;
 }
 
 async function loadCharaCards() {
@@ -361,9 +383,81 @@ function buildWearList() {
     });
 }
 
+async function spawnCameraModel({ charaId, live2dId = '00', presetIndex = 0, wearMode = false, playTransformVfx = false } = {}) {
+    if (!cameraTopActive) return null;
+    const token = ++cameraSpawnToken;
+    const cid = Number(charaId) || DEFAULT_CHARA_ID;
+    const l2d = String(live2dId || '00').padStart(2, '0');
+
+    setStageContext({
+        mode: 'camera',
+        cameraPresetIndex: Number(presetIndex) || 0,
+        cameraWearOpen: Boolean(wearMode)
+    });
+    state.currentCharacterId = cid;
+    state.currentLive2dId = l2d;
+
+    stopVoice();
+    await ensureMetadataLoaded().catch(() => {});
+    if (token !== cameraSpawnToken || !cameraTopActive) return null;
+
+    const outfits = getHomeOutfits(cid);
+    const modelId = buildModelId(cid, l2d);
+
+    setAssetPreloadConnecting(true);
+    try {
+        if (playTransformVfx) {
+            const swapToken = bumpOutfitChangeToken();
+            const ok = await performOutfitSwap(cid, l2d, {
+                token: swapToken,
+                vfxDefaultX: 350,
+                skipVfxIfDual: true
+            });
+            if (!ok || token !== cameraSpawnToken || !cameraTopActive) {
+                if (!cameraTopActive) destroyStageModels();
+                return null;
+            }
+        } else {
+            const scenarioPromise = loadScenarioForOutfit(cid, l2d);
+            await preloadModelToRam(modelId);
+            if (token !== cameraSpawnToken || !cameraTopActive) return null;
+
+            const loadedOk = await loadOutfitModels(cid, l2d);
+            if (!loadedOk || token !== cameraSpawnToken || !cameraTopActive) {
+                if (!cameraTopActive) destroyStageModels();
+                return null;
+            }
+            await scenarioPromise;
+            if (token !== cameraSpawnToken || !cameraTopActive) return null;
+        }
+
+        return {
+            isDual: Boolean(state.dualMode),
+            outfits
+        };
+    } finally {
+        setAssetPreloadConnecting(false);
+        document.body.classList.remove('connecting');
+    }
+}
+
+async function playCameraTapVoice(charaId, live2dId = '00', tapCount = 0) {
+    const { activeScenarioUrl, activeVoicePrefix } = getActiveScenario();
+    if (!cameraTopActive || !activeScenarioUrl) return;
+    const seqPlayer = getScenarioPlayer();
+    const cid = Number(charaId) || state.currentCharacterId || DEFAULT_CHARA_ID;
+    const pool = [...HOME_TAP_VOICE_IDS];
+    if (tapCount >= 7) pool.push(HOME_TAP9_VOICE_ID);
+    const chosenId = pool[Math.floor(Math.random() * pool.length)];
+    const prefix = activeVoicePrefix || String(live2dId || '00').padStart(2, '0');
+    const voiceKey = `vo_char_${cid}_${prefix}_${String(chosenId).padStart(2, '0')}`;
+    applySubtitlePlacement({ isDual: state.dualMode });
+    seqPlayer.controller = state.currentController;
+    return seqPlayer.loadAndPlayVoice(activeScenarioUrl, voiceKey, cid);
+}
+
 async function spawnCurrentModel({ wearMode = false, playTransformVfx = false } = {}) {
-    if (typeof window.spawnCameraModel !== 'function') return;
-    const res = await window.spawnCameraModel({
+    const res = await spawnCameraModel({
         charaId: currentCharaId,
         live2dId: currentLive2dId,
         presetIndex: toggleFlg,
@@ -408,10 +502,9 @@ async function ensureCharaListBuilt(signal) {
     const listEl = wrap?.querySelector('.charaListElms');
     if (!wrap || !scrollWrap || !listEl) return;
 
-    const [cards, nativeRoot] = await Promise.all([loadCharaCards(), getImageNativeRoot()]);
+    const [cards, nativeRoot] = await Promise.all([loadCharaCards(), getImageNativeBase()]);
     if (signal.aborted) return;
 
-    cardsByIdMap = new Map(cards.map((c) => [c.charaId, c]));
     currentSortPrm = loadSortMemory();
     iconElementsByCharaId.clear();
     listEl.innerHTML = '';
@@ -507,7 +600,10 @@ function setupDragScroll(scrollWrap, signal) {
         if (!dragging) return;
         dragging = false;
         scrollWrap.classList.remove('dragging');
-        if (didDragScroll) setTimeout(() => { didDragScroll = false; }, 0);
+        if (didDragScroll) {
+            markDragScroll();
+            setTimeout(() => { didDragScroll = false; }, 0);
+        }
     };
     window.addEventListener('pointerup', endDrag, { signal });
     window.addEventListener('pointercancel', endDrag, { signal });
@@ -536,7 +632,7 @@ async function handleCharaDrawerToggle(signal) {
     charaDrawerOpen = root.classList.toggle('changing');
     if (charaDrawerOpen) {
         await ensureCharaListBuilt(signal);
-        const nativeRoot = await getImageNativeRoot().catch(() => '');
+        const nativeRoot = await getImageNativeBase().catch(() => '');
         updateCharaListSelection(currentCharaId, nativeRoot);
         scrollSelectedIntoView(currentCharaId);
     }
@@ -596,9 +692,8 @@ function stopWebcam() {
         } catch {}
         webcamVideoEl = null;
     }
-    if (typeof window.setCameraWebcamVideo === 'function') {
-        window.setCameraWebcamVideo(null);
-    }
+    setBgWebcamVideo(null);
+    updateUILayer();
 }
 
 async function startWebcamOrFallback() {
@@ -632,14 +727,84 @@ async function startWebcamOrFallback() {
             }
         });
         await video.play().catch(() => {});
-        if (cameraRunning && typeof window.setCameraWebcamVideo === 'function') {
-            window.setCameraWebcamVideo(video);
+        if (cameraRunning) {
+            setBgWebcamVideo(video);
+            updateUILayer();
         }
         return true;
     } catch (err) {
         console.info('[camera-top] Webcam unavailable or denied; keeping Home background fallback:', err?.message || err);
         return false;
     }
+}
+
+async function captureCameraPhoto() {
+    await startSe('surround/7023_camera_hca.hca');
+    const renderer = window.app?.renderer;
+    const extract = renderer?.plugins?.extract;
+    const cam = window.cameraContainer;
+    if (!renderer || !extract || !cam) return false;
+
+    const outCanvas = document.createElement('canvas');
+    outCanvas.width = WORLD_W;
+    outCanvas.height = HOME16_H;
+    const outCtx = outCanvas.getContext('2d');
+
+    if (webcamVideoEl && webcamVideoEl.readyState >= 2) {
+        const vw = webcamVideoEl.videoWidth || WORLD_W;
+        const vh = webcamVideoEl.videoHeight || HOME16_H;
+        const scale = Math.max(WORLD_W / vw, HOME16_H / vh);
+        const dw = vw * scale;
+        const dh = vh * scale;
+        outCtx.drawImage(webcamVideoEl, (WORLD_W - dw) / 2, (HOME16_H - dh) / 2, dw, dh);
+    }
+
+    const prevX = cam.x;
+    const prevY = cam.y;
+    const prevSx = cam.scale.x;
+    const prevSy = cam.scale.y;
+    setBgWebcamVideo(null);
+    cam.position.set(0, 0);
+    cam.scale.set(1, 1);
+
+    const rt = PIXI.RenderTexture.create({ width: WORLD_W, height: HOME16_H, resolution: 1 });
+    let pixiCanvas = null;
+    try {
+        renderer.render(cam, { renderTexture: rt, clear: true });
+        pixiCanvas = extract.canvas(rt);
+        outCtx.drawImage(pixiCanvas, 0, 0, WORLD_W, HOME16_H);
+    } finally {
+        rt.destroy(true);
+        cam.position.set(prevX, prevY);
+        cam.scale.set(prevSx, prevSy);
+        if (webcamVideoEl && cameraRunning) {
+            setBgWebcamVideo(webcamVideoEl);
+        }
+        updateUILayer();
+    }
+
+    const blob = await new Promise((resolve) => outCanvas.toBlob(resolve, 'image/png'));
+    if (pixiCanvas) {
+        pixiCanvas.width = 0;
+        pixiCanvas.height = 0;
+    }
+    outCanvas.width = 0;
+    outCanvas.height = 0;
+    if (!blob) return false;
+
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const url = URL.createObjectURL(blob);
+    try {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `magia-record-photo-${stamp}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    } finally {
+        URL.revokeObjectURL(url);
+    }
+    return true;
 }
 
 async function handleCameraRunToggle() {
@@ -676,9 +841,7 @@ function executeShutter() {
         shutterDelayHandle = null;
         try {
             triggerFlash();
-            if (typeof window.captureCameraPhoto === 'function') {
-                await window.captureCameraPhoto();
-            }
+            await captureCameraPhoto();
         } catch (err) {
             console.error('[camera-top] Photo capture failed:', err);
         } finally {
@@ -784,9 +947,7 @@ export async function initCameraTop({ initialCharaId } = {}) {
     root.querySelector('.live2dArea')?.addEventListener('click', (e) => {
         e.preventDefault();
         if (shutterBusy) return;
-        if (typeof window.playCameraTapVoice === 'function') {
-            window.playCameraTapVoice(currentCharaId, currentLive2dId, l2dTouchCnt++);
-        }
+        playCameraTapVoice(currentCharaId, currentLive2dId, l2dTouchCnt++);
     }, { signal });
 
     document.getElementById('cameraRun')?.addEventListener('click', (e) => {
@@ -842,4 +1003,46 @@ export function resetCameraTop() {
     }
     const listEl = document.querySelector('#cameraCharaListWrap .charaListElms');
     if (listEl) listEl.innerHTML = '';
+}
+
+export async function enterCameraTop({ initialCharaId } = {}) {
+    cameraTopActive = true;
+    const token = ++cameraRequestToken;
+
+    stopVoice();
+    setBgWebcamVideo(null);
+    setBgPortrait(false);
+    setStageContext({ mode: 'camera', cameraPresetIndex: 0, cameraWearOpen: false });
+    setStageXOffset(0);
+    if (typeof window.updateViewerViewport === 'function') {
+        window.updateViewerViewport();
+    }
+
+    const savedBg = getCommittedHomeBg() || await resolveSavedHomeBackground();
+    if (token !== cameraRequestToken || !cameraTopActive) return;
+    setCommittedHomeBg(savedBg);
+
+    await Promise.all([
+        changeBg(savedBg, { visible: true, autoplay: true, crossfadeMs: 200 }).catch((err) => {
+            console.warn('[camera-top] BG load failed, falling back to default:', err);
+            return changeBg(`bg/web/${DEFAULT_HOME_BG_FILE}`, { visible: true, autoplay: true, crossfadeMs: 200 });
+        }),
+        startBgm(savedBg.bgmFile, { autoplay: true }).catch((err) => {
+            console.warn('[camera-top] BGM load failed, falling back to default:', err);
+            return startBgm(DEFAULT_HOME_BGM_FILE, { autoplay: true }).catch(() => {});
+        })
+    ]);
+    if (token !== cameraRequestToken || !cameraTopActive) return;
+
+    await initCameraTop({ initialCharaId });
+}
+
+export function leaveCameraTop() {
+    cameraTopActive = false;
+    cameraRequestToken++;
+    cameraSpawnToken++;
+    cancelOutfitChanges();
+    stopVoice();
+    resetCameraTop();
+    destroyStageModels();
 }

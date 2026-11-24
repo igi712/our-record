@@ -1,8 +1,9 @@
 // js/home-bg.js — Home Background catalog loader, .ExportJson.gz loader & localStorage persistence.
 
 import { loadCocosStudioAssets, loadCocosStudioFromLocalFiles, parsePlist } from '../../lib/cocos-to-pixi.js';
+import { repoUrl } from './paths.js';
 
-const CATALOG_URL = 'assets/bgCatalog.json';
+const CATALOG_URL = repoUrl('assets/bgCatalog.json');
 const STORAGE_KEY = 'mrHomeBackground';
 
 export const DEFAULT_HOME_BG_ID = 'home:web_0011';

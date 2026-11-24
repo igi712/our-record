@@ -4,7 +4,7 @@ import { scenarioCache } from './quotes-sequence.js';
 import { buildModelId } from './model.js';
 
 const SCENARIO_REMOTE_MARE_BASE = 'https://raw.githubusercontent.com/igi712/ma-re-data/main/resource/scenario/json/general';
-const SCENARIO_LOCAL_MARE_BASE = 'assets/ma-re-data/resource/scenario/json/general';
+const SCENARIO_LOCAL_MARE_BASE = new URL('../../../assets/ma-re-data/resource/scenario/json/general', import.meta.url).href;
 
 let _scenarioPrimaryBase = null;
 let _scenarioLocalMareAvailable = null;

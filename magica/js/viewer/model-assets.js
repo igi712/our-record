@@ -451,7 +451,7 @@ export async function resolveMaReAssetsBase() {
         return __mrResolvedAssetsBase;
     }
 
-    const localBase = 'assets/ma-re-data/resource/image_native/live2d_v4';
+    const localBase = new URL('../../../assets/ma-re-data/resource/image_native/live2d_v4', import.meta.url).href;
     // Try probing a small known model JSON. Use a short timeout so detection is fast.
     try {
         const probeUrl = `${localBase}/100100/model.model3.json`;

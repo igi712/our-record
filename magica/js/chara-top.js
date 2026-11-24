@@ -1,9 +1,25 @@
 // js/chara-top.js — Magical Girls (#/CharaListTop / #CharaTop) controller
 
-import { resolveMaReAssetsBase } from './viewer/model.js';
 import { openFavoriteChangedPopup, openCharaFilterPopup } from './popups.js';
+import { repoUrl } from './paths.js';
+import { resolveSavedHomeBackground, DEFAULT_HOME_BGM_FILE } from './home-bg.js';
+import { getCommittedHomeBg, setCommittedHomeBg } from './background-set.js';
+import { changeBg, getImageNativeBase, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
+import { startBgm } from './engine/audio.js';
+import { showMiniChara, hideMiniChara } from './engine/mini-chara.js';
+import { markDragScroll } from './engine/common-events.js';
+import {
+    HOME_X_OFFSET,
+    setStageContext,
+    setStageXOffset,
+    applySubtitlePlacement,
+    destroyStageModels,
+    stopVoice
+} from './engine/l2d-stage.js';
+import { state } from './viewer/model.js';
 
-const CHARA_CARDS_URL = 'assets/charaCards.json';
+const CHARA_CARDS_URL = repoUrl('assets/charaCards.json');
+const CH_TOP_COMMON_BG = { dir: 'web', file: 'web_common.ExportJson', id: 'web_common' };
 const STORAGE_FAV_KEY = 'favoriteCharaId';
 const STORAGE_POSE_KEY = 'miniCharaStandPose';
 const STORAGE_SORT_KEY = 'SortFilterMemoryList';
@@ -26,31 +42,23 @@ const SORT_ITEMS = [
 ];
 
 const SORT_BY_KEY = new Map(SORT_ITEMS.map((item, index) => [item.key, { ...item, index }]));
-
-const ATTR_ORDER = {
-    FIRE: 0,
-    WATER: 1,
-    TIMBER: 2,
-    LIGHT: 3,
-    DARK: 4,
-    VOID: 5
-};
+const ATTR_ORDER = { FIRE: 0, WATER: 1, TIMBER: 2, LIGHT: 3, DARK: 4, VOID: 5 };
 
 let cardsCache = null;
-let imageNativeBaseCache = null;
 let selectedCharaId = null;
 let currentSortPrm = [...DEFAULT_SORT_PRM];
 let activeController = null;
 let iconObserver = null;
 let scrollFadeTimer = null;
 let didDragScroll = false;
+let charaTopRequestToken = 0;
 const iconElementsByCharaId = new Map();
 
 export function getFavoriteCharaId() {
     try {
         const raw = localStorage.getItem(STORAGE_FAV_KEY);
         if (raw && /^\d{4}$/.test(raw)) return Number(raw);
-    } catch { /* ignore storage restrictions */ }
+    } catch {}
     return DEFAULT_FAVORITE_ID;
 }
 
@@ -59,14 +67,14 @@ export function setFavoriteCharaId(charaId) {
     if (!Number.isInteger(num) || num <= 0) return;
     try {
         localStorage.setItem(STORAGE_FAV_KEY, String(num));
-    } catch { /* ignore storage restrictions */ }
+    } catch {}
 }
 
 export function getMiniCharaStandPose() {
     try {
         const raw = localStorage.getItem(STORAGE_POSE_KEY);
         if (raw === 'stance' || raw === 'wait') return raw;
-    } catch { /* ignore storage restrictions */ }
+    } catch {}
     return 'wait';
 }
 
@@ -74,7 +82,7 @@ function setMiniCharaStandPose(pose) {
     const normalized = pose === 'stance' ? 'stance' : 'wait';
     try {
         localStorage.setItem(STORAGE_POSE_KEY, normalized);
-    } catch { /* ignore storage restrictions */ }
+    } catch {}
     return normalized;
 }
 
@@ -95,7 +103,7 @@ function loadSortMemory() {
                 list[6] || null
             ];
         }
-    } catch { /* ignore malformed storage */ }
+    } catch {}
     return [...DEFAULT_SORT_PRM];
 }
 
@@ -106,14 +114,7 @@ function saveSortMemory(sortPrm) {
         const next = parsed && typeof parsed === 'object' ? parsed : {};
         next[SORT_MEMORY_BUCKET] = sortPrm;
         localStorage.setItem(STORAGE_SORT_KEY, JSON.stringify(next));
-    } catch { /* ignore storage restrictions */ }
-}
-
-async function getImageNativeRoot() {
-    if (imageNativeBaseCache) return imageNativeBaseCache;
-    const live2dBase = await resolveMaReAssetsBase();
-    imageNativeBaseCache = String(live2dBase).replace(/\/live2d_v4\/?$/, '');
-    return imageNativeBaseCache;
+    } catch {}
 }
 
 async function loadCharaCards() {
@@ -172,33 +173,27 @@ function matchesFilter(card, sortPrm) {
         const set = new Set(String(attFilter).split(',').filter(Boolean));
         if (set.size && !set.has(card.attributeId)) return false;
     }
-
     const rankFilter = sortPrm[3];
     if (rankFilter) {
         const set = new Set(String(rankFilter).split(',').filter(Boolean));
         if (set.size && !set.has(card.rank)) return false;
     }
-
     const enhanceFilter = sortPrm[4];
     if (enhanceFilter === 'enable' && !card.enhanced) return false;
     if (enhanceFilter === 'disable' && card.enhanced) return false;
-
     const initialFilter = sortPrm[5];
     if (initialFilter) {
         const set = new Set(String(initialFilter).split(',').filter(Boolean));
         const initType = card.filterInitialType || card.initialType;
         if (set.size && !set.has(initType)) return false;
     }
-
     return true;
 }
 
 function compareCards(a, b, sortKey, ascDesc) {
     const valA = getCardSortValue(a, sortKey);
     const valB = getCardSortValue(b, sortKey);
-    if (valA !== valB) {
-        return ascDesc === 'asc' ? valA - valB : valB - valA;
-    }
+    if (valA !== valB) return ascDesc === 'asc' ? valA - valB : valB - valA;
     if (sortKey !== 'get') {
         const attDiff = (ATTR_ORDER[a.attributeId] ?? 99) - (ATTR_ORDER[b.attributeId] ?? 99);
         if (attDiff !== 0) return attDiff;
@@ -210,14 +205,11 @@ function compareCards(a, b, sortKey, ascDesc) {
 function loadCardIconAssets(li, nativeRoot) {
     if (li.dataset.loaded === 'true') return;
     li.dataset.loaded = 'true';
-    const bgSpans = li.querySelectorAll('[data-bg-rel]');
-    bgSpans.forEach((span) => {
+    li.querySelectorAll('[data-bg-rel]').forEach((span) => {
         span.style.backgroundImage = `url("${nativeRoot}/${span.dataset.bgRel}")`;
     });
     const img = li.querySelector('img[data-img-rel]');
-    if (img) {
-        img.src = `${nativeRoot}/${img.dataset.imgRel}`;
-    }
+    if (img) img.src = `${nativeRoot}/${img.dataset.imgRel}`;
 }
 
 function createCharaIconElement(card) {
@@ -252,8 +244,7 @@ function updateSortAndFilterControls() {
     const filterBtn = document.getElementById('sortPopup');
     const listEl = document.getElementById('charaListElms');
 
-    const sortKey = currentSortPrm[0];
-    const ascDesc = currentSortPrm[1];
+    const [sortKey, ascDesc] = currentSortPrm;
     const sortMeta = SORT_BY_KEY.get(sortKey) || SORT_BY_KEY.get('rank');
 
     if (sortBtn) {
@@ -270,9 +261,7 @@ function updateSortAndFilterControls() {
         filterBtn.classList.toggle('filterOn', hasFilter);
     }
     if (listEl) {
-        for (const item of SORT_ITEMS) {
-            listEl.classList.remove(item.className);
-        }
+        for (const item of SORT_ITEMS) listEl.classList.remove(item.className);
         listEl.classList.add(sortMeta.className);
     }
 }
@@ -297,9 +286,7 @@ function updateScrollIndicator() {
     inner.style.transform = `translate3d(${offset}px, 0, 0)`;
     inner.classList.add('onScroll');
     if (scrollFadeTimer) clearTimeout(scrollFadeTimer);
-    scrollFadeTimer = setTimeout(() => {
-        inner.classList.remove('onScroll');
-    }, 650);
+    scrollFadeTimer = setTimeout(() => inner.classList.remove('onScroll'), 650);
 }
 
 function applySortAndFilter(cards, nativeRoot) {
@@ -322,12 +309,9 @@ function applySortAndFilter(cards, nativeRoot) {
     }
     listEl.appendChild(frag);
 
-    if (cautionEl) {
-        cautionEl.classList.toggle('hide', visibleCount > 0);
-    }
+    if (cautionEl) cautionEl.classList.toggle('hide', visibleCount > 0);
     updateSortAndFilterControls();
 
-    // Eagerly hydrate the first batch of visible icons after re-order
     let hydrated = 0;
     for (const card of sorted) {
         const li = iconElementsByCharaId.get(card.charaId);
@@ -390,13 +374,13 @@ function renderCharaDataCard(card) {
 
     const revNum = document.getElementById('charaDataRevision');
     if (revNum) revNum.textContent = String(card.revision);
-    const revIcons = document.querySelectorAll('#charaDataRevisionIcons li');
-    revIcons.forEach((li, idx) => li.classList.toggle('on', idx < card.revision));
+    document.querySelectorAll('#charaDataRevisionIcons li').forEach((li, idx) =>
+        li.classList.toggle('on', idx < card.revision)
+    );
 
     const magiaNum = document.getElementById('charaDataMagiaLv');
     if (magiaNum) magiaNum.textContent = String(card.magiaLevel);
-    const magiaIcons = document.querySelectorAll('#charaDataMagiaIcons li');
-    magiaIcons.forEach((li, idx) => {
+    document.querySelectorAll('#charaDataMagiaIcons li').forEach((li, idx) => {
         li.classList.toggle('on', idx < card.magiaLevel);
         li.classList.toggle('none', idx >= card.maxRare);
     });
@@ -441,10 +425,7 @@ function selectChara(charaId, cardsById, nativeRoot) {
 
     renderCharaDataCard(card);
     updateLargeCardImage(card, nativeRoot);
-
-    if (typeof window.showCharaTopMini === 'function') {
-        window.showCharaTopMini(card.miniCharaNo, { standPose: getMiniCharaStandPose() });
-    }
+    showMiniChara(card.miniCharaNo, { standPose: getMiniCharaStandPose() });
 }
 
 function scrollSelectedIntoView(charaId) {
@@ -487,6 +468,7 @@ function setupDragScroll(scrollWrap, signal) {
         dragging = false;
         scrollWrap.classList.remove('dragging');
         if (didDragScroll) {
+            markDragScroll();
             setTimeout(() => { didDragScroll = false; }, 0);
         }
     };
@@ -542,7 +524,7 @@ export async function initCharaTop({ initialCharaId } = {}) {
     const scrollWrap = document.getElementById('charaListScrollWrap');
     if (!rootEl || !listEl || !scrollWrap) return;
 
-    const [cards, nativeRoot] = await Promise.all([loadCharaCards(), getImageNativeRoot()]);
+    const [cards, nativeRoot] = await Promise.all([loadCharaCards(), getImageNativeBase()]);
     if (signal.aborted) return;
 
     const cardsById = new Map(cards.map((c) => [c.charaId, c]));
@@ -576,9 +558,7 @@ export async function initCharaTop({ initialCharaId } = {}) {
         scrollSelectedIntoView(requested);
     } else {
         const startId = pickFallbackCharaId(listEl, cards);
-        if (startId != null) {
-            selectChara(startId, cardsById, nativeRoot);
-        }
+        if (startId != null) selectChara(startId, cardsById, nativeRoot);
         scrollWrap.scrollLeft = 0;
     }
 
@@ -596,10 +576,9 @@ export async function initCharaTop({ initialCharaId } = {}) {
         const card = cardsById.get(selectedCharaId);
         if (!card || card.charaId === getFavoriteCharaId()) return;
         setFavoriteCharaId(card.charaId);
+        state.currentCharacterId = Number(card.charaId);
+        state.currentLive2dId = '00';
         document.getElementById('leaderChangeBtn')?.classList.add('off');
-        if (typeof window.setFavoriteCharacter === 'function') {
-            window.setFavoriteCharacter(card.charaId);
-        }
         openFavoriteChangedPopup(card.name);
     }, { signal });
 
@@ -607,21 +586,17 @@ export async function initCharaTop({ initialCharaId } = {}) {
         const card = cardsById.get(selectedCharaId);
         if (!card) return;
         const nextPose = setMiniCharaStandPose(getMiniCharaStandPose() === 'wait' ? 'stance' : 'wait');
-        if (typeof window.showCharaTopMini === 'function') {
-            window.showCharaTopMini(card.miniCharaNo, { standPose: nextPose });
-        }
+        showMiniChara(card.miniCharaNo, { standPose: nextPose });
     }, { signal });
 
     document.getElementById('miniCharaTapArea')?.addEventListener('click', () => {
         const card = cardsById.get(selectedCharaId);
         if (!card) return;
         const standPose = getMiniCharaStandPose();
-        if (typeof window.showCharaTopMini === 'function') {
-            window.showCharaTopMini(card.miniCharaNo, {
-                animation: ['reaction', standPose],
-                standPose
-            });
-        }
+        showMiniChara(card.miniCharaNo, {
+            animation: ['reaction', standPose],
+            standPose
+        });
     }, { signal });
 
     document.getElementById('sortBtn')?.addEventListener('click', () => {
@@ -681,4 +656,43 @@ export function resetCharaTop() {
     iconElementsByCharaId.clear();
     const listEl = document.getElementById('charaListElms');
     if (listEl) listEl.innerHTML = '';
+}
+
+export async function enterCharaTop({ initialCharaId } = {}) {
+    const token = ++charaTopRequestToken;
+
+    stopVoice();
+    setBgWebcamVideo(null);
+    setBgPortrait(false);
+    setStageContext({ mode: 'detail' });
+    setStageXOffset(HOME_X_OFFSET);
+    if (typeof window.updateViewerViewport === 'function') {
+        window.updateViewerViewport();
+    }
+    applySubtitlePlacement();
+    destroyStageModels();
+
+    const savedBg = getCommittedHomeBg() || await resolveSavedHomeBackground();
+    if (token !== charaTopRequestToken) return;
+    setCommittedHomeBg(savedBg);
+
+    const bgTask = changeBg(CH_TOP_COMMON_BG, { visible: true, autoplay: true, crossfadeMs: 200 }).catch((err) => {
+        console.warn('[chara-top] web_common BG failed, falling back:', err);
+        return changeBg('bg/web/web_0015.ExportJson', { visible: true, autoplay: true, crossfadeMs: 200 });
+    });
+    const bgmTask = startBgm(savedBg.bgmFile, { autoplay: true }).catch((err) => {
+        console.warn('[chara-top] BGM load failed, falling back to default:', err);
+        return startBgm(DEFAULT_HOME_BGM_FILE, { autoplay: true }).catch(() => {});
+    });
+
+    await Promise.all([bgTask, bgmTask]);
+    if (token !== charaTopRequestToken) return;
+
+    await initCharaTop({ initialCharaId });
+}
+
+export function leaveCharaTop() {
+    charaTopRequestToken++;
+    resetCharaTop();
+    hideMiniChara();
 }

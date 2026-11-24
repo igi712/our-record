@@ -2,7 +2,8 @@
 // Magia Record-style controller so scenario actions follow the same motion
 // policy as viewer.html (rather than directly stopping Live2D motions).
 
-const HCA_JS_URL = new URL('./lib/hca.js', document.baseURI);
+const HCA_JS_URL = new URL('../../../lib/hca.js', import.meta.url);
+const LOCAL_VOICE_BASE = new URL('../../../assets/ma-re-data/resource/sound_native/voice', import.meta.url).href;
 const KEY1 = 0x01395C51;
 const KEY2 = 0x00000000;
 
@@ -99,7 +100,7 @@ export async function preloadScenarioVoices(voices, voicePlayer) {
 }
 
 class HcaVoicePlayer {
-    constructor() {
+    constructor({ getHcaRuntime = null } = {}) {
         this.player = null;
         this.analyser = null;
         this.worker = null;
@@ -108,6 +109,7 @@ class HcaVoicePlayer {
         this.hcaBlobUrl = null;
         this.base = null;
         this.playToken = 0;
+        this.getHcaRuntime = typeof getHcaRuntime === 'function' ? getHcaRuntime : null;
     }
 
     async resolveBase() {
@@ -121,12 +123,11 @@ class HcaVoicePlayer {
             if (queryBase) return (this.base = queryBase.replace(/\/$/, ''));
         } catch {}
 
-        const localBase = './assets/ma-re-data/resource/sound_native/voice';
         try {
-            const probe = await fetch(`${localBase}/vo_char_1001_00_01_hca.hca`, {
+            const probe = await fetch(`${LOCAL_VOICE_BASE}/vo_char_1001_00_01_hca.hca`, {
                 method: 'HEAD', cache: 'no-store'
             });
-            if (probe.ok) return (this.base = localBase);
+            if (probe.ok) return (this.base = LOCAL_VOICE_BASE);
         } catch {}
 
         return (this.base = 'https://raw.githubusercontent.com/igi712/ma-re-data/main/resource/sound_native/voice');
@@ -137,6 +138,12 @@ class HcaVoicePlayer {
         if (this.initPromise) return this.initPromise;
         this.initPromise = (async () => {
             try {
+                if (this.getHcaRuntime) {
+                    const runtime = await this.getHcaRuntime();
+                    this.hcaModule = runtime.hcaModule;
+                    this.worker = runtime.worker;
+                    return;
+                }
                 const response = await fetch(HCA_JS_URL.href);
                 this.hcaBlobUrl = URL.createObjectURL(new Blob([await response.arrayBuffer()], {
                     type: 'text/javascript'
@@ -221,12 +228,12 @@ const OUTFIT_GROUP_STEP_DELAYS_MS = {
 };
 
 export class ScenarioSequencePlayer {
-    constructor({ controller, controllers, subtitleElement, stepDelayMs = 0 } = {}) {
+    constructor({ controller, controllers, subtitleElement, stepDelayMs = 0, getHcaRuntime = null } = {}) {
         this.controller = controller || null;
         this.controllers = controllers || new Map();
         this.subtitleElement = subtitleElement;
         this.stepDelayMs = stepDelayMs;
-        this.voice = new HcaVoicePlayer();
+        this.voice = new HcaVoicePlayer({ getHcaRuntime });
         this.timer = null;
         this.buttonResetTimeout = null;
         this.runToken = 0;

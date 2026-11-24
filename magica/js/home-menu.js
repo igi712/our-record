@@ -3,7 +3,7 @@
 // Recreates the original Magia Record MyPage behaviors in plain JS:
 //   - the side menu is CLOSED by default; on MyPage it is auto-opened only once
 //     the home screen (background + BGM + model) has finished loading
-//     (revealHomeMenu is invoked from quotes-main.js revealHomeScreen)
+//     (revealHomeMenu is invoked from mypage.js enterMyPage)
 //   - on MyPage the #sideMenuBg backdrop and .homeBtn are hidden (noneDisp),
 //     matching GlobalMenuView.pagePerHandler
 //   - the #menu capsule toggles the menu open/closed with the original
@@ -15,7 +15,8 @@
 //     everything else no-op
 //   - static demo values for the player status bar (no live game data)
 
-import { resetMyPage } from './mypage.js';
+import { resetMyPage, mypageMenuShow, mypageMenuHide, onMyPageMenuChoreography } from './mypage.js';
+import { magicaUrl } from './paths.js';
 
 // Static demo values for the top-left player status bar.
 export const HOME_STATUS_DEMO = {
@@ -43,7 +44,7 @@ function fillStatusDemo() {
         rankEl.innerHTML = '';
         for (const ch of String(HOME_STATUS_DEMO.rank)) {
             const img = document.createElement('img');
-            img.src = `magica/resource/image_web/common/number/${ch}.png`;
+            img.src = magicaUrl(`resource/image_web/common/number/${ch}.png`);
             img.alt = ch;
             rankEl.appendChild(img);
         }
@@ -78,8 +79,8 @@ function setMenuOpen(open, { chrome = true } = {}) {
             sideMenuBg.classList.remove('close');
             sideMenuBg.classList.add('anim');
         }
-        if (chrome && isMyPage && typeof window.mypageMenuShow === 'function') {
-            window.mypageMenuShow();
+        if (chrome && isMyPage) {
+            mypageMenuShow();
         }
     } else {
         sideMenu.classList.remove('anim');
@@ -88,15 +89,15 @@ function setMenuOpen(open, { chrome = true } = {}) {
             sideMenuBg.classList.remove('anim');
             sideMenuBg.classList.add('close');
         }
-        if (chrome && isMyPage && typeof window.mypageMenuHide === 'function') {
-            window.mypageMenuHide();
+        if (chrome && isMyPage) {
+            mypageMenuHide();
         }
     }
     // chrome:false (initial reveal) animates only the right-side menu; the
     // column/status/Live2D choreography is skipped so they stay static until
     // their own reveal points (MyPage visibility, revealHomeScreen).
-    if (chrome && isMyPage && typeof window.mypageMenuChoreography === 'function') {
-        window.mypageMenuChoreography(open);
+    if (chrome && isMyPage) {
+        onMyPageMenuChoreography(open);
     }
 }
 

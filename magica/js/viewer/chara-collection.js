@@ -1,8 +1,15 @@
 // chara-collection.js — Character Collection grid selector view for quotes.html
 
 import { state } from './model.js';
+import { repoUrl } from '../paths.js';
+import { changeBg } from '../engine/bg.js';
+import { startBgm } from '../engine/audio.js';
+import { setStageContext, setStageXOffset, applySubtitlePlacement } from '../engine/l2d-stage.js';
 
-const CHARA_ATTRIBUTES_URL = new URL('./assets/charaAttributes.json', document.baseURI).href;
+const CHARA_ATTRIBUTES_URL = repoUrl('assets/charaAttributes.json');
+const COLLECTION_BG = 'bg/web/web_0015.ExportJson';
+const COLLECTION_BGM = 'bgm02_anime11_hca.hca';
+const COLLECTION_X_OFFSET = -262;
 let charaAttributes = {};
 
 export async function loadCharaAttributes() {
@@ -54,8 +61,8 @@ export async function fetchCharacterCatalog() {
         let missingLive2d = [];
         try {
             const [missingCharsResponse, missingLive2dResponse] = await Promise.all([
-                fetch('assets/missingCharaList.json').catch(() => null),
-                fetch('assets/missingLive2dList.json').catch(() => null)
+                fetch(repoUrl('assets/missingCharaList.json')).catch(() => null),
+                fetch(repoUrl('assets/missingLive2dList.json')).catch(() => null)
             ]);
             if (missingCharsResponse && missingCharsResponse.ok) missingChars = await missingCharsResponse.json();
             if (missingLive2dResponse && missingLive2dResponse.ok) missingLive2d = await missingLive2dResponse.json();
@@ -392,4 +399,27 @@ function setupSearchFilter() {
     searchInput.addEventListener('input', () => {
         applySearchFilter();
     });
+}
+
+export async function enterCharaCollection() {
+    setStageContext({ mode: 'detail' });
+    setStageXOffset(COLLECTION_X_OFFSET);
+    if (typeof window.updateViewerViewport === 'function') {
+        window.updateViewerViewport();
+    }
+    applySubtitlePlacement();
+
+    changeBg(COLLECTION_BG, { visible: true, autoplay: true, crossfadeMs: 200 }).catch((e) =>
+        console.warn('[chara-collection] background error:', e)
+    );
+    startBgm(COLLECTION_BGM, { autoplay: true }).catch((e) =>
+        console.warn('[chara-collection] bgm error:', e)
+    );
+
+    document.body.classList.remove('connecting');
+    await renderCharaCollectionGrid();
+}
+
+export function leaveCharaCollection() {
+    saveCollectionScrollPosition();
 }

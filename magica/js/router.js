@@ -1,23 +1,36 @@
-// js/router.js — Hash router for quotes SPA
+// magica/js/router.js — Hash router for the Magia Record SPA (/magica/index.html)
 
 import { loadViewTemplate } from './view-loader.js';
-import { destroyCurrentModels } from './viewer/model.js';
-import { renderCharaCollectionGrid } from './viewer/chara-collection.js';
+import { magicaUrl } from './paths.js';
 import { initHomeMenu, resetHomeMenu, initGlobalMenuForPage } from './home-menu.js';
-import { initMyPage, resetMyPage } from './mypage.js';
-import { initBackgroundSet, resetBackgroundSet } from './background-set.js';
-import { initCharaTop, resetCharaTop } from './chara-top.js';
-import { initCameraTop, resetCameraTop } from './camera-top.js';
+import { enterMyPage, leaveMyPage } from './mypage.js';
+import { enterBackgroundSet, leaveBackgroundSet } from './background-set.js';
+import { enterCharaTop, leaveCharaTop } from './chara-top.js';
+import { enterCameraTop, leaveCameraTop } from './camera-top.js';
+import { enterCharaCollection, leaveCharaCollection } from './viewer/chara-collection.js';
+import { enterCharaCollectionDetail, leaveCharaCollectionDetail } from './chara-collection-detail.js';
 
 let routeGeneration = 0;
+let activeRouteKey = null;
 
-/**
- * Loads a view template and returns false if a newer route superseded this one
- * while awaiting the fetch, hiding any newly mounted elements so they cannot
- * appear over the active route.
- */
-async function loadRouteTemplate(path, generation, ...staleHideIds) {
-    const mounted = await loadViewTemplate(path, 'ui-layer');
+function resolveRouteKey(hash) {
+    if (hash.startsWith('#/BackgroundSet')) return 'BackgroundSet';
+    if (hash.startsWith('#/CharaListTop')) return 'CharaListTop';
+    if (hash.startsWith('#/CameraTop')) return 'CameraTop';
+    if (hash.startsWith('#/CharaCollectionDetail')) return 'CharaCollectionDetail';
+    if (hash.startsWith('#/CharaCollection')) return 'CharaCollection';
+    return 'MyPage';
+}
+
+function isHomeFamilyRoute(routeKey) {
+    return routeKey === 'MyPage'
+        || routeKey === 'BackgroundSet'
+        || routeKey === 'CharaListTop'
+        || routeKey === 'CameraTop';
+}
+
+async function loadRouteTemplate(relPath, generation, ...staleHideIds) {
+    const mounted = await loadViewTemplate(magicaUrl(relPath), 'ui-layer');
     if (generation === routeGeneration) return true;
     if (mounted) {
         for (const id of staleHideIds) {
@@ -30,271 +43,209 @@ async function loadRouteTemplate(path, generation, ...staleHideIds) {
     return false;
 }
 
-export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, loadBackgroundSetScreen, loadCharaListTopScreen, loadCameraTopScreen) {
+function setupBackBtn() {
+    const handleBack = (e) => {
+        if (e) e.preventDefault();
+        const currentHash = window.location.hash;
+        if (currentHash.startsWith('#/CharaCollectionDetail')) {
+            window.location.hash = '#/CharaCollection';
+        } else if (currentHash.startsWith('#/BackgroundSet')) {
+            const q = currentHash.split('?')[1];
+            window.location.hash = q ? `#/MyPage?${q}` : '#/MyPage';
+        } else if (currentHash.startsWith('#/CharaListTop')) {
+            window.location.hash = '#/MyPage';
+        } else {
+            window.location.href = '../index.html';
+        }
+    };
+
+    const globalBackBtn = document.getElementById('globalBackBtn');
+    const backBtn = document.getElementById('backBtn');
+    if (globalBackBtn) globalBackBtn.onclick = handleBack;
+    if (backBtn) backBtn.onclick = handleBack;
+}
+
+function hideAllViews() {
+    const ids = ['CharaCollection', 'cardDetail', 'MyPage', 'BackgroundSet', 'CharaTop', 'CameraTop'];
+    for (const id of ids) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    }
+}
+
+function leaveActiveRoute(nextRouteKey) {
+    switch (activeRouteKey) {
+        case 'MyPage':
+            leaveMyPage({ keepHomeCache: isHomeFamilyRoute(nextRouteKey) });
+            break;
+        case 'BackgroundSet':
+            leaveBackgroundSet();
+            break;
+        case 'CharaListTop':
+            leaveCharaTop();
+            break;
+        case 'CameraTop':
+            leaveCameraTop();
+            break;
+        case 'CharaCollection':
+            leaveCharaCollection();
+            break;
+        case 'CharaCollectionDetail':
+            leaveCharaCollectionDetail();
+            break;
+        default:
+            break;
+    }
+    if (!isHomeFamilyRoute(nextRouteKey)) {
+        // Clear any cached MyPage state when leaving the Home family entirely.
+        leaveMyPage({ keepHomeCache: false });
+    }
+}
+
+export async function handleRoute() {
     const generation = ++routeGeneration;
-    const hash = window.location.hash || '#/CharaCollection';
+    const rawHash = window.location.hash;
+    const hash = (!rawHash || rawHash === '#' || rawHash === '#/') ? '#/MyPage' : rawHash;
     const uiLayer = document.getElementById('ui-layer');
     if (!uiLayer) return;
 
-    const isHomeFamily = hash.startsWith('#/MyPage') || hash.startsWith('#/BackgroundSet') || hash.startsWith('#/CharaListTop') || hash.startsWith('#/CameraTop');
-    if (!isHomeFamily && window.stopHomeScreen) {
-        await window.stopHomeScreen();
-        if (generation !== routeGeneration) return;
-    }
-    if (!hash.startsWith('#/CharaListTop') && typeof window.hideCharaTopMini === 'function') {
-        window.hideCharaTopMini();
-    }
+    const nextRouteKey = resolveRouteKey(hash);
+    leaveActiveRoute(nextRouteKey);
+    activeRouteKey = nextRouteKey;
     resetHomeMenu();
-    resetMyPage();
-    resetBackgroundSet();
-    resetCharaTop();
-    resetCameraTop();
 
-    const setupBackBtn = () => {
-        const handleBack = (e) => {
-            if (e) e.preventDefault();
-            const currentHash = window.location.hash;
-            if (currentHash.startsWith('#/CharaCollectionDetail')) {
-                window.location.hash = '#/CharaCollection';
-            } else if (currentHash.startsWith('#/BackgroundSet')) {
-                const q = currentHash.split('?')[1];
-                window.location.hash = q ? `#/MyPage?${q}` : '#/MyPage';
-            } else if (currentHash.startsWith('#/CharaListTop')) {
-                window.location.hash = '#/MyPage';
-            } else {
-                window.location.href = 'index.html';
-            }
-        };
-
-        const globalBackBtn = document.getElementById('globalBackBtn');
-        const backBtn = document.getElementById('backBtn');
-        if (globalBackBtn) globalBackBtn.onclick = handleBack;
-        if (backBtn) backBtn.onclick = handleBack;
-    };
-
-    if (hash.startsWith('#/MyPage')) {
+    if (nextRouteKey === 'MyPage') {
         let homeMenuEl = document.getElementById('globalMenu');
         if (!homeMenuEl) {
-            if (!await loadRouteTemplate('magica/template/base/GlobalMenu.html', generation, 'globalMenu', 'sideMenu')) return;
+            if (!await loadRouteTemplate('template/base/GlobalMenu.html', generation, 'globalMenu', 'sideMenu')) return;
             homeMenuEl = document.getElementById('globalMenu');
         }
-        // Hide immediately after mount: the raw template shows 0/0 in the
-        // status bar and the #menu capsule of #sideMenu must not flash while
-        // MyPage.html still loads / during the home load (sideMenu has no
-        // hidden default state — only hideMenuUI() hides it).
         if (homeMenuEl) homeMenuEl.style.visibility = 'hidden';
         const sideMenuEl = document.getElementById('sideMenu');
         if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
-        if (!await loadRouteTemplate('magica/template/base/MyPage.html', generation, 'MyPage')) return;
+        if (!await loadRouteTemplate('template/base/MyPage.html', generation, 'MyPage')) return;
 
-        const charaCollectionEl = document.getElementById('CharaCollection');
-        const cardDetailEl = document.getElementById('cardDetail');
-        const bgSetEl = document.getElementById('BackgroundSet');
-        const charaTopEl = document.getElementById('CharaTop');
-        const cameraTopEl = document.getElementById('CameraTop');
+        hideAllViews();
         const myPageEl = document.getElementById('MyPage');
         const globalBackBtn = document.getElementById('globalBackBtn');
-        if (charaCollectionEl) charaCollectionEl.style.display = 'none';
-        if (cardDetailEl) cardDetailEl.style.display = 'none';
-        if (bgSetEl) bgSetEl.style.display = 'none';
-        if (charaTopEl) charaTopEl.style.display = 'none';
-        if (cameraTopEl) cameraTopEl.style.display = 'none';
         if (homeMenuEl) homeMenuEl.style.display = 'block';
-        if (myPageEl) myPageEl.style.display = 'block';
+        if (myPageEl) {
+            myPageEl.style.display = 'block';
+            myPageEl.style.visibility = 'hidden';
+        }
         if (globalBackBtn) globalBackBtn.style.display = 'none';
-        // The left column + carousel stay hidden until the home reveal, so
-        // nothing of them shows during the background/BGM load.
-        if (myPageEl) myPageEl.style.visibility = 'hidden';
 
         setupBackBtn();
         initHomeMenu();
-        initMyPage();
-        if (typeof loadHomeScreen === 'function') {
-            await loadHomeScreen();
-        }
-    } else if (hash.startsWith('#/BackgroundSet')) {
+        await enterMyPage();
+    } else if (nextRouteKey === 'BackgroundSet') {
         let bgSetEl = document.getElementById('BackgroundSet');
         if (!bgSetEl) {
-            if (!await loadRouteTemplate('magica/template/user/BackgroundSet.html', generation, 'BackgroundSet')) return;
+            if (!await loadRouteTemplate('template/user/BackgroundSet.html', generation, 'BackgroundSet')) return;
             bgSetEl = document.getElementById('BackgroundSet');
         }
 
-        const charaCollectionEl = document.getElementById('CharaCollection');
-        const cardDetailEl = document.getElementById('cardDetail');
-        const myPageEl = document.getElementById('MyPage');
-        const charaTopEl = document.getElementById('CharaTop');
-        const cameraTopEl = document.getElementById('CameraTop');
+        hideAllViews();
         const homeMenuEl = document.getElementById('globalMenu');
         const sideMenuEl = document.getElementById('sideMenu');
         const globalBackBtn = document.getElementById('globalBackBtn');
-        if (charaCollectionEl) charaCollectionEl.style.display = 'none';
-        if (cardDetailEl) cardDetailEl.style.display = 'none';
-        if (myPageEl) myPageEl.style.display = 'none';
-        if (charaTopEl) charaTopEl.style.display = 'none';
-        if (cameraTopEl) cameraTopEl.style.display = 'none';
         if (homeMenuEl) homeMenuEl.style.display = 'none';
         if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
         if (bgSetEl) bgSetEl.style.display = 'block';
         if (globalBackBtn) globalBackBtn.style.display = 'block';
 
         setupBackBtn();
-        await initBackgroundSet();
-        if (generation !== routeGeneration) return;
-        if (typeof loadBackgroundSetScreen === 'function') {
-            await loadBackgroundSetScreen();
-        }
-    } else if (hash.startsWith('#/CharaListTop')) {
+        await enterBackgroundSet();
+    } else if (nextRouteKey === 'CharaListTop') {
         let homeMenuEl = document.getElementById('globalMenu');
         if (!homeMenuEl) {
-            if (!await loadRouteTemplate('magica/template/base/GlobalMenu.html', generation, 'globalMenu', 'sideMenu')) return;
+            if (!await loadRouteTemplate('template/base/GlobalMenu.html', generation, 'globalMenu', 'sideMenu')) return;
             homeMenuEl = document.getElementById('globalMenu');
         }
         let charaTopEl = document.getElementById('CharaTop');
         if (!charaTopEl) {
-            if (!await loadRouteTemplate('magica/template/chara/CharaTop.html', generation, 'CharaTop')) return;
+            if (!await loadRouteTemplate('template/chara/CharaTop.html', generation, 'CharaTop')) return;
             charaTopEl = document.getElementById('CharaTop');
         }
 
-        const charaCollectionEl = document.getElementById('CharaCollection');
-        const cardDetailEl = document.getElementById('cardDetail');
-        const myPageEl = document.getElementById('MyPage');
-        const bgSetEl = document.getElementById('BackgroundSet');
-        const cameraTopEl = document.getElementById('CameraTop');
+        hideAllViews();
         const globalBackBtn = document.getElementById('globalBackBtn');
-        if (charaCollectionEl) charaCollectionEl.style.display = 'none';
-        if (cardDetailEl) cardDetailEl.style.display = 'none';
-        if (myPageEl) myPageEl.style.display = 'none';
-        if (bgSetEl) bgSetEl.style.display = 'none';
-        if (cameraTopEl) cameraTopEl.style.display = 'none';
         if (homeMenuEl) homeMenuEl.style.display = 'block';
         if (charaTopEl) charaTopEl.style.display = 'block';
         if (globalBackBtn) globalBackBtn.style.display = 'block';
 
         setupBackBtn();
         initGlobalMenuForPage();
-        if (typeof loadCharaListTopScreen === 'function') {
-            await loadCharaListTopScreen();
-            if (generation !== routeGeneration) return;
-        }
         const urlParams = new URLSearchParams(hash.split('?')[1] || '');
         const pathMatch = hash.match(/^#\/CharaListTop\/(\d{4})\b/);
         const rawId = urlParams.get('id') || (pathMatch ? pathMatch[1] : '');
         const initialCharaId = /^\d{4}$/.test(rawId) ? Number(rawId) : undefined;
-        await initCharaTop({ initialCharaId });
-    } else if (hash.startsWith('#/CameraTop')) {
+        await enterCharaTop({ initialCharaId });
+    } else if (nextRouteKey === 'CameraTop') {
         let cameraTopEl = document.getElementById('CameraTop');
         if (!cameraTopEl) {
-            if (!await loadRouteTemplate('magica/template/camera/CameraTop.html', generation, 'CameraTop')) return;
+            if (!await loadRouteTemplate('template/camera/CameraTop.html', generation, 'CameraTop')) return;
             cameraTopEl = document.getElementById('CameraTop');
         }
 
-        const charaCollectionEl = document.getElementById('CharaCollection');
-        const cardDetailEl = document.getElementById('cardDetail');
-        const myPageEl = document.getElementById('MyPage');
-        const bgSetEl = document.getElementById('BackgroundSet');
-        const charaTopEl = document.getElementById('CharaTop');
+        hideAllViews();
         const homeMenuEl = document.getElementById('globalMenu');
         const sideMenuEl = document.getElementById('sideMenu');
         const globalBackBtn = document.getElementById('globalBackBtn');
-        if (charaCollectionEl) charaCollectionEl.style.display = 'none';
-        if (cardDetailEl) cardDetailEl.style.display = 'none';
-        if (myPageEl) myPageEl.style.display = 'none';
-        if (bgSetEl) bgSetEl.style.display = 'none';
-        if (charaTopEl) charaTopEl.style.display = 'none';
         if (homeMenuEl) homeMenuEl.style.display = 'none';
         if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
         if (globalBackBtn) globalBackBtn.style.display = 'none';
         if (cameraTopEl) cameraTopEl.style.display = 'block';
 
         setupBackBtn();
-        if (typeof loadCameraTopScreen === 'function') {
-            await loadCameraTopScreen();
-            if (generation !== routeGeneration) return;
-        }
         const urlParams = new URLSearchParams(hash.split('?')[1] || '');
         const rawId = urlParams.get('id') || '';
         const initialCharaId = /^\d{4}$/.test(rawId) ? Number(rawId) : undefined;
-        await initCameraTop({ initialCharaId });
-    } else if (hash.startsWith('#/CharaCollectionDetail')) {
+        await enterCameraTop({ initialCharaId });
+    } else if (nextRouteKey === 'CharaCollectionDetail') {
         let charaDetailEl = document.getElementById('cardDetail');
         if (!charaDetailEl) {
-            if (!await loadRouteTemplate('magica/template/collection/CharaCollectionDetail.html', generation, 'cardDetail')) return;
+            if (!await loadRouteTemplate('template/collection/CharaCollectionDetail.html', generation, 'cardDetail')) return;
             charaDetailEl = document.getElementById('cardDetail');
         }
 
-        const charaCollectionEl = document.getElementById('CharaCollection');
-        const myPageEl = document.getElementById('MyPage');
-        const bgSetEl = document.getElementById('BackgroundSet');
-        const charaTopEl = document.getElementById('CharaTop');
-        const cameraTopEl = document.getElementById('CameraTop');
-        if (charaCollectionEl) charaCollectionEl.style.display = 'none';
-        if (charaDetailEl) charaDetailEl.style.display = 'block';
-        if (myPageEl) myPageEl.style.display = 'none';
-        if (bgSetEl) bgSetEl.style.display = 'none';
-        if (charaTopEl) charaTopEl.style.display = 'none';
-        if (cameraTopEl) cameraTopEl.style.display = 'none';
+        hideAllViews();
+        const homeMenuEl = document.getElementById('globalMenu');
         const sideMenuEl = document.getElementById('sideMenu');
-        if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
         const globalBackBtn = document.getElementById('globalBackBtn');
+        if (homeMenuEl) homeMenuEl.style.display = 'none';
+        if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
+        if (charaDetailEl) charaDetailEl.style.display = 'block';
         if (globalBackBtn) globalBackBtn.style.display = 'block';
 
         setupBackBtn();
-
         const urlParams = new URLSearchParams(hash.split('?')[1] || '');
         const charaId = Number(urlParams.get('id')) || 1001;
-
-        if (state.currentModel) state.currentModel.visible = true;
-        document.body.classList.remove('connecting');
-
-        if (typeof loadCharacterDetail === 'function') {
-            await loadCharacterDetail(charaId);
-        }
+        await enterCharaCollectionDetail({ charaId });
     } else {
         let charaCollectionEl = document.getElementById('CharaCollection');
         if (!charaCollectionEl) {
-            if (!await loadRouteTemplate('magica/template/collection/CharaCollection.html', generation, 'CharaCollection')) return;
+            if (!await loadRouteTemplate('template/collection/CharaCollection.html', generation, 'CharaCollection')) return;
             charaCollectionEl = document.getElementById('CharaCollection');
         }
 
-        const cardDetailEl = document.getElementById('cardDetail');
-        if (cardDetailEl) cardDetailEl.style.display = 'none';
+        hideAllViews();
         const homeMenuEl = document.getElementById('globalMenu');
-        if (homeMenuEl) homeMenuEl.style.display = 'none';
         const sideMenuEl = document.getElementById('sideMenu');
-        if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
-        const myPageEl = document.getElementById('MyPage');
-        if (myPageEl) myPageEl.style.display = 'none';
-        const bgSetEl = document.getElementById('BackgroundSet');
-        if (bgSetEl) bgSetEl.style.display = 'none';
-        const charaTopEl = document.getElementById('CharaTop');
-        if (charaTopEl) charaTopEl.style.display = 'none';
-        const cameraTopEl = document.getElementById('CameraTop');
-        if (cameraTopEl) cameraTopEl.style.display = 'none';
-        if (charaCollectionEl) charaCollectionEl.style.display = 'block';
         const globalBackBtn = document.getElementById('globalBackBtn');
+        if (homeMenuEl) homeMenuEl.style.display = 'none';
+        if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
+        if (charaCollectionEl) charaCollectionEl.style.display = 'block';
         if (globalBackBtn) globalBackBtn.style.display = 'block';
 
         setupBackBtn();
-
-        // Cancel any pending outfit change/model load, stop transformation SFX/VFX, clear subtitles, and reset detail view state
-        if (window.cancelOutfitChanges) {
-            window.cancelOutfitChanges();
-        }
-        if (window.scenarioPlayer) {
-            window.scenarioPlayer.stop();
-        }
-        if (window.stopTransformationEffects) {
-            window.stopTransformationEffects();
-        }
-        if (window.resetDetailViewState) {
-            window.resetDetailViewState();
-        }
-
-        // Destroy Live2D model instance(s) and GPU textures when returning to collection
-        destroyCurrentModels();
-
-        document.body.classList.remove('connecting');
-
-        await renderCharaCollectionGrid();
+        await enterCharaCollection();
     }
+}
+
+export function initRouter() {
+    window.addEventListener('hashchange', () => {
+        handleRoute().catch((e) => console.error('[router] Route change failed:', e));
+    });
+    return handleRoute();
 }

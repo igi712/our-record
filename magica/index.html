@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
+    <title>Our Record</title>
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="css/chara/CardDetail.css">
+    <link rel="stylesheet" href="css/collection/CharaCollection.css">
+    <link rel="stylesheet" href="css/quotes-app.css">
+    <link rel="stylesheet" href="css/global-menu.css">
+    <link rel="stylesheet" href="css/mypage.css">
+    <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="css/chara-top.css">
+    <link rel="stylesheet" href="css/camera-top.css">
+
+    <script src="../lib/live2dcubismcore.min.js"></script>
+    <script src="../lib/live2d.min.js"></script>
+    <script src="../lib/pixi.min.js"></script>
+    <script src="../lib/pixi-live2d-display-index.min.js"></script>
+    <script src="js/viewer/pixi-patches.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <canvas id="canvas"></canvas>
+        <div id="loading" aria-hidden="true"></div>
+
+        <div id="ui-layer" style="display: none;">
+            <!-- Global Back Button -->
+            <span class="collectionBack" id="globalBackBtn">
+                <span class="se_cancel"></span>
+            </span>
+            <div id="subtitle" aria-live="polite" hidden></div>
+        </div>
+    </div>
+
+    <!-- Config MUST be set before viewer.js loads -->
+    <script>window.__QUOTES_CONFIG = { viewMode: 'home16', noGameBg: true, xOffset: -262 };</script>
+
+    <script src="js/viewer/viewer.js"></script>
+    <script src="js/viewer/live2d.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

@@ -7,10 +7,11 @@
 
 import { HOME_STATUS_DEMO } from './home-menu.js';
 import { resolveMaReAssetsBase } from './viewer/model.js';
+import { magicaUrl } from './paths.js';
 
-const ETC_TEMPLATE = 'magica/template/etc/EtcPopup.html';
-const PROFILE_TEMPLATE = 'magica/template/user/MyProfilePopup.html';
-const CARD_SORT_TEMPLATE = 'magica/template/card/CardSort.html';
+const ETC_TEMPLATE = magicaUrl('template/etc/EtcPopup.html');
+const PROFILE_TEMPLATE = magicaUrl('template/user/MyProfilePopup.html');
+const CARD_SORT_TEMPLATE = magicaUrl('template/card/CardSort.html');
 const CLOSE_ANIM_MS = 200;
 
 const PROFILE_DEMO = {
