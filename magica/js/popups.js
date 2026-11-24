@@ -37,6 +37,11 @@ const TOUCH_SELECTOR = [
     '#popupArea #myProfile .arenaHelpBtn',
     '#popupArea #bgChangePop .decideBtn',
     '#popupArea #favChangePop .popupCloseBtn',
+    '#popupArea .uiHidePop .popupCloseBtn',
+    '#popupArea .uiHidePop .decideBtn',
+    '#popupArea #cameraSavedPop .popupCloseBtn',
+    '#popupArea #cameraHelpPop .popupCloseBtn',
+    '#popupArea #cameraHelpPop .colLow',
     '#popupArea #sortFilterPop .filterAtt',
     '#popupArea #sortFilterPop .filterRank',
     '#popupArea #sortFilterPop .filterEnhance',
@@ -72,9 +77,12 @@ function ensurePopupArea() {
 function applyPopupScale(innerEl) {
     if (!innerEl) return;
     const s = window.cameraContainer?.scale?.x ?? 1;
-    if (s !== 1) {
+    const isPortrait = Boolean(innerEl.closest('.portrait'));
+    if (s !== 1 || isPortrait) {
         innerEl.style.transformOrigin = 'center center';
-        innerEl.style.transform = `scale(${s})`;
+        innerEl.style.transform = isPortrait
+            ? (s !== 1 ? `scale(${s}) rotate(270deg)` : 'rotate(270deg)')
+            : `scale(${s})`;
     } else {
         innerEl.style.transformOrigin = '';
         innerEl.style.transform = '';
@@ -338,6 +346,151 @@ export function openFavoriteChangedPopup(charaName) {
     bindEvents();
 }
 
+export function openUiHidePopup({ portrait = false, onConfirm } = {}) {
+    if (activePopup) closeActivePopup({ immediate: true });
+    const area = ensurePopupArea();
+
+    const el = document.createElement('div');
+    el.className = 'popupContent open uiHidePop' + (portrait ? ' portrait' : '');
+
+    const inner = document.createElement('div');
+    inner.className = 'popupInner';
+
+    const textArea = document.createElement('div');
+    textArea.className = 'popupTextArea';
+    textArea.innerHTML = 'Hide the on-screen buttons?<br><br>Press and hold the screen<br>to display them again.';
+
+    const btnTable = document.createElement('table');
+    btnTable.className = 'popupBtnArea';
+    btnTable.innerHTML = `
+        <tr>
+            <td><span class="popupCloseBtn btn b_white TE se_cancel"><span class="b_screen"></span>Cancel</span></td>
+            <td><span class="decideBtn btn b_pink TE se_decide"><span class="b_screen"></span>Hide</span></td>
+        </tr>`;
+
+    inner.appendChild(textArea);
+    inner.appendChild(btnTable);
+    el.appendChild(inner);
+    area.appendChild(el);
+
+    applyPopupScale(inner);
+
+    const curtain = area.querySelector('#popupCurtain');
+    if (curtain) curtain.classList.remove('show');
+    activePopup = {
+        kind: 'uiHide',
+        el,
+        canClose: false,
+        onConfirm: typeof onConfirm === 'function' ? onConfirm : null
+    };
+    bindEvents();
+}
+
+export function openCameraSavedPopup() {
+    if (activePopup) closeActivePopup({ immediate: true });
+    const area = ensurePopupArea();
+
+    const el = document.createElement('div');
+    el.id = 'cameraSavedPop';
+    el.className = 'popupContent open typeC';
+
+    const inner = document.createElement('div');
+    inner.className = 'popupInner';
+
+    const closeX = document.createElement('span');
+    closeX.className = 'popupCloseBtn closeDefault se_cancel TE';
+
+    const title = document.createElement('div');
+    title.className = 'popupTitle';
+    title.textContent = 'Photo Mode';
+
+    const textArea = document.createElement('div');
+    textArea.className = 'popupTextArea';
+    textArea.textContent = 'Photo saved!';
+
+    const btnTable = document.createElement('table');
+    btnTable.className = 'popupBtnArea';
+    btnTable.innerHTML = `
+        <tr>
+            <td><span class="popupCloseBtn btn b_white TE se_decide"><span class="b_screen"></span>OK</span></td>
+        </tr>`;
+
+    inner.appendChild(closeX);
+    inner.appendChild(title);
+    inner.appendChild(textArea);
+    inner.appendChild(btnTable);
+    el.appendChild(inner);
+    area.appendChild(el);
+
+    applyPopupScale(inner);
+
+    const curtain = area.querySelector('#popupCurtain');
+    if (curtain) curtain.classList.add('show');
+    activePopup = {
+        kind: 'cameraSaved',
+        el,
+        canClose: true
+    };
+    bindEvents();
+}
+
+export function openCameraHelpPopup() {
+    if (activePopup) closeActivePopup({ immediate: true });
+    const area = ensurePopupArea();
+
+    const el = document.createElement('div');
+    el.id = 'cameraHelpPop';
+    el.className = 'popupContent open typeB';
+
+    const inner = document.createElement('div');
+    inner.className = 'popupInner';
+
+    const closeX = document.createElement('span');
+    closeX.className = 'popupCloseBtn closeDefault se_cancel TE';
+
+    const title = document.createElement('div');
+    title.className = 'popupTitle';
+    title.textContent = 'Photo Mode';
+
+    const textArea = document.createElement('div');
+    textArea.className = 'popupTextArea';
+    textArea.innerHTML = `
+        <div id="HelpPopup">
+            <div class="hiddenWrap" id="helpPopScrollOuter">
+                <div class="scrollInner">
+                    <div class="helpRows">
+                        <div class="colLow se_tabs commonFrame4">Taking Photos of Magical Girls<span class="panArrow"></span></div>
+                        <div class="colText">
+                            Tap the MENU button on the Home screen to hide the side menus, then tap Options to open Photo Mode.<br><br>
+                            ■ Photo Settings<br>
+                            ・<strong>Change Position</strong>: Tap to cycle the Magical Girl's display position (5 presets for single units, 8 for dual units).<br>
+                            ・<strong>Change Magical Girl</strong>: Choose which Magical Girl to photograph.<br>
+                            ・<strong>Outfits</strong>: Switch between the Magical Girl's available outfits.<br>
+                            ・<strong>Start Photo Session</strong>: Uses your device camera behind the Magical Girl (or keeps your Home background if unavailable). Tap the shutter button or use the 5-second Timer to save a photo.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+    inner.appendChild(closeX);
+    inner.appendChild(title);
+    inner.appendChild(textArea);
+    el.appendChild(inner);
+    area.appendChild(el);
+
+    applyPopupScale(inner);
+
+    const curtain = area.querySelector('#popupCurtain');
+    if (curtain) curtain.classList.add('show');
+    activePopup = {
+        kind: 'cameraHelp',
+        el,
+        canClose: true
+    };
+    bindEvents();
+}
+
 const FILTER_GROUPS = [
     { selector: '.filterAtt', dataKey: 'typeFilter', prmIndex: 2, single: false },
     { selector: '.filterRank', dataKey: 'rankfilterId', prmIndex: 3, single: false },
@@ -449,6 +602,29 @@ function onKeyDown(e) {
 
 function onPopupClick(e) {
     if (!activePopup) return;
+
+    if (activePopup.kind === 'uiHide') {
+        if (e.target.closest('.uiHidePop .decideBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            const cb = activePopup.onConfirm;
+            closeActivePopup();
+            if (cb) cb();
+            return;
+        }
+    }
+
+    if (activePopup.kind === 'cameraHelp') {
+        const rowBtn = e.target.closest('#cameraHelpPop .colLow');
+        if (rowBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const row = rowBtn.closest('.helpRows');
+            row?.querySelector('.panArrow')?.classList.toggle('on');
+            row?.querySelector('.colText')?.classList.toggle('open');
+            return;
+        }
+    }
 
     if (activePopup.kind === 'bgChanged') {
         if (e.target.closest('#bgChangePop .decideBtn')) {

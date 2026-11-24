@@ -20,12 +20,20 @@ let homeGeneration = 0;
 let homeActive = false;
 let bgSetActive = false;
 let charaTopActive = false;
+let cameraTopActive = false;
+let myPagePortraitActive = false;
+let wearOpenedWithMenuOpen = true;
+let cameraActivePresetIndex = 0;
+let cameraWearOpen = false;
+let cameraWebcamSprite = null;
+let cameraWebcamVideo = null;
 let homeSceneMounted = false;
 let homeReady = false;
 let homeRevealed = false;
 let homeNeedsRespawn = false;
 let homeLoadedCharaId = null;
 let homePendingCharaId = null;
+let homeLive2dId = '00';
 let homeTeardownPromise = null;
 let homeStopPromise = null;
 let homeRequestToken = 0;
@@ -43,6 +51,26 @@ const DEFAULT_CHARA_ID = 1001;
 const HOME_BGM_FILE = DEFAULT_HOME_BGM_FILE;
 const HOME_BACKGROUND_FILE = `bg/web/${DEFAULT_HOME_BG_FILE}`;
 const HOME_X_OFFSET = -132;
+const BG_SET_X_OFFSET = -162;
+
+const CAMERA_SINGLE_PRESETS = [
+    { x: 512, subLeft: 507 },
+    { x: 674, subLeft: 669 },
+    { x: 836, subLeft: 669 },
+    { x: 188, subLeft: 345 },
+    { x: 350, subLeft: 345 }
+];
+
+const CAMERA_DUAL_PRESETS = [
+    { dualX: [396, 632], subLeft: 507 },
+    { dualX: [516, 752], subLeft: 627 },
+    { dualX: [636, 872], subLeft: 747 },
+    { dualX: [156, 392], subLeft: 267 },
+    { dualX: [276, 512], subLeft: 387 },
+    { dualX: [316, 672], subLeft: 507 },
+    { dualX: [286, 742], subLeft: 507 },
+    { dualX: [216, 808], subLeft: 507 }
+];
 const HOME_LOGIN_SESSION_KEY = 'mrHomeLoginSeen';
 const HOME_TAP_VOICE_IDS = [33, 34, 35, 36, 37, 38, 39, 40];
 const HOME_TAP9_VOICE_ID = 41;
@@ -268,6 +296,17 @@ async function resolveBackgroundTarget(bgInput) {
     return { key, url: `${base}/bg/${dir}/${file}` };
 }
 
+function applyPortraitBgTransform(arm = bgArmature) {
+    if (!arm || arm.destroyed) return;
+    if (myPagePortraitActive && homeActive) {
+        arm.rotation = -Math.PI / 2;
+        arm.scale.set(WORLD_W / WORLD_H);
+    } else {
+        arm.rotation = 0;
+        arm.scale.set(1);
+    }
+}
+
 async function initBackground(bgInput = 'bg/web/web_0015.ExportJson', { visible = true, autoplay = true, crossfadeMs = 0 } = {}) {
     const token = ++bgLoadToken;
     const target = await resolveBackgroundTarget(bgInput);
@@ -275,6 +314,7 @@ async function initBackground(bgInput = 'bg/web/web_0015.ExportJson', { visible 
 
     if (bgArmature && currentBgKey === target.key) {
         bgArmature.visible = visible;
+        applyPortraitBgTransform(bgArmature);
         if (autoplay && !bgArmature.isPlaying && currentBgMovement !== null) {
             bgArmature.play(currentBgMovement, true);
             applyMovementScale(bgArmature);
@@ -318,7 +358,8 @@ async function initBackground(bgInput = 'bg/web/web_0015.ExportJson', { visible 
     bgArmature = armature;
     currentBgKey = target.key;
     currentBgMovement = movement;
-    armature.visible = visible;
+    armature.visible = cameraWebcamSprite ? false : visible;
+    applyPortraitBgTransform(armature);
 
     if (autoplay && movement !== null) {
         armature.play(movement, true);
@@ -609,6 +650,15 @@ function updateUILayer() {
     uiLayer.style.left = `${x}px`;
     uiLayer.style.top = `${y}px`;
     uiLayer.style.transform = `scale(${scale})`;
+
+    if (cameraWebcamVideo) {
+        const vw = (window.VIEWPORT?.viewW || WORLD_W) * scale;
+        const vh = (window.VIEWPORT?.viewH || HOME16_H) * scale;
+        cameraWebcamVideo.style.left = `${x}px`;
+        cameraWebcamVideo.style.top = `${y}px`;
+        cameraWebcamVideo.style.width = `${vw}px`;
+        cameraWebcamVideo.style.height = `${vh}px`;
+    }
 }
 
 function updateHeaderName(nameEl, charaName, charaTitle) {
@@ -1129,11 +1179,12 @@ function setWearWrapChrome(hidden) {
 }
 
 function toggleWearWrap() {
-    const wearWrap = document.getElementById('wearWrap');
+    const wearWrap = document.querySelector('#MyPage #wearWrap');
     const myPage = document.getElementById('MyPage');
     if (!wearWrap) return;
 
     if (wearWrap.classList.contains('off')) {
+        wearOpenedWithMenuOpen = document.getElementById('sideMenu')?.classList.contains('anim') ?? false;
         wearWrap.classList.remove('off');
         if (myPage) myPage.classList.add('wearing');
         setWearWrapChrome(true);
@@ -1142,22 +1193,30 @@ function toggleWearWrap() {
         wearWrap.classList.add('off');
         if (myPage) myPage.classList.remove('wearing');
         setWearWrapChrome(false);
-        // OK-close as in the game: the left column, status bar, and carousel
-        // reappear instantly (no animation), while the right-side menu
-        // reopens with the standard menu-open choreography (model respawns
-        // as a fresh instance at the center position).
         const sideMenu = document.getElementById('sideMenu');
-        if (sideMenu) {
-            sideMenu.classList.remove('close');
-            sideMenu.classList.add('anim');
-        }
-        if (typeof window.mypageMenuChoreography === 'function') {
-            window.mypageMenuChoreography(true);
-        }
-        // The banner carousel reappears with the column on OK-close; re-arm it
-        // in case a menu toggle cancelled the reveal's 120ms start (review P2).
-        if (typeof window.startBannerCarousel === 'function') {
-            window.startBannerCarousel();
+        if (myPagePortraitActive) {
+            const menu = document.getElementById('menu');
+            if (menu) menu.style.display = 'none';
+            const live2dMenu = document.getElementById('live2dMenu');
+            if (live2dMenu) live2dMenu.classList.add('show');
+        } else if (wearOpenedWithMenuOpen) {
+            if (sideMenu) {
+                sideMenu.classList.remove('close');
+                sideMenu.classList.add('anim');
+            }
+            if (typeof window.mypageMenuChoreography === 'function') {
+                window.mypageMenuChoreography(true);
+            }
+            if (typeof window.startBannerCarousel === 'function') {
+                window.startBannerCarousel();
+            }
+        } else {
+            if (sideMenu) {
+                sideMenu.classList.remove('anim');
+                sideMenu.classList.add('close');
+            }
+            const live2dMenu = document.getElementById('live2dMenu');
+            if (live2dMenu) live2dMenu.classList.add('show');
         }
     }
 }
@@ -1181,12 +1240,15 @@ async function swapMyPageOutfit(live2dIdRaw) {
     if (btn) btn.classList.add('block');
     // While the transformation plays, the wearWrap OK button is disabled
     // (grayed out) and the whole popup ignores pointer input, as in the game.
-    const wearWrap = document.getElementById('wearWrap');
+    const wearWrap = document.querySelector('#MyPage #wearWrap');
     if (wearWrap) wearWrap.classList.add('block');
 
     try {
         if (scenarioPlayer) scenarioPlayer.stop();
         const scenarioPromise = loadScenarioForOutfit(charaId, live2dId, token);
+        const isDualUnit = state.dualMode
+            || (await getDualUnitConfig(charaId, live2dId)).isDual
+            || (await getDualUnitConfig(charaId, '00')).isDual;
 
         try {
             await preloadModelToRam(modelId);
@@ -1195,11 +1257,13 @@ async function swapMyPageOutfit(live2dIdRaw) {
         }
         if (token !== outfitChangeToken) return false;
 
-        playSfx(MYPAGE_OUTFIT_SFX);
-        // Place the transformation VFX at the model's current position.
-        playTransformationEffect(state.currentModel?.x ?? MYPAGE_OUTFIT_VFX_X);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        if (token !== outfitChangeToken) return false;
+        if (!isDualUnit) {
+            playSfx(MYPAGE_OUTFIT_SFX);
+            // Place the transformation VFX at the model's current position.
+            playTransformationEffect(state.currentModel?.x ?? MYPAGE_OUTFIT_VFX_X);
+            await new Promise(resolve => setTimeout(resolve, 500));
+            if (token !== outfitChangeToken) return false;
+        }
 
         let loadedOk = false;
         try {
@@ -1218,6 +1282,7 @@ async function swapMyPageOutfit(live2dIdRaw) {
         }
 
         await scenarioPromise;
+        if (homeActive) homeLive2dId = live2dId;
         syncMyPageOutfitUI();
         return true;
     } finally {
@@ -1525,29 +1590,115 @@ window.resetDetailViewState = resetDetailViewState;
 
 let currentLoadedCharaId = null;
 
-async function loadOutfitModels(charaId, live2dId, token, allowedExpressions = null, allowedMotions = null) {
+function resolveActivePlacement(isDual) {
+    if (cameraTopActive) {
+        if (cameraWearOpen) {
+            return isDual ? { dualX: [184, 420] } : { singleX: 350 };
+        }
+        if (isDual) {
+            const preset = CAMERA_DUAL_PRESETS[cameraActivePresetIndex % CAMERA_DUAL_PRESETS.length];
+            return { dualX: preset.dualX };
+        }
+        const preset = CAMERA_SINGLE_PRESETS[cameraActivePresetIndex % CAMERA_SINGLE_PRESETS.length];
+        return { singleX: preset.x };
+    }
+    if (bgSetActive) {
+        return isDual ? { dualX: [164, 420] } : { singleX: 350 };
+    }
+    if (homeActive) {
+        if (myPagePortraitActive) {
+            return { portrait: true, singleX: 512, dualX: [512, 512] };
+        }
+        const menuClosed = document.getElementById('ui-layer')?.classList.contains('menu-closed');
+        if (menuClosed) {
+            return isDual ? { dualX: [396, 632] } : { singleX: 512 };
+        }
+        return isDual ? { dualX: [244, 480] } : { singleX: 380 };
+    }
+    return isDual ? { dualX: [104, 320] } : { singleX: 250 };
+}
+
+function applySubtitlePlacement({ isDual = state.dualMode, presetIndex } = {}) {
+    const sub = document.getElementById('subtitle');
+    if (!sub) return;
+    if (cameraTopActive) {
+        const list = isDual ? CAMERA_DUAL_PRESETS : CAMERA_SINGLE_PRESETS;
+        const idx = (presetIndex ?? cameraActivePresetIndex) % list.length;
+        sub.style.fontSize = '18px';
+        sub.style.top = '';
+        sub.style.transform = '';
+        sub.style.left = `${list[idx].subLeft}px`;
+        return;
+    }
+    if (homeActive) {
+        if (myPagePortraitActive) {
+            sub.style.fontSize = '19px';
+            sub.style.left = '710px';
+            sub.style.top = '288px';
+            sub.style.transform = 'translate(-50%, -50%) rotate(270deg)';
+            return;
+        }
+        const menuClosed = document.getElementById('ui-layer')?.classList.contains('menu-closed');
+        sub.style.fontSize = '19px';
+        sub.style.top = '';
+        sub.style.transform = '';
+        sub.style.left = menuClosed ? '507px' : (isDual ? '362px' : '377px');
+        return;
+    }
+    sub.style.fontSize = '';
+    sub.style.left = '';
+    sub.style.top = '';
+    sub.style.transform = '';
+}
+
+function applyPortraitModelTransform(model, posIndex, isDual) {
+    if (!model) return;
+    const params = model.__mrPlacement?.params || {};
+    const heightParam = Number(params.height ?? 0);
+    const portraitScale = WORLD_W / WORLD_H; // 1024 / 768 = 4/3
+    if (!model.__mrBaseScale) {
+        model.__mrBaseScale = model.scale.x;
+    }
+    model.rotation = -Math.PI / 2;
+    model.scale.set(model.__mrBaseScale * portraitScale);
+    model.x = (WORLD_W / 2) + (-1.1379321886101403 * heightParam * portraitScale);
+    model.y = isDual ? (posIndex === 0 ? 528 : 240) : (WORLD_H / 2);
+}
+
+async function loadOutfitModels(charaId, live2dId, token, allowedExpressions = null, allowedMotions = null, placementOverride = null, { startHidden = false } = {}) {
     destroyCurrentModels();
 
     const dualConfig = await getDualUnitConfig(charaId, live2dId);
     state.dualMode = dualConfig.isDual;
+    const placement = placementOverride || resolveActivePlacement(dualConfig.isDual);
 
     if (dualConfig.isDual) {
-        // Dual-unit mode (Quotes Duo preset):
-        // pos 0 (left) @ LAppView tx=216.0 + offset.x=-112.0 => x = 104.0px
-        // pos 1 (right) @ LAppView tx=432.0 + offset.x=-112.0 => x = 320.0px
         const primaryId = dualConfig.primaryId;
         const secondaryId = dualConfig.secondaryId;
         const primaryZOrder = dualConfig.primaryZOrder;
         const secondaryZOrder = dualConfig.secondaryZOrder;
-        const xOverride = !window.location.hash.startsWith('#/MyPage') ? [104, 320] : [229, 445];
+        const xOverride = placement.dualX || [104, 320];
 
-        // Load Primary Model (pos 0)
+        const preloadTasks = [];
+        if (!ramFolderCache.has(primaryId)) {
+            preloadTasks.push(preloadModelToRam(primaryId, { allowedExpressions, allowedMotions }));
+        }
+        if (!ramFolderCache.has(secondaryId)) {
+            preloadTasks.push(preloadModelToRam(secondaryId, { allowedExpressions, allowedMotions }));
+        }
+        if (preloadTasks.length > 0) {
+            await Promise.all(preloadTasks);
+            if (token !== undefined && token !== outfitChangeToken) return false;
+        }
+
+        // Load Primary Model (pos 0) hidden so both units reveal on the same frame
         await loadModel(primaryId, {
             interactive: false,
             allowedExpressions,
             allowedMotions,
             xOverride: xOverride[0],
-            zOrder: primaryZOrder
+            zOrder: primaryZOrder,
+            deferReveal: true
         });
 
         if (token !== undefined && token !== outfitChangeToken) {
@@ -1555,18 +1706,30 @@ async function loadOutfitModels(charaId, live2dId, token, allowedExpressions = n
             return false;
         }
 
-        // Load Secondary Model (pos 1)
+        // Load Secondary Model (pos 1) hidden until both are ready
         const secondaryResult = await loadAdditionalModel(secondaryId, {
             interactive: false,
             allowedExpressions,
             allowedMotions,
             xOverride: xOverride[1],
-            zOrder: secondaryZOrder
+            zOrder: secondaryZOrder,
+            deferReveal: true
         });
 
         if (token !== undefined && token !== outfitChangeToken) {
             destroyCurrentModels();
             return false;
+        }
+
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        if (token !== undefined && token !== outfitChangeToken) {
+            destroyCurrentModels();
+            return false;
+        }
+
+        if (placement.portrait) {
+            applyPortraitModelTransform(state.currentModel, 0, true);
+            applyPortraitModelTransform(secondaryResult?.model, 1, true);
         }
 
         // Build controller map for ScenarioSequencePlayer & state
@@ -1587,18 +1750,31 @@ async function loadOutfitModels(charaId, live2dId, token, allowedExpressions = n
         if (scenarioPlayer) {
             scenarioPlayer.setControllers(controllersMap, state.currentController);
         }
+
+        applySubtitlePlacement({ isDual: true });
+        if (!startHidden) {
+            if (state.currentModel) state.currentModel.visible = true;
+            if (secondaryResult?.model) secondaryResult.model.visible = true;
+        }
+        return true;
     } else {
         // Single-unit mode
         const modelId = buildModelId(charaId, live2dId);
         await loadModel(modelId, {
             interactive: false,
             allowedExpressions,
-            allowedMotions
+            allowedMotions,
+            xOverride: placement.singleX,
+            deferReveal: startHidden
         });
 
         if (token !== undefined && token !== outfitChangeToken) {
             destroyCurrentModels();
             return false;
+        }
+
+        if (placement.portrait) {
+            applyPortraitModelTransform(state.currentModel, 0, false);
         }
 
         state.currentModels.set(modelId, { model: state.currentModel, controller: state.currentController, pos: 0 });
@@ -1608,10 +1784,11 @@ async function loadOutfitModels(charaId, live2dId, token, allowedExpressions = n
             controllersMap.set(Number(modelId), state.currentController);
             scenarioPlayer.setControllers(controllersMap, state.currentController);
         }
-    }
 
-    if (state.currentModel) state.currentModel.visible = true;
-    return true;
+        applySubtitlePlacement({ isDual: false });
+        if (!startHidden && state.currentModel) state.currentModel.visible = true;
+        return true;
+    }
 }
 
 async function loadCharacterDetail(charaId) {
@@ -1913,15 +2090,11 @@ async function respawnHomeModel() {
 
 function mypageMenuChoreography(open) {
     cancelMenuChoreography();
-    // Commit the menu state before the model guard: toggling while the home
-    // model is still preloading (phase 2) must still flip menu-closed and the
-    // xOffset so a later spawn pairs the right column/center positioning with
-    // the menu's visual state instead of exposing a self-healing-on-next-toggle
-    // gap (review P4).
     const uiLayer = document.getElementById('ui-layer');
     if (uiLayer) uiLayer.classList.toggle('menu-closed', !open);
 
     window.__QUOTES_CONFIG.xOffset = open ? HOME_X_OFFSET : 0;
+    applySubtitlePlacement();
 
     if (!state.currentModel) return;
 
@@ -1932,27 +2105,27 @@ function mypageMenuChoreography(open) {
 
 window.mypageMenuChoreography = mypageMenuChoreography;
 
-async function setMyPagePortraitMode(enabled) {
-    if (!window.location.hash.startsWith('#/MyPage')) return false;
-
+async function setMyPagePortraitMode(enabled, { silent = false } = {}) {
     const portrait = Boolean(enabled);
+    if (portrait && !window.location.hash.startsWith('#/MyPage')) return false;
+
+    myPagePortraitActive = portrait;
     cancelMenuChoreography();
     scenarioPlayer?.stop();
     cancelOutfitChanges();
 
     const config = window.__QUOTES_CONFIG || (window.__QUOTES_CONFIG = {});
-    config.viewMode = portrait ? 'portrait' : 'home16';
+    config.viewMode = 'home16';
 
     const sideMenu = document.getElementById('sideMenu');
     config.xOffset = portrait
         ? 0
         : sideMenu?.classList.contains('anim') ? HOME_X_OFFSET : 0;
 
-    if (typeof window.updateViewerViewport === 'function') {
-        window.updateViewerViewport();
-    }
+    applyPortraitBgTransform(bgArmature);
+    applySubtitlePlacement();
 
-    if (!homeActive || !homeReady || !state.currentModel) return true;
+    if (silent || !homeActive || !homeReady || !state.currentModel) return true;
     await respawnHomeModel();
     return true;
 }
@@ -2014,6 +2187,11 @@ function resolveRequestedCharaId() {
 async function loadHomeScreen() {
     homeDesiredActive = true;
     bgSetActive = false;
+    charaTopActive = false;
+    cameraTopActive = false;
+    cameraWearOpen = false;
+    myPagePortraitActive = false;
+    setCameraWebcamVideo(null);
     bgPreviewToken++;
     const requestToken = ++homeRequestToken;
     while (homeTeardownPromise || homeStopPromise) {
@@ -2026,6 +2204,7 @@ async function loadHomeScreen() {
     if ((homeReady || homeLoadPromise) && (activeId == null || activeId !== requestedId)) {
         console.info(`[quotes] Home character change requested: ${activeId} -> ${requestedId}`);
         homeTapVoicePool = [...HOME_TAP_VOICE_IDS];
+        homeLive2dId = '00';
         await teardownHomeScreen({ keepBackground: true, keepBgm: true });
         if (requestToken !== homeRequestToken) return;
     }
@@ -2035,11 +2214,12 @@ async function loadHomeScreen() {
     document.getElementById('ui-layer')?.classList.add('home-mode');
     document.getElementById('ui-layer')?.classList.remove('menu-closed');
     state.currentCharacterId = requestedId;
+    if (homeReady) state.currentLive2dId = homeLive2dId;
     initMyPageOutfitWiring();
     initFavoriteCharaIcon();
-    if (!state.live2dListData || state.live2dListData.length === 0) {
-        initMetadata(requestedId).then(syncMyPageOutfitUI);
-    }
+    initMetadata(requestedId).then(() => {
+        if (homeActive && state.currentCharacterId === requestedId) syncMyPageOutfitUI();
+    });
     syncMyPageOutfitUI();
 
     const savedBg = await resolveSavedHomeBackground();
@@ -2152,7 +2332,7 @@ async function loadHomeScreen() {
             ]);
             if (!homeActive || generation !== homeGeneration) return;
 
-            const loadedOk = await loadOutfitModels(requestedId, '00', undefined, allowedExpressions, allowedMotions);
+            const loadedOk = await loadOutfitModels(requestedId, '00', undefined, allowedExpressions, allowedMotions, null, { startHidden: true });
             if (!loadedOk || !homeActive || generation !== homeGeneration) {
                 destroyCurrentModels();
                 return;
@@ -2165,6 +2345,7 @@ async function loadHomeScreen() {
             }
             homeReady = true;
             homeLoadedCharaId = requestedId;
+            homeLive2dId = '00';
             console.info('[quotes] Homescreen character and voice assets preloaded; ready for reveal.');
         } finally {
             setAssetPreloadConnecting(false);
@@ -2988,9 +3169,15 @@ async function loadCharaListTopScreen() {
     homeActive = false;
     bgSetActive = false;
     charaTopActive = true;
+    cameraTopActive = false;
+    cameraWearOpen = false;
+    myPagePortraitActive = false;
+    setCameraWebcamVideo(null);
+    applyPortraitBgTransform(bgArmature);
     homeSceneMounted = true;
     homeNeedsRespawn = true;
     document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
+    applySubtitlePlacement();
 
     const config = window.__QUOTES_CONFIG || (window.__QUOTES_CONFIG = {});
     if (previousQuotesXOffset === null) previousQuotesXOffset = config.xOffset;
@@ -3037,10 +3224,16 @@ async function loadBackgroundSetScreen() {
     homeActive = false;
     bgSetActive = true;
     charaTopActive = false;
+    cameraTopActive = false;
+    cameraWearOpen = false;
+    myPagePortraitActive = false;
+    setCameraWebcamVideo(null);
+    applyPortraitBgTransform(bgArmature);
     hideCharaTopMini();
     homeSceneMounted = true;
     homeNeedsRespawn = true;
     document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
+    applySubtitlePlacement();
 
     const requestedId = resolveRequestedCharaId();
     state.currentCharacterId = requestedId;
@@ -3049,7 +3242,7 @@ async function loadBackgroundSetScreen() {
     const config = window.__QUOTES_CONFIG || (window.__QUOTES_CONFIG = {});
     if (previousQuotesXOffset === null) previousQuotesXOffset = config.xOffset;
     config.viewMode = 'home16';
-    config.xOffset = HOME_X_OFFSET;
+    config.xOffset = BG_SET_X_OFFSET;
     if (typeof window.updateViewerViewport === 'function') {
         window.updateViewerViewport();
     }
@@ -3073,7 +3266,7 @@ async function loadBackgroundSetScreen() {
         if (requestToken !== homeRequestToken || !bgSetActive) return;
 
         destroyCurrentModels();
-        const loadedOk = await loadOutfitModels(requestedId, live2dId, undefined);
+        const loadedOk = await loadOutfitModels(requestedId, live2dId, undefined, null, null, null, { startHidden: true });
         if (!loadedOk || requestToken !== homeRequestToken || !bgSetActive) {
             if (!bgSetActive && !homeActive) destroyCurrentModels();
             return;
@@ -3094,15 +3287,250 @@ async function loadBackgroundSetScreen() {
     }
 }
 
+let cameraSpawnToken = 0;
+
+async function loadCameraTopScreen() {
+    homeDesiredActive = true;
+    const requestToken = ++homeRequestToken;
+    while (homeTeardownPromise || homeStopPromise) {
+        await (homeTeardownPromise || homeStopPromise);
+        if (requestToken !== homeRequestToken) return;
+    }
+
+    cancelMenuChoreography();
+    scenarioPlayer?.stop();
+    cancelOutfitChanges();
+    clearTimeout(live2dHoldTimer);
+    live2dHoldTimer = null;
+
+    homeActive = false;
+    bgSetActive = false;
+    charaTopActive = false;
+    cameraTopActive = true;
+    cameraActivePresetIndex = 0;
+    cameraWearOpen = false;
+    myPagePortraitActive = false;
+    setCameraWebcamVideo(null);
+    applyPortraitBgTransform(bgArmature);
+    hideCharaTopMini();
+    homeSceneMounted = true;
+    homeNeedsRespawn = true;
+    document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
+
+    const config = window.__QUOTES_CONFIG || (window.__QUOTES_CONFIG = {});
+    if (previousQuotesXOffset === null) previousQuotesXOffset = config.xOffset;
+    config.viewMode = 'home16';
+    config.xOffset = 0;
+    if (typeof window.updateViewerViewport === 'function') {
+        window.updateViewerViewport();
+    }
+
+    const savedBg = committedHomeBg || await resolveSavedHomeBackground();
+    if (requestToken !== homeRequestToken || !cameraTopActive) return;
+    committedHomeBg = savedBg;
+
+    await Promise.all([
+        initBackground(savedBg, { visible: true, autoplay: true, crossfadeMs: 300 }).catch((err) => {
+            console.warn('[quotes] CameraTop BG load failed, falling back to default:', err);
+            return initBackground(HOME_BACKGROUND_FILE, { visible: true, autoplay: true, crossfadeMs: 300 });
+        }),
+        playTrack(savedBg.bgmFile, { autoplay: true }).catch((err) => {
+            console.warn('[quotes] CameraTop BGM load failed, falling back to default:', err);
+            return playTrack(HOME_BGM_FILE, { autoplay: true }).catch(() => {});
+        })
+    ]);
+}
+
+async function spawnCameraModel({ charaId, live2dId = '00', presetIndex = 0, wearMode = false, playTransformVfx = false } = {}) {
+    if (!cameraTopActive) return null;
+    const token = ++cameraSpawnToken;
+    const cid = Number(charaId) || DEFAULT_CHARA_ID;
+    const l2d = String(live2dId || '00').padStart(2, '0');
+
+    cameraActivePresetIndex = Number(presetIndex) || 0;
+    cameraWearOpen = Boolean(wearMode);
+    state.currentCharacterId = cid;
+    state.currentLive2dId = l2d;
+
+    scenarioPlayer?.stop();
+    await ensureMetadataLoaded().catch(() => {});
+    if (token !== cameraSpawnToken || !cameraTopActive) return null;
+
+    const outfits = myPageOutfitList();
+    const modelId = buildModelId(cid, l2d);
+
+    setAssetPreloadConnecting(true);
+    try {
+        const scenarioPromise = loadScenarioForOutfit(cid, l2d);
+        const isDualUnit = state.dualMode
+            || (await getDualUnitConfig(cid, l2d)).isDual
+            || (await getDualUnitConfig(cid, '00')).isDual;
+        await preloadModelToRam(modelId);
+        if (token !== cameraSpawnToken || !cameraTopActive) return null;
+
+        if (playTransformVfx && !isDualUnit) {
+            playSfx(MYPAGE_OUTFIT_SFX);
+            playTransformationEffect(state.currentModel?.x ?? 350);
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            if (token !== cameraSpawnToken || !cameraTopActive) return null;
+        }
+
+        const loadedOk = await loadOutfitModels(cid, l2d);
+        if (!loadedOk || token !== cameraSpawnToken || !cameraTopActive) {
+            if (!cameraTopActive) destroyCurrentModels();
+            return null;
+        }
+
+        await scenarioPromise;
+        if (token !== cameraSpawnToken || !cameraTopActive) return null;
+
+        return {
+            isDual: Boolean(state.dualMode),
+            outfits
+        };
+    } finally {
+        setAssetPreloadConnecting(false);
+        document.body.classList.remove('connecting');
+    }
+}
+
+async function playCameraTapVoice(charaId, live2dId = '00', tapCount = 0) {
+    if (!cameraTopActive || !scenarioPlayer || !activeScenarioUrl) return;
+    const cid = Number(charaId) || state.currentCharacterId || DEFAULT_CHARA_ID;
+    const pool = [...HOME_TAP_VOICE_IDS];
+    if (tapCount >= 7) pool.push(HOME_TAP9_VOICE_ID);
+    const chosenId = pool[Math.floor(Math.random() * pool.length)];
+    const prefix = activeVoicePrefix || String(live2dId || '00').padStart(2, '0');
+    const voiceKey = `vo_char_${cid}_${prefix}_${String(chosenId).padStart(2, '0')}`;
+    applySubtitlePlacement({ isDual: state.dualMode });
+    scenarioPlayer.controller = state.currentController;
+    return scenarioPlayer.loadAndPlayVoice(activeScenarioUrl, voiceKey, cid);
+}
+
+function setCameraWebcamVideo(videoEl) {
+    if (cameraWebcamSprite) {
+        try {
+            if (cameraWebcamSprite.parent) cameraWebcamSprite.parent.removeChild(cameraWebcamSprite);
+            cameraWebcamSprite.destroy({ texture: true, baseTexture: true });
+        } catch {}
+        cameraWebcamSprite = null;
+    }
+    cameraWebcamVideo = videoEl || null;
+    if (videoEl && window.cameraContainer) {
+        const tex = PIXI.Texture.from(videoEl);
+        const sprite = new PIXI.Sprite(tex);
+        sprite.anchor.set(0.5, 0.5);
+        sprite.x = WORLD_W / 2;
+        sprite.y = HOME16_H / 2;
+        const vw = videoEl.videoWidth || WORLD_W;
+        const vh = videoEl.videoHeight || HOME16_H;
+        const scale = Math.max(WORLD_W / vw, HOME16_H / vh);
+        sprite.scale.set(scale);
+        window.cameraContainer.addChildAt(sprite, 0);
+        cameraWebcamSprite = sprite;
+        if (bgArmature && !bgArmature.destroyed) bgArmature.visible = false;
+    } else if (bgArmature && !bgArmature.destroyed) {
+        bgArmature.visible = true;
+    }
+    updateUILayer();
+}
+
+async function playCameraShutterSfx() {
+    try {
+        const imageBase = await getImageNativeBase();
+        const sfxUrl = `${imageBase.replace(/\/image_native\/?$/, '')}/sound_native/surround/7023_camera_hca.hca`;
+        await playSfx(sfxUrl);
+    } catch {}
+}
+
+async function captureCameraPhoto() {
+    await playCameraShutterSfx();
+    const renderer = window.app?.renderer;
+    const extract = renderer?.plugins?.extract;
+    const cam = window.cameraContainer;
+    if (!renderer || !extract || !cam) return false;
+
+    const outCanvas = document.createElement('canvas');
+    outCanvas.width = WORLD_W;
+    outCanvas.height = HOME16_H;
+    const outCtx = outCanvas.getContext('2d');
+
+    if (cameraWebcamVideo && cameraWebcamVideo.readyState >= 2) {
+        const vw = cameraWebcamVideo.videoWidth || WORLD_W;
+        const vh = cameraWebcamVideo.videoHeight || HOME16_H;
+        const scale = Math.max(WORLD_W / vw, HOME16_H / vh);
+        const dw = vw * scale;
+        const dh = vh * scale;
+        outCtx.drawImage(cameraWebcamVideo, (WORLD_W - dw) / 2, (HOME16_H - dh) / 2, dw, dh);
+    }
+
+    const prevX = cam.x;
+    const prevY = cam.y;
+    const prevSx = cam.scale.x;
+    const prevSy = cam.scale.y;
+    const prevWebcamVis = cameraWebcamSprite ? cameraWebcamSprite.visible : null;
+    if (cameraWebcamSprite) cameraWebcamSprite.visible = false;
+    cam.position.set(0, 0);
+    cam.scale.set(1, 1);
+
+    const rt = PIXI.RenderTexture.create({ width: WORLD_W, height: HOME16_H, resolution: 1 });
+    let pixiCanvas = null;
+    try {
+        renderer.render(cam, { renderTexture: rt, clear: true });
+        pixiCanvas = extract.canvas(rt);
+        outCtx.drawImage(pixiCanvas, 0, 0, WORLD_W, HOME16_H);
+    } finally {
+        rt.destroy(true);
+        cam.position.set(prevX, prevY);
+        cam.scale.set(prevSx, prevSy);
+        if (cameraWebcamSprite && prevWebcamVis !== null) {
+            cameraWebcamSprite.visible = prevWebcamVis;
+        }
+    }
+
+    const blob = await new Promise((resolve) => outCanvas.toBlob(resolve, 'image/png'));
+    if (pixiCanvas) {
+        pixiCanvas.width = 0;
+        pixiCanvas.height = 0;
+    }
+    outCanvas.width = 0;
+    outCanvas.height = 0;
+    if (!blob) return false;
+
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const url = URL.createObjectURL(blob);
+    try {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `magia-record-photo-${stamp}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    } finally {
+        URL.revokeObjectURL(url);
+    }
+    return true;
+}
+
+window.spawnCameraModel = spawnCameraModel;
+window.playCameraTapVoice = playCameraTapVoice;
+window.setCameraWebcamVideo = setCameraWebcamVideo;
+window.captureCameraPhoto = captureCameraPhoto;
+
 async function teardownHomeScreen({ keepBackground = false, keepBgm = false } = {}) {
     if (homeTeardownPromise) return homeTeardownPromise;
-    if (!homeActive && !bgSetActive && !charaTopActive && !homeSceneMounted && !homeLoadPromise) return;
+    if (!homeActive && !bgSetActive && !charaTopActive && !cameraTopActive && !homeSceneMounted && !homeLoadPromise) return;
 
     homeTeardownPromise = (async () => {
         cancelMenuChoreography();
         homeActive = false;
         bgSetActive = false;
         charaTopActive = false;
+        cameraTopActive = false;
+        cameraWearOpen = false;
+        myPagePortraitActive = false;
+        setCameraWebcamVideo(null);
+        applyPortraitBgTransform(bgArmature);
         hideCharaTopMini();
         bgPreviewToken++;
         homeReady = false;
@@ -3120,7 +3548,7 @@ async function teardownHomeScreen({ keepBackground = false, keepBgm = false } = 
         // Close any open wearWrap popup and restore the hidden global chrome
         // (leave with the popup open would otherwise keep #globalMenu/#sideMenu
         // display:none when returning to the home).
-        const wearWrap = document.getElementById('wearWrap');
+        const wearWrap = document.querySelector('#MyPage #wearWrap');
         if (wearWrap) wearWrap.classList.add('off');
         const myPage = document.getElementById('MyPage');
         if (myPage) myPage.classList.remove('wearing');
@@ -3156,7 +3584,7 @@ async function stopHomeScreen() {
     homeDesiredActive = false;
     homeRequestToken++;
     if (homeStopPromise) return homeStopPromise;
-    const wasActive = homeActive || bgSetActive || charaTopActive || homeSceneMounted || homeLoadPromise || Boolean(homeTeardownPromise);
+    const wasActive = homeActive || bgSetActive || charaTopActive || cameraTopActive || homeSceneMounted || homeLoadPromise || Boolean(homeTeardownPromise);
     homeStopPromise = (async () => {
         await teardownHomeScreen({ keepBackground: true });
         if (!wasActive || homeActive || homeDesiredActive) return;
@@ -3282,7 +3710,17 @@ async function init() {
     // instead of mutating DOM styles every animation frame on app.ticker.
     updateUILayer();
     window.addEventListener('resize', updateUILayer);
-    window.addEventListener('mrv2:viewportChange', updateUILayer);
+    window.addEventListener('mrv2:viewportChange', () => {
+        updateUILayer();
+        if (myPagePortraitActive && homeActive) {
+            if (state.dualMode) {
+                applyPortraitModelTransform(state.primaryModel || state.currentModel, 0, true);
+                applyPortraitModelTransform(state.secondaryModel, 1, true);
+            } else {
+                applyPortraitModelTransform(state.currentModel, 0, false);
+            }
+        }
+    });
 
     // Make UI layer visible now that it is correctly positioned and scaled
     const uiLayer = document.getElementById('ui-layer');
@@ -3307,7 +3745,8 @@ async function init() {
 
     const initialHomeRoute = window.location.hash.startsWith('#/MyPage')
         || window.location.hash.startsWith('#/BackgroundSet')
-        || window.location.hash.startsWith('#/CharaListTop');
+        || window.location.hash.startsWith('#/CharaListTop')
+        || window.location.hash.startsWith('#/CameraTop');
     if (!initialHomeRoute) {
         await Promise.all([
             initBackground().catch((e) => console.warn('[quotes] background error:', e)),
@@ -3320,10 +3759,10 @@ async function init() {
     setupBackBtn();
 
     window.addEventListener('hashchange', () => {
-        handleRoute(loadCharacterDetail, state, loadHomeScreen, loadBackgroundSetScreen, loadCharaListTopScreen)
+        handleRoute(loadCharacterDetail, state, loadHomeScreen, loadBackgroundSetScreen, loadCharaListTopScreen, loadCameraTopScreen)
             .catch(e => console.error('[quotes] Route change failed:', e));
     });
-    await handleRoute(loadCharacterDetail, state, loadHomeScreen, loadBackgroundSetScreen, loadCharaListTopScreen);
+    await handleRoute(loadCharacterDetail, state, loadHomeScreen, loadBackgroundSetScreen, loadCharaListTopScreen, loadCameraTopScreen);
 
     // Tap effect interaction
     window.addEventListener('pointerdown', showTapEffect, true);
@@ -3335,6 +3774,10 @@ let activeTapEffect = null;
 let activeTapTimeout = null;
 
 function showTapEffect(e) {
+    const camRoot = document.getElementById('CameraTop');
+    if (camRoot && (camRoot.classList.contains('cameraActive') || camRoot.classList.contains('shuttering'))) {
+        return;
+    }
     const camera = window.cameraContainer;
     const viewport = window.VIEWPORT;
     if (!camera || !viewport) return;

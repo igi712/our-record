@@ -7,6 +7,7 @@ import { initHomeMenu, resetHomeMenu, initGlobalMenuForPage } from './home-menu.
 import { initMyPage, resetMyPage } from './mypage.js';
 import { initBackgroundSet, resetBackgroundSet } from './background-set.js';
 import { initCharaTop, resetCharaTop } from './chara-top.js';
+import { initCameraTop, resetCameraTop } from './camera-top.js';
 
 let routeGeneration = 0;
 
@@ -29,13 +30,13 @@ async function loadRouteTemplate(path, generation, ...staleHideIds) {
     return false;
 }
 
-export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, loadBackgroundSetScreen, loadCharaListTopScreen) {
+export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, loadBackgroundSetScreen, loadCharaListTopScreen, loadCameraTopScreen) {
     const generation = ++routeGeneration;
     const hash = window.location.hash || '#/CharaCollection';
     const uiLayer = document.getElementById('ui-layer');
     if (!uiLayer) return;
 
-    const isHomeFamily = hash.startsWith('#/MyPage') || hash.startsWith('#/BackgroundSet') || hash.startsWith('#/CharaListTop');
+    const isHomeFamily = hash.startsWith('#/MyPage') || hash.startsWith('#/BackgroundSet') || hash.startsWith('#/CharaListTop') || hash.startsWith('#/CameraTop');
     if (!isHomeFamily && window.stopHomeScreen) {
         await window.stopHomeScreen();
         if (generation !== routeGeneration) return;
@@ -47,6 +48,7 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, lo
     resetMyPage();
     resetBackgroundSet();
     resetCharaTop();
+    resetCameraTop();
 
     const setupBackBtn = () => {
         const handleBack = (e) => {
@@ -89,12 +91,14 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, lo
         const cardDetailEl = document.getElementById('cardDetail');
         const bgSetEl = document.getElementById('BackgroundSet');
         const charaTopEl = document.getElementById('CharaTop');
+        const cameraTopEl = document.getElementById('CameraTop');
         const myPageEl = document.getElementById('MyPage');
         const globalBackBtn = document.getElementById('globalBackBtn');
         if (charaCollectionEl) charaCollectionEl.style.display = 'none';
         if (cardDetailEl) cardDetailEl.style.display = 'none';
         if (bgSetEl) bgSetEl.style.display = 'none';
         if (charaTopEl) charaTopEl.style.display = 'none';
+        if (cameraTopEl) cameraTopEl.style.display = 'none';
         if (homeMenuEl) homeMenuEl.style.display = 'block';
         if (myPageEl) myPageEl.style.display = 'block';
         if (globalBackBtn) globalBackBtn.style.display = 'none';
@@ -119,6 +123,7 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, lo
         const cardDetailEl = document.getElementById('cardDetail');
         const myPageEl = document.getElementById('MyPage');
         const charaTopEl = document.getElementById('CharaTop');
+        const cameraTopEl = document.getElementById('CameraTop');
         const homeMenuEl = document.getElementById('globalMenu');
         const sideMenuEl = document.getElementById('sideMenu');
         const globalBackBtn = document.getElementById('globalBackBtn');
@@ -126,6 +131,7 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, lo
         if (cardDetailEl) cardDetailEl.style.display = 'none';
         if (myPageEl) myPageEl.style.display = 'none';
         if (charaTopEl) charaTopEl.style.display = 'none';
+        if (cameraTopEl) cameraTopEl.style.display = 'none';
         if (homeMenuEl) homeMenuEl.style.display = 'none';
         if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
         if (bgSetEl) bgSetEl.style.display = 'block';
@@ -153,11 +159,13 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, lo
         const cardDetailEl = document.getElementById('cardDetail');
         const myPageEl = document.getElementById('MyPage');
         const bgSetEl = document.getElementById('BackgroundSet');
+        const cameraTopEl = document.getElementById('CameraTop');
         const globalBackBtn = document.getElementById('globalBackBtn');
         if (charaCollectionEl) charaCollectionEl.style.display = 'none';
         if (cardDetailEl) cardDetailEl.style.display = 'none';
         if (myPageEl) myPageEl.style.display = 'none';
         if (bgSetEl) bgSetEl.style.display = 'none';
+        if (cameraTopEl) cameraTopEl.style.display = 'none';
         if (homeMenuEl) homeMenuEl.style.display = 'block';
         if (charaTopEl) charaTopEl.style.display = 'block';
         if (globalBackBtn) globalBackBtn.style.display = 'block';
@@ -173,6 +181,40 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, lo
         const rawId = urlParams.get('id') || (pathMatch ? pathMatch[1] : '');
         const initialCharaId = /^\d{4}$/.test(rawId) ? Number(rawId) : undefined;
         await initCharaTop({ initialCharaId });
+    } else if (hash.startsWith('#/CameraTop')) {
+        let cameraTopEl = document.getElementById('CameraTop');
+        if (!cameraTopEl) {
+            if (!await loadRouteTemplate('magica/template/camera/CameraTop.html', generation, 'CameraTop')) return;
+            cameraTopEl = document.getElementById('CameraTop');
+        }
+
+        const charaCollectionEl = document.getElementById('CharaCollection');
+        const cardDetailEl = document.getElementById('cardDetail');
+        const myPageEl = document.getElementById('MyPage');
+        const bgSetEl = document.getElementById('BackgroundSet');
+        const charaTopEl = document.getElementById('CharaTop');
+        const homeMenuEl = document.getElementById('globalMenu');
+        const sideMenuEl = document.getElementById('sideMenu');
+        const globalBackBtn = document.getElementById('globalBackBtn');
+        if (charaCollectionEl) charaCollectionEl.style.display = 'none';
+        if (cardDetailEl) cardDetailEl.style.display = 'none';
+        if (myPageEl) myPageEl.style.display = 'none';
+        if (bgSetEl) bgSetEl.style.display = 'none';
+        if (charaTopEl) charaTopEl.style.display = 'none';
+        if (homeMenuEl) homeMenuEl.style.display = 'none';
+        if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
+        if (globalBackBtn) globalBackBtn.style.display = 'none';
+        if (cameraTopEl) cameraTopEl.style.display = 'block';
+
+        setupBackBtn();
+        if (typeof loadCameraTopScreen === 'function') {
+            await loadCameraTopScreen();
+            if (generation !== routeGeneration) return;
+        }
+        const urlParams = new URLSearchParams(hash.split('?')[1] || '');
+        const rawId = urlParams.get('id') || '';
+        const initialCharaId = /^\d{4}$/.test(rawId) ? Number(rawId) : undefined;
+        await initCameraTop({ initialCharaId });
     } else if (hash.startsWith('#/CharaCollectionDetail')) {
         let charaDetailEl = document.getElementById('cardDetail');
         if (!charaDetailEl) {
@@ -184,11 +226,13 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, lo
         const myPageEl = document.getElementById('MyPage');
         const bgSetEl = document.getElementById('BackgroundSet');
         const charaTopEl = document.getElementById('CharaTop');
+        const cameraTopEl = document.getElementById('CameraTop');
         if (charaCollectionEl) charaCollectionEl.style.display = 'none';
         if (charaDetailEl) charaDetailEl.style.display = 'block';
         if (myPageEl) myPageEl.style.display = 'none';
         if (bgSetEl) bgSetEl.style.display = 'none';
         if (charaTopEl) charaTopEl.style.display = 'none';
+        if (cameraTopEl) cameraTopEl.style.display = 'none';
         const sideMenuEl = document.getElementById('sideMenu');
         if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
         const globalBackBtn = document.getElementById('globalBackBtn');
@@ -224,6 +268,8 @@ export async function handleRoute(loadCharacterDetail, state, loadHomeScreen, lo
         if (bgSetEl) bgSetEl.style.display = 'none';
         const charaTopEl = document.getElementById('CharaTop');
         if (charaTopEl) charaTopEl.style.display = 'none';
+        const cameraTopEl = document.getElementById('CameraTop');
+        if (cameraTopEl) cameraTopEl.style.display = 'none';
         if (charaCollectionEl) charaCollectionEl.style.display = 'block';
         const globalBackBtn = document.getElementById('globalBackBtn');
         if (globalBackBtn) globalBackBtn.style.display = 'block';

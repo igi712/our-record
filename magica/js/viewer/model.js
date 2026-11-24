@@ -786,7 +786,7 @@ export async function loadModel(modelId, opts = {}) {
         setupFollowForModel(model);
     }
 
-    await transitionIn(model, controller, ctx, performFadeOut, lastMotionStart);
+    await transitionIn(model, controller, ctx, performFadeOut, lastMotionStart, opts.deferReveal);
 }
 
 // Non-destructive model loading for secondary/dual-unit models without clearing state/transitions
@@ -821,7 +821,7 @@ export async function loadAdditionalModel(modelId, opts = {}) {
         console.warn('[model] Failed to start initial motion on additional model:', e);
     }
 
-    model.visible = true;
+    model.visible = !opts.deferReveal;
     state.dualMode = true;
     return { model, controller, params, modelJson };
 }
@@ -1092,7 +1092,7 @@ function installFollowDebugInstrumentation(model) {
 }
 
 // Phase 6: wait for motion, crossfade old model (if outfit change), then fade in new model.
-async function transitionIn(model, controller, ctx, performFadeOut, lastMotionStart) {
+async function transitionIn(model, controller, ctx, performFadeOut, lastMotionStart, deferReveal = false) {
     // Wait for the chosen motion to finish loading/starting before fading in.
     try {
         if (lastMotionStart && typeof lastMotionStart.then === 'function') {
@@ -1120,6 +1120,12 @@ async function transitionIn(model, controller, ctx, performFadeOut, lastMotionSt
     }
     // --- END TRANSITION LOGIC ---
 
+    state.currentModel = model;
+    if (deferReveal) {
+        model.visible = false;
+        return;
+    }
+
     // --- FADE IN LOGIC ---
     // We use AlphaFilter because standard container.alpha often breaks with Live2D's
     // internal depth testing/culling.
@@ -1130,8 +1136,6 @@ async function transitionIn(model, controller, ctx, performFadeOut, lastMotionSt
 
     model.filters = [alphaFilter];
     model.visible = true;
-
-    state.currentModel = model;
 
     const fadeDuration = 200;
     const fadeStartTime = performance.now();

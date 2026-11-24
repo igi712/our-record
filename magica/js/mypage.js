@@ -38,7 +38,6 @@ let bannerLength = 0;
 let portraitActive = false;
 let portraitRequest = 0;
 let uiHidden = false;
-let uiHidePrompt = null;
 let uiHideRestoreTimer = null;
 let uiHideDisplayState = null;
 let live2dMenuRevealTimer = null;
@@ -203,7 +202,7 @@ function setUiHiddenDisplay(hidden) {
 
     if (hidden) {
         uiHideDisplayState = {
-            menu: menu.style.display,
+            menu: portraitActive ? '' : menu.style.display,
             live2dMenu: live2dMenu.style.display
         };
         menu.style.display = 'none';
@@ -212,7 +211,7 @@ function setUiHiddenDisplay(hidden) {
     }
 
     const displayState = uiHideDisplayState || { menu: '', live2dMenu: '' };
-    menu.style.display = displayState.menu;
+    menu.style.display = portraitActive ? 'none' : displayState.menu;
     live2dMenu.style.display = displayState.live2dMenu;
     uiHideDisplayState = null;
 }
@@ -246,47 +245,35 @@ function onUiHideLongPressEnd(e) {
     clearUiHideRestoreTimer();
 }
 
-function showUiHidePrompt() {
-    if (uiHidePrompt || uiHidden) return;
-
-    let popupArea = document.getElementById('popupArea');
-    if (!popupArea) {
-        popupArea = document.createElement('div');
-        popupArea.id = 'popupArea';
-        document.body.appendChild(popupArea);
+async function showUiHidePrompt() {
+    if (uiHidden) return;
+    try {
+        const module = await import('./popups.js');
+        if (module && typeof module.openUiHidePopup === 'function') {
+            module.openUiHidePopup({
+                portrait: portraitActive,
+                onConfirm: confirmUiHide
+            });
+        }
+    } catch (err) {
+        console.error('[mypage] UiHidePopup open failed:', err);
     }
-
-    uiHidePrompt = document.createElement('div');
-    uiHidePrompt.className = 'popupContent open uiHidePop';
-    uiHidePrompt.innerHTML = `
-        <div class="popupInner">
-            <div class="popupTextArea">
-                Hide the on-screen controls?<br><br>
-                Press and hold the screen to show them again.
-                <div class="uiHideActions">
-                    <button type="button" class="uiHideCancel">Cancel</button>
-                    <button type="button" class="uiHideConfirm">Hide</button>
-                </div>
-            </div>
-        </div>`;
-    popupArea.appendChild(uiHidePrompt);
-    uiHidePrompt.querySelector('.uiHideCancel').addEventListener('click', closeUiHidePrompt);
-    uiHidePrompt.querySelector('.uiHideConfirm').addEventListener('click', confirmUiHide);
-}
-
-function closeUiHidePrompt() {
-    if (!uiHidePrompt) return;
-    const prompt = uiHidePrompt;
-    uiHidePrompt = null;
-    prompt.classList.remove('open');
-    prompt.classList.add('close');
-    setTimeout(() => prompt.remove(), 200);
 }
 
 function confirmUiHide() {
-    closeUiHidePrompt();
     uiHidden = true;
     setUiHiddenDisplay(true);
+}
+
+function applyPortraitDomClasses(active) {
+    document.getElementById('MyPage')?.classList.toggle('portrait', active);
+    document.getElementById('live2dMenu')?.classList.toggle('portrait', active);
+    document.getElementById('wearWrap')?.classList.toggle('portrait', active);
+    document.querySelector('#MyPage .live2dArea')?.classList.toggle('portrait', active);
+    const menu = document.getElementById('menu');
+    if (menu && !uiHidden) {
+        menu.style.display = active ? 'none' : '';
+    }
 }
 
 async function togglePortrait() {
@@ -297,9 +284,7 @@ async function togglePortrait() {
     if (request !== portraitRequest || accepted === false) return;
 
     portraitActive = next;
-    document.getElementById('MyPage')?.classList.toggle('portrait', portraitActive);
-    document.getElementById('live2dMenu')?.classList.toggle('portrait', portraitActive);
-    document.getElementById('wearWrap')?.classList.toggle('portrait', portraitActive);
+    applyPortraitDomClasses(portraitActive);
 }
 
 function onPointerDown(e) {
@@ -357,6 +342,15 @@ async function openProfilePopup() {
 }
 
 function onClick(e) {
+    const cameraButton = e.target.closest('#cameraLinkBtn');
+    if (cameraButton && !uiHidden) {
+        e.preventDefault();
+        e.stopPropagation();
+        const q = window.location.hash.split('?')[1];
+        window.location.hash = q ? `#/CameraTop?${q}` : '#/CameraTop';
+        return;
+    }
+
     const portraitButton = e.target.closest('#portraitBtn');
     if (portraitButton && !uiHidden) {
         e.preventDefault();
@@ -411,17 +405,24 @@ export function initMyPage() {
 export function resetMyPage() {
     clearPress();
     bannerActive = false;
+    portraitRequest++;
     if (live2dMenuRevealTimer) {
         clearTimeout(live2dMenuRevealTimer);
         live2dMenuRevealTimer = null;
     }
     clearUiHideRestoreTimer();
-    if (uiHidePrompt) {
-        uiHidePrompt.remove();
-        uiHidePrompt = null;
-    }
     if (uiHidden) {
         uiHidden = false;
         setUiHiddenDisplay(false);
     }
+    if (portraitActive) {
+        portraitActive = false;
+        applyPortraitDomClasses(false);
+        if (typeof window.setMyPagePortraitMode === 'function') {
+            window.setMyPagePortraitMode(false, { silent: true });
+        }
+    }
+    document.getElementById('live2dMenu')?.classList.remove('show');
+    document.getElementById('MyPage')?.classList.remove('menuHide', 'menuShow', 'wearing');
+    document.querySelector('#globalMenu .user #status')?.classList.remove('myPageHide', 'myPageShow');
 }

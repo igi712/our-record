@@ -1,0 +1,1001 @@
+@charset "UTF-8";
+/* camera-top.css — Photo Mode (#/CameraTop) styles
+ * Ported from puella-historia CameraTop.css + CharaCommon.css + HelpPopup CSS.
+ */
+
+#CameraTop {
+  width: 1024px;
+  height: 576px;
+  position: relative;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+}
+
+#CameraTop * {
+  box-sizing: border-box;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+}
+
+#CameraTop ul,
+#CameraTop li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#CameraTop p {
+  margin: 0;
+  padding: 0;
+}
+
+#CameraTop #CameraPageBackLinkBtn,
+#CameraTop #cameraHelp,
+#CameraTop #posToggle,
+#CameraTop #charaChange,
+#CameraTop #changeDecide,
+#CameraTop #wearChange,
+#CameraTop #startTimer,
+#CameraTop #cameraRun,
+#CameraTop #shutter,
+#CameraTop .live2dArea,
+#CameraTop #chara,
+#CameraTop #wearWrap {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+#CameraTop #chara,
+#CameraTop #wearWrap {
+  cursor: default;
+}
+
+#CameraTop #cameraRun {
+  width: 186px;
+  height: 66px;
+  background: url("../resource/image_web/page/camera/btn_camera_start.png") top left no-repeat;
+  background-size: 100% 100%;
+  position: fixed;
+  bottom: 24px;
+  left: 25px;
+  z-index: 1001;
+}
+
+#CameraTop #cameraRun .b_screen {
+  border-radius: 30px;
+}
+
+#CameraTop #shutter {
+  width: 98px;
+  height: 98px;
+  background: url("../resource/image_web/page/camera/btn_capture.png") top left no-repeat;
+  background-size: 100% 100%;
+  position: fixed;
+  top: calc(50% - 49px);
+  left: 13px;
+  z-index: 1001;
+  display: none;
+  -webkit-animation: cameraBgFadeIn .3s ease 0s 1 normal;
+  animation: cameraBgFadeIn .3s ease 0s 1 normal;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+#CameraTop #shutter .b_screen {
+  border-radius: 49px;
+}
+
+#CameraTop #posToggle {
+  width: 88px;
+  height: 78px;
+  background: url("../resource/image_web/page/camera/btn_position.png") top left no-repeat;
+  background-size: 100% 100%;
+  position: fixed;
+  bottom: 202px;
+  right: 15px;
+  z-index: 1001;
+}
+
+#CameraTop #posToggle.off {
+  -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);
+  pointer-events: none;
+}
+
+#CameraTop #posToggle .b_screen {
+  width: 78px;
+  border-radius: 39px;
+  left: 5px;
+}
+
+#CameraTop #charaChange {
+  width: 88px;
+  height: 78px;
+  background: url("../resource/image_web/page/camera/btn_chara.png") top left no-repeat;
+  background-size: 100% 100%;
+  position: fixed;
+  bottom: 110px;
+  right: 15px;
+  z-index: 1001;
+}
+
+#CameraTop #charaChange .b_screen {
+  width: 78px;
+  border-radius: 39px;
+  left: 5px;
+}
+
+#CameraTop #changeDecide {
+  display: none;
+  position: fixed;
+  right: 21px;
+  bottom: 135px;
+  z-index: 1001;
+}
+
+#CameraTop #wearChange {
+  width: 88px;
+  height: 78px;
+  background: url("../resource/image_web/page/mypage/btn_live2d_02.png") top left no-repeat;
+  background-size: 100% 100%;
+  position: fixed;
+  bottom: 18px;
+  right: 15px;
+  z-index: 1001;
+}
+
+#CameraTop #wearChange .b_screen {
+  width: 78px;
+  border-radius: 39px;
+  left: 5px;
+}
+
+#CameraTop .live2dArea {
+  width: 824px;
+  height: calc(100% - 60px);
+  position: absolute;
+  bottom: 0;
+  left: 100px;
+  z-index: 1000;
+}
+
+#CameraTop #startTimer {
+  width: 88px;
+  height: 78px;
+  background: url("../resource/image_web/page/camera/btn_timer.png") top left no-repeat;
+  background-size: 100% 100%;
+  position: fixed;
+  bottom: 102px;
+  left: 18px;
+  z-index: 1001;
+  display: none;
+  -webkit-animation: cameraBgFadeIn .3s ease 0s 1 normal;
+  animation: cameraBgFadeIn .3s ease 0s 1 normal;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+#CameraTop #startTimer .b_screen {
+  width: 78px;
+  border-radius: 39px;
+  left: 5px;
+}
+
+#CameraTop #CameraPageBackLinkBtn {
+  width: 96px;
+  height: 65px;
+  background-image: url("../resource/image_web/common/global/global_back.png");
+  background-repeat: no-repeat;
+  background-position: right 9px;
+  background-size: 89px 43px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translateZ(0);
+  z-index: 101;
+}
+
+#CameraTop #CameraPageBackLinkBtn.off {
+  -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);
+  pointer-events: none;
+}
+
+#CameraTop #cameraHelp {
+  width: 36px;
+  height: 36px;
+  background-image: url("../resource/image_web/common/icon/icon_help.png");
+  background-size: contain;
+  display: block;
+  position: absolute;
+  top: 12px;
+  right: 36px;
+  z-index: 10000;
+}
+
+#CameraTop #uiBg {
+  width: 124px;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: none;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  -webkit-animation: cameraBgFadeIn .3s ease 0s 1 normal;
+  animation: cameraBgFadeIn .3s ease 0s 1 normal;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+#CameraTop #cameraFlash {
+  position: fixed;
+  inset: 0;
+  background: #ffffff;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 20000;
+}
+
+#CameraTop #cameraFlash.flash {
+  -webkit-animation: cameraFlashAnim 0.45s ease-out 0s 1 normal;
+  animation: cameraFlashAnim 0.45s ease-out 0s 1 normal;
+}
+
+#CameraTop.cameraActive #shutter,
+#CameraTop.cameraActive #startTimer,
+#CameraTop.cameraActive #touchArea,
+#CameraTop.cameraActive #uiBg {
+  display: block;
+}
+
+#CameraTop.cameraActive #CameraPageBackLinkBtn {
+  display: none !important;
+}
+
+#CameraTop.cameraActive #cameraRun {
+  width: 144px;
+  height: 55px;
+  background: url("../resource/image_web/page/camera/btn_camera_end.png") top left no-repeat;
+  background-size: 100% 100%;
+  position: fixed;
+  left: 0;
+  -webkit-animation: cameraBgFadeIn .3s ease 0s 1 normal;
+  animation: cameraBgFadeIn .3s ease 0s 1 normal;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+#CameraTop.cameraActive #cameraRun .b_screen {
+  border-radius: 0 26px 26px 0;
+  height: 52px;
+}
+
+#CameraTop.shuttering #cameraRun,
+#CameraTop.shuttering #shutter,
+#CameraTop.shuttering #startTimer,
+#CameraTop.shuttering #wearChange,
+#CameraTop.shuttering #posToggle,
+#CameraTop.shuttering #CameraPageBackLinkBtn,
+#CameraTop.shuttering #cameraHelp,
+#CameraTop.shuttering #charaChange,
+#CameraTop.shuttering .live2dArea,
+#CameraTop.shuttering #uiBg {
+  display: none !important;
+}
+
+#CameraTop.wearing #touchArea,
+#CameraTop.wearing #cameraRun,
+#CameraTop.wearing #shutter,
+#CameraTop.wearing #startTimer,
+#CameraTop.wearing #wearChange,
+#CameraTop.wearing #CameraPageBackLinkBtn,
+#CameraTop.wearing #cameraHelp,
+#CameraTop.wearing #posToggle,
+#CameraTop.wearing #charaChange,
+#CameraTop.wearing .live2dArea,
+#CameraTop.wearing #uiBg {
+  display: none !important;
+}
+
+#CameraTop.changing #touchArea,
+#CameraTop.changing #cameraRun,
+#CameraTop.changing #shutter,
+#CameraTop.changing #startTimer,
+#CameraTop.changing #wearChange,
+#CameraTop.changing #posToggle,
+#CameraTop.changing #charaChange,
+#CameraTop.changing .live2dArea,
+#CameraTop.changing #uiBg {
+  display: none !important;
+}
+
+#CameraTop.changing #changeDecide {
+  display: block;
+}
+
+#CameraTop #chara {
+  width: 1024px;
+  height: 108px;
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  -webkit-animation: cameraListFadeIn .3s ease-in-out 0s 1 normal;
+  animation: cameraListFadeIn .3s ease-in-out 0s 1 normal;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+#CameraTop #chara.off {
+  -webkit-animation: cameraListFadeOut .3s ease-in-out 0s 1 normal;
+  animation: cameraListFadeOut .3s ease-in-out 0s 1 normal;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+  pointer-events: none;
+}
+
+#CameraTop #chara.forceOff {
+  display: none;
+}
+
+#CameraTop #touchArea {
+  width: 1024px;
+  height: 100%;
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 999;
+}
+
+/* ===== Camera Buttons (.btn / .b_pink / .b_screen / .touch) ===== */
+#CameraTop .btn {
+  min-width: 190px;
+  height: 64px;
+  padding: 0 35px;
+  display: inline-block;
+  position: relative;
+  font-size: 20px;
+  line-height: 64px;
+  text-align: center;
+}
+
+#CameraTop .btn:before,
+#CameraTop .btn:after {
+  width: 35px;
+  height: 64px;
+  display: block;
+  position: absolute;
+  top: 0;
+  content: "";
+}
+
+#CameraTop .btn:before { left: 0; }
+#CameraTop .btn:after { right: 0; }
+
+#CameraTop .b_pink {
+  background: url("../resource/image_web/common/btn/btn_pink_c.png") center top no-repeat;
+  background-size: calc(100% - 62px) 64px;
+  color: #ffffff;
+  text-shadow: -1px -1px 2px #ff5e7c, 1px -1px 2px #ff5e7c, -1px 1px 2px #ff5e7c, 1px 1px 2px #ff5e7c, -1px -1px 2px #ff5e7c, 1px -1px 2px #ff5e7c, -1px 1px 2px #ff5e7c, 1px 1px 2px #ff5e7c;
+}
+
+#CameraTop .b_pink:before {
+  background: url("../resource/image_web/common/btn/btn_pink_l.png") left top no-repeat;
+}
+
+#CameraTop .b_pink:after {
+  background: url("../resource/image_web/common/btn/btn_pink_r.png") left top no-repeat;
+}
+
+#CameraTop .b_screen {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.4) !important;
+  display: block !important;
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  border-radius: 10px;
+  z-index: 1000000 !important;
+}
+
+#CameraTop .touch:not(.off) .b_screen {
+  opacity: 1 !important;
+}
+
+#CameraTop .TE.touch:not(.off) {
+  transform: scale(0.95) translateZ(0);
+}
+
+/* ===== Outfit Drawer (#wearWrap) ===== */
+#CameraTop #wearWrap {
+  width: 442px;
+  height: calc(100% - 140px);
+  background: linear-gradient(rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.65) 100%);
+  position: absolute;
+  top: 70px;
+  right: 17px;
+  z-index: 12000;
+  -webkit-animation: cameraWearWrapFadeIn 0.3s ease 0s 1 normal;
+  animation: cameraWearWrapFadeIn 0.3s ease 0s 1 normal;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+#CameraTop #wearWrap.off {
+  display: none;
+}
+
+#CameraTop #wearWrap.block {
+  pointer-events: none;
+}
+
+#CameraTop #wearWrap.block #cameraWearDecide {
+  -webkit-filter: grayscale(100%);
+  filter: grayscale(100%);
+}
+
+#CameraTop #wearWrap #listTitle {
+  width: calc(100% - 10px);
+  padding-left: 25px;
+  background: url("../resource/image_web/common/frame/frame_title.png") left top no-repeat;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  line-height: 32px;
+  border-radius: 15px 15px 0 0;
+}
+
+#CameraTop #wearWrap #cameraWearScrollOuter {
+  width: 413px;
+  height: calc(100% - 144px);
+  position: absolute;
+  top: 50px;
+  left: 17px;
+}
+
+#CameraTop #wearWrap #cameraWearScrollOuter .scrollInner {
+  width: 100%;
+  height: 100%;
+  padding: 3px 0 53px 10px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+#CameraTop #wearWrap #cameraWearScrollOuter .scrollInner::-webkit-scrollbar {
+  display: none;
+}
+
+#CameraTop #wearWrap #cameraWearScrollOuter .scrollInner .wrap {
+  width: 384px;
+  height: 52px;
+  margin-bottom: 14px;
+  padding-left: 56px;
+  color: #864d16;
+  font-size: 20px;
+  line-height: 48px;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+#CameraTop #wearWrap #cameraWearScrollOuter .scrollInner .wrap:before {
+  width: 34px;
+  height: 34px;
+  background: url("../resource/image_web/common/chara/icon_live2d.png") left top no-repeat;
+  display: block;
+  position: absolute;
+  top: 7px;
+  left: 10px;
+  content: "";
+}
+
+#CameraTop #wearWrap #cameraWearScrollOuter .scrollInner .wrap.current {
+  box-shadow: 0 0 0 4px #ff3b81, 0 0 5px #e1c08d inset !important;
+}
+
+#CameraTop #wearWrap #cameraWearDecide {
+  width: 190px;
+  min-width: 190px;
+  position: absolute;
+  bottom: 14px;
+  left: calc(50% - 95px);
+  z-index: 100;
+  transform: translateZ(0);
+}
+
+#CameraTop #wearWrap .bg {
+  width: 100%;
+  height: 44px;
+  background: #ffffff;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  border-radius: 0 0 30px 30px;
+}
+
+/* ===== Character Select Strip (#cameraCharaListWrap) ===== */
+#CameraTop #cameraCharaListWrap {
+  width: 1024px;
+  height: 108px;
+  position: relative;
+}
+
+#CameraTop #cameraCharaListWrap .touch {
+  filter: brightness(120%);
+}
+
+#CameraTop #cameraCharaListWrap .charaList {
+  width: 1034px;
+  height: 115px;
+  background: url("../resource/image_web/common/chara/bg_chara_list_a.png") left top no-repeat;
+  position: absolute;
+  top: 0;
+  left: -10px;
+  overflow: hidden;
+}
+
+#CameraTop #cameraCharaListWrap .charaList .charaListCaution {
+  width: 350px;
+  height: 30px;
+  position: absolute;
+  top: calc(50% - 12px);
+  left: calc(50% - 175px);
+  font-size: 20px;
+  line-height: 30px;
+  text-align: center;
+  z-index: 5;
+  pointer-events: none;
+  color: #5b5b5b;
+}
+
+#CameraTop #cameraCharaListWrap .charaList .charaListCaution.hide {
+  display: none;
+}
+
+#CameraTop #cameraCharaListWrap .charaList .charaListScrollWrap {
+  width: 830px;
+  height: 108px;
+  padding: 18px 0 0;
+  position: relative;
+  left: 28px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+}
+
+#CameraTop #cameraCharaListWrap .charaList .charaListScrollWrap::-webkit-scrollbar {
+  display: none;
+}
+
+#CameraTop #cameraCharaListWrap .charaList .charaListScrollWrap.dragging {
+  cursor: grabbing;
+}
+
+#CameraTop #cameraCharaListWrap .charaList .list {
+  width: max-content;
+  min-width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  padding-right: 10px;
+}
+
+#CameraTop #cameraCharaListWrap .charaList .list .hide {
+  display: none !important;
+}
+
+#CameraTop #cameraCharaListWrap .charaList .list li {
+  width: 78px;
+  height: 78px;
+  margin: 0 5px 0 0;
+  display: block;
+  position: relative;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+#CameraTop #cameraCharaListWrap .charaList .list li.select:after {
+  width: 53px;
+  height: 40px;
+  background: url("../resource/image_web/common/chara/icon_select.png") left top no-repeat;
+  display: block;
+  position: absolute;
+  top: calc(50% - 20px);
+  left: calc(50% - 26px);
+  content: "";
+  z-index: 12;
+  pointer-events: none;
+}
+
+#CameraTop #cameraCharaListWrap .charaList .list li.select:before {
+  width: 74px;
+  height: 74px;
+  background: radial-gradient(circle, rgba(255, 49, 74, 0.3), rgba(255, 49, 74, 0.6));
+  display: block;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  content: "";
+  border-radius: 39px;
+  z-index: 8;
+  pointer-events: none;
+}
+
+#CameraTop .userCharaIcon {
+  width: 78px;
+  height: 78px;
+  position: relative;
+}
+
+#CameraTop .userCharaIcon img {
+  width: 74px;
+  height: 74px;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  border-radius: 39px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+#CameraTop .userCharaIcon .att,
+#CameraTop .userCharaIcon .rank,
+#CameraTop .userCharaIcon .star,
+#CameraTop .userCharaIcon .bg {
+  width: 78px;
+  height: 78px;
+  background-size: 78px 78px;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+#CameraTop .userCharaIcon .bg { z-index: 1; }
+#CameraTop .userCharaIcon .rank { z-index: 8; }
+#CameraTop .userCharaIcon .star { z-index: 9; }
+#CameraTop .userCharaIcon .att { z-index: 10; }
+
+#CameraTop .userCharaIcon .lv,
+#CameraTop .userCharaIcon .atk,
+#CameraTop .userCharaIcon .def,
+#CameraTop .userCharaIcon .hp,
+#CameraTop .userCharaIcon .get,
+#CameraTop .userCharaIcon .eplv,
+#CameraTop .userCharaIcon .rev,
+#CameraTop .userCharaIcon .mlv,
+#CameraTop .userCharaIcon .enhance,
+#CameraTop .userCharaIcon .composeAttribute {
+  min-width: 18px;
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: #ffffff;
+  font-size: 14px;
+  text-align: right;
+  text-shadow: -1px -1px 1px #342510, 1px -1px 1px #342510, -1px 1px 1px #342510, 1px 1px 1px #342510, -1px 0 1px #342510, 1px 0 1px #342510, 0 -1px 1px #342510, 0 1px 1px #342510;
+  z-index: 11;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+#CameraTop .userCharaIcon .lv:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "Lvl."; }
+#CameraTop .userCharaIcon .atk:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "ATK"; }
+#CameraTop .userCharaIcon .def:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "DEF"; }
+#CameraTop .userCharaIcon .hp:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "HP"; }
+#CameraTop .userCharaIcon .eplv:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "Episode Lvl."; }
+#CameraTop .userCharaIcon .rev:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "Magic Lvl."; }
+#CameraTop .userCharaIcon .mlv:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "Magia Lvl."; }
+#CameraTop .userCharaIcon .enhance:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "Spirit"; }
+#CameraTop .userCharaIcon .composeAttribute:before { margin-right: 5px; color: #ffff99; font-size: 10px; content: "Attr."; }
+
+#CameraTop .charaListElms.sortLv .userCharaIcon .lv,
+#CameraTop .charaListElms.sortRank .userCharaIcon .lv,
+#CameraTop .charaListElms.sortAtk .userCharaIcon .atk,
+#CameraTop .charaListElms.sortDef .userCharaIcon .def,
+#CameraTop .charaListElms.sortHp .userCharaIcon .hp,
+#CameraTop .charaListElms.sortGet .userCharaIcon .get,
+#CameraTop .charaListElms.sortEplv .userCharaIcon .eplv,
+#CameraTop .charaListElms.sortRev .userCharaIcon .rev,
+#CameraTop .charaListElms.sortMlv .userCharaIcon .mlv,
+#CameraTop .charaListElms.sortEnhance .userCharaIcon .enhance,
+#CameraTop .charaListElms.sortComposeAttribute .userCharaIcon .composeAttribute {
+  display: block;
+}
+
+#CameraTop #cameraCharaListWrap .scrollIndicatorX {
+  width: 100%;
+  height: 5px;
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#CameraTop #cameraCharaListWrap .scrollIndicatorInnerX {
+  height: 5px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+#CameraTop #cameraCharaListWrap .scrollIndicatorInnerX.onScroll {
+  opacity: 1;
+}
+
+#CameraTop #cameraCharaListWrap .sortPopup,
+#CameraTop #cameraCharaListWrap .sortBtn {
+  width: 166px;
+  height: 45px;
+  padding: 0 0 0 20px;
+  background: url("../resource/image_web/common/chara/btn_chara_list_a.png") left top no-repeat;
+  display: block;
+  position: absolute;
+  color: #a47122;
+  font-size: 15px;
+  line-height: 42px;
+  text-align: left;
+  z-index: 100;
+  cursor: pointer;
+}
+
+#CameraTop #cameraCharaListWrap .sortBtn {
+  padding: 1px 0 0 16px;
+  top: 12px;
+  right: -22px;
+  font-size: 13px;
+  line-height: 39px;
+}
+
+#CameraTop #cameraCharaListWrap .orderBtn {
+  width: 48px;
+  height: 54px;
+  display: block;
+  position: absolute;
+  right: 0;
+  bottom: 61px;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+#CameraTop #cameraCharaListWrap .orderBtn.asc {
+  background: url("../resource/image_web/common/filter/btn_chara_ascending.png?v=2") left top no-repeat;
+  background-size: 48px 54px;
+}
+
+#CameraTop #cameraCharaListWrap .orderBtn.desc {
+  background: url("../resource/image_web/common/filter/btn_chara_descending.png?v=2") left top no-repeat;
+  background-size: 48px 54px;
+}
+
+#CameraTop #cameraCharaListWrap .sortPopup {
+  right: -22px;
+  bottom: 6px;
+}
+
+#CameraTop #cameraCharaListWrap .sortPopup:after {
+  width: 44px;
+  height: 24px;
+  background: url("../resource/image_web/common/filter/icon_filter_off.png") left top no-repeat;
+  display: block;
+  position: absolute;
+  top: 9px;
+  right: 26px;
+  content: "";
+}
+
+#CameraTop #cameraCharaListWrap .sortPopup.filterOn:after {
+  background: url("../resource/image_web/common/filter/icon_filter_on.png") left top no-repeat;
+}
+
+/* ===== Camera Help & Saved Popups ===== */
+#cameraSavedPop .popupInner,
+#cameraHelpPop .popupInner {
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+}
+
+#cameraSavedPop .popupCloseBtn.closeDefault,
+#cameraHelpPop .popupCloseBtn.closeDefault {
+  width: 52px;
+  height: 51px;
+  background: url("../resource/image_web/common/popup/popup_close.png") left top no-repeat;
+  display: inline-block;
+  position: absolute;
+  top: -18px;
+  right: -18px;
+  z-index: 20;
+  cursor: pointer;
+}
+
+#cameraSavedPop .popupTextArea {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+#cameraHelpPop .popupTitle {
+  font-weight: 600;
+}
+
+#cameraHelpPop .popupTextArea {
+  display: block !important;
+  width: 948px !important;
+  height: 445px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+#cameraHelpPop #HelpPopup {
+  width: 948px;
+  height: 430px;
+  margin: 10px auto 0;
+  padding: 10px 30px;
+  box-sizing: border-box;
+}
+
+#cameraHelpPop #HelpPopup .hiddenWrap {
+  width: 100%;
+  height: 100%;
+  padding: 0 15px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  box-sizing: border-box;
+}
+
+#cameraHelpPop #HelpPopup .hiddenWrap::-webkit-scrollbar {
+  display: none;
+}
+
+#cameraHelpPop #HelpPopup .hiddenWrap .scrollInner {
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  padding-top: 10px;
+}
+
+#cameraHelpPop #HelpPopup .helpRows {
+  width: 100%;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+#cameraHelpPop #HelpPopup .helpRows .colLow {
+  width: 100%;
+  height: 62px;
+  margin: 0 0 10px 0;
+  padding-left: 80px;
+  padding-right: 56px;
+  display: block;
+  position: relative;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 58px;
+  text-align: left;
+  color: #555555;
+  z-index: 10;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+#cameraHelpPop #HelpPopup .helpRows .colLow:before {
+  width: 38px;
+  height: 38px;
+  background-color: #ffb8d1;
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  color: #ffffff;
+  line-height: 38px;
+  text-align: center;
+  content: "?";
+  border-radius: 19px;
+}
+
+#cameraHelpPop #HelpPopup .helpRows .panArrow {
+  width: 40px;
+  height: 40px;
+  background-image: url("../resource/image_web/page/collection/pan_down.png");
+  background-size: 100% 100%;
+  position: absolute;
+  right: 10px;
+  bottom: calc(50% - 20px);
+}
+
+#cameraHelpPop #HelpPopup .helpRows .panArrow.on {
+  background-image: url("../resource/image_web/page/collection/pan_up.png");
+}
+
+#cameraHelpPop #HelpPopup .helpRows .colText {
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  display: none;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #555555;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+#cameraHelpPop #HelpPopup .helpRows .colText strong {
+  font-weight: 600;
+}
+
+#cameraHelpPop #HelpPopup .helpRows .colText.open {
+  display: block;
+}
+
+@-webkit-keyframes cameraListFadeOut {
+  0% { transform: translateY(0) translateZ(0); }
+  100% { transform: translateY(300px) translateZ(0); }
+}
+
+@keyframes cameraListFadeOut {
+  0% { transform: translateY(0) translateZ(0); }
+  100% { transform: translateY(300px) translateZ(0); }
+}
+
+@-webkit-keyframes cameraListFadeIn {
+  0% { transform: translateY(300px) translateZ(0); }
+  100% { transform: translateY(0px) translateZ(0); }
+}
+
+@keyframes cameraListFadeIn {
+  0% { transform: translateY(300px) translateZ(0); }
+  100% { transform: translateY(0px) translateZ(0); }
+}
+
+@-webkit-keyframes cameraBgFadeIn {
+  0% { transform: translateX(-100px) translateZ(0); }
+  100% { transform: translateX(0px) translateZ(0); }
+}
+
+@keyframes cameraBgFadeIn {
+  0% { transform: translateX(-100px) translateZ(0); }
+  100% { transform: translateX(0px) translateZ(0); }
+}
+
+@-webkit-keyframes cameraWearWrapFadeIn {
+  0% { transform: translateX(300px) translateZ(0); }
+  100% { transform: translateX(0px) translateZ(0); }
+}
+
+@keyframes cameraWearWrapFadeIn {
+  0% { transform: translateX(300px) translateZ(0); }
+  100% { transform: translateX(0px) translateZ(0); }
+}
+
+@-webkit-keyframes cameraFlashAnim {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes cameraFlashAnim {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  100% { opacity: 0; }
+}

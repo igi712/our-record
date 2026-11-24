@@ -26,6 +26,7 @@ const FILES = [
   'magica/js/home-bg.js',
   'magica/js/mypage.js',
   'magica/js/chara-top.js',
+  'magica/js/camera-top.js',
   'magica/js/background-set.js',
   'magica/js/popups.js',
   'magica/js/view-loader.js',

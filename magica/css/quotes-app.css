@@ -14,6 +14,15 @@ body {
     height: 100vh;
 }
 
+#cameraVideo {
+    position: fixed;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
+}
+
 canvas {
     display: block;
     width: 100%;
