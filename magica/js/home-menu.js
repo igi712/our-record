@@ -21,7 +21,7 @@ import { magicaUrl } from './paths.js';
 // Static demo values for the top-left player status bar.
 export const HOME_STATUS_DEMO = {
     rank: '1',
-    expRemain: 'あと 100',
+    expRemain: 'In: 100',
     expPercent: 40,
     money: '12345',
     acp: 74,

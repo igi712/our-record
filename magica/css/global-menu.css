@@ -211,7 +211,7 @@
   display: flex;
   position: absolute;
   top: 11px;
-  right: 130px;
+  left: 49px;
 }
 
 #globalMenu .user #status #exp .userRank img {

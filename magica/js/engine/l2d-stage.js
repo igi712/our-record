@@ -243,6 +243,9 @@ function modelFadeFilter(model) {
     if (!filter) {
         filter = new PIXI.filters.AlphaFilter(model.alpha ?? 1);
         filter.resolution = window.app?.renderer?.resolution ?? 1;
+        // Live2DModel.getBounds() only covers the Cubism canvas rect, which clips wide
+        // parts (e.g. Devil Homura's wings) while a filter is active. Use the full screen.
+        if (window.app?.screen) model.filterArea = window.app.screen;
         model.filters = [...(model.filters ?? []), filter];
     }
     return filter;
@@ -280,6 +283,7 @@ export function fadeModelTo(model, ms, toAlpha, onDone) {
                 if (fl) {
                     const remaining = fl.filter((f) => f !== filter);
                     model.filters = remaining.length ? remaining : null;
+                    if (!remaining.length) model.filterArea = null;
                 }
             }
             if (onDone) onDone();

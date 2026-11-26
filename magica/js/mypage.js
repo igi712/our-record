@@ -45,7 +45,7 @@ import {
 } from './engine/l2d-stage.js';
 
 export const MYPAGE_DEMO = {
-    presentCount: 5,
+    presentCount: 10,
     banners: [
         magicaUrl('resource/image_web/banner/announce/banner_0705_m.png'),
         magicaUrl('resource/image_web/banner/announce/banner_0737_m.png'),

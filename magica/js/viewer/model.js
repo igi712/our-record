@@ -473,6 +473,9 @@ function createFadeOut(appRef) {
         const filter = new PIXI.filters.AlphaFilter(1);
         // Ensure resolution matches renderer to prevent blurriness
         try { filter.resolution = appRef.renderer.resolution; } catch(e) {}
+        // Live2DModel.getBounds() only covers the Cubism canvas rect, which clips wide
+        // parts (e.g. Devil Homura's wings) while a filter is active. Use the full screen.
+        if (appRef?.screen) target.filterArea = appRef.screen;
         target.filters = [filter];
 
         const duration = 200;
@@ -1134,6 +1137,9 @@ async function transitionIn(model, controller, ctx, performFadeOut, lastMotionSt
     // FIX: Set resolution to match the renderer to prevent blurriness during the fade
     alphaFilter.resolution = app.renderer.resolution;
 
+    // Live2DModel.getBounds() only covers the Cubism canvas rect, which clips wide
+    // parts (e.g. Devil Homura's wings) while a filter is active. Use the full screen.
+    if (app?.screen) model.filterArea = app.screen;
     model.filters = [alphaFilter];
     model.visible = true;
 
@@ -1158,6 +1164,7 @@ async function transitionIn(model, controller, ctx, performFadeOut, lastMotionSt
             // Performance optimization: Remove the filter once fully visible
             // so Pixi doesn't have to render to an offscreen buffer every frame.
             model.filters = null;
+            model.filterArea = null;
         }
     }
 

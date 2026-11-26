@@ -120,9 +120,7 @@
   height: 26px;
   padding: 0 3px;
   background-color: #d22d78;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: inline;
   position: absolute;
   top: 110px;
   left: 75px;
@@ -130,9 +128,12 @@
   font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
   font-weight: 600;
   font-size: 14px;
+  line-height: 23px;
+  text-align: center;
   border: 2px solid #ffffff;
   border-radius: 12px;
   text-shadow: none;
+  box-sizing: border-box;
   z-index: 11;
 }
 
@@ -1108,6 +1109,10 @@
   top: -webkit-calc(100% - 172px);
   top: calc(100% - 172px);
   width: 110px;
+}
+
+#sideMenu #sideBigBtns .globalRegularEventBtn:not(.open):not(.extermination):not(.accomplish) ~ .eventBadgeWrap.regularevent {
+  display: none;
 }
 
 /* Measured deviation from the original (left:5px/bottom:8px): Open Sans kana
