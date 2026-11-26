@@ -349,6 +349,9 @@ export async function handleRoute() {
                 }
             });
         } else {
+            if (!document.getElementById('globalMenu')) {
+                if (!await loadRouteTemplate('template/base/GlobalMenu.html', generation, 'globalMenu', 'sideMenu')) return;
+            }
             if (!document.getElementById('CharaCollection')) {
                 if (!await loadRouteTemplate('template/collection/CharaCollection.html', generation, 'CharaCollection')) return;
             }
@@ -360,10 +363,9 @@ export async function handleRoute() {
                     document.body.classList.remove('connecting');
                     const charaCollectionEl = document.getElementById('CharaCollection');
                     const homeMenuEl = document.getElementById('globalMenu');
-                    const sideMenuEl = document.getElementById('sideMenu');
                     const globalBackBtn = document.getElementById('globalBackBtn');
-                    if (homeMenuEl) homeMenuEl.style.display = 'none';
-                    if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
+                    if (homeMenuEl) homeMenuEl.style.display = 'block';
+                    initGlobalMenuForPage({ showHelp: false });
                     if (charaCollectionEl) charaCollectionEl.style.display = 'block';
                     if (globalBackBtn) globalBackBtn.style.display = 'block';
                     setupBackBtn();

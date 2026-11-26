@@ -9,7 +9,7 @@ import { resolveSavedHomeBackground, DEFAULT_HOME_BG_FILE, DEFAULT_HOME_BGM_FILE
 import { revealHomeMenu } from './home-menu.js';
 import { getFavoriteCharaId } from './chara-top.js';
 import { setCommittedHomeBg } from './background-set.js';
-import { changeBg, showBg, hasVisibleBg, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
+import { changeBg, preloadBg, showBg, hasVisibleBg, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
 import {
     startBgm,
     playPreparedBgm,
@@ -42,7 +42,7 @@ import {
     stopVoice,
     resumeVoiceAudio,
     destroyStageModels,
-    fadeOutAndDestroyStageModels
+    clearStageModels
 } from './engine/l2d-stage.js';
 
 export const MYPAGE_DEMO = {
@@ -1026,8 +1026,30 @@ export async function enterMyPage({ onBeforeReveal, hasStageToUnload = false } =
         setCommittedHomeBg(savedBg);
 
         const hasExistingBg = hasVisibleBg();
-        const transitionTasks = [
-            changeBg(savedBg, {
+        if (hasStageToUnload) {
+            const step1Start = performance.now();
+            let bgTarget = savedBg;
+            await Promise.all([
+                preloadBg(savedBg).catch((err) => {
+                    console.warn('[mypage] Saved home background preload failed, falling back to default:', err);
+                    bgTarget = `bg/web/${DEFAULT_HOME_BG_FILE}`;
+                    return preloadBg(bgTarget).catch(() => {});
+                }),
+                startBgm(savedBg.bgmFile, { autoplay: hasExistingBg }).catch((err) => {
+                    console.warn('[mypage] Saved home BGM failed, falling back to default:', err);
+                    return startBgm(DEFAULT_HOME_BGM_FILE, { autoplay: hasExistingBg }).catch(() => {});
+                })
+            ]);
+            if (requestToken !== homeRequestToken || !homeActive || generation !== homeGeneration) return;
+
+            const elapsed = performance.now() - step1Start;
+            if (elapsed < 200) {
+                await new Promise((r) => setTimeout(r, 200 - elapsed));
+            }
+            if (requestToken !== homeRequestToken || !homeActive || generation !== homeGeneration) return;
+
+            clearStageModels();
+            await changeBg(bgTarget, {
                 visible: true,
                 autoplay: hasExistingBg,
                 crossfadeMs: hasExistingBg ? 250 : 0,
@@ -1040,16 +1062,29 @@ export async function enterMyPage({ onBeforeReveal, hasStageToUnload = false } =
                     crossfadeMs: hasExistingBg ? 250 : 0,
                     waitForCrossfade: hasExistingBg
                 });
-            }),
-            startBgm(savedBg.bgmFile, { autoplay: hasExistingBg }).catch((err) => {
-                console.warn('[mypage] Saved home BGM failed, falling back to default:', err);
-                return startBgm(DEFAULT_HOME_BGM_FILE, { autoplay: hasExistingBg }).catch(() => {});
-            })
-        ];
-        if (hasStageToUnload) {
-            transitionTasks.push(fadeOutAndDestroyStageModels(200));
+            });
+        } else {
+            await Promise.all([
+                changeBg(savedBg, {
+                    visible: true,
+                    autoplay: hasExistingBg,
+                    crossfadeMs: hasExistingBg ? 250 : 0,
+                    waitForCrossfade: hasExistingBg
+                }).catch((err) => {
+                    console.warn('[mypage] Saved home background failed, falling back to default:', err);
+                    return changeBg(`bg/web/${DEFAULT_HOME_BG_FILE}`, {
+                        visible: true,
+                        autoplay: hasExistingBg,
+                        crossfadeMs: hasExistingBg ? 250 : 0,
+                        waitForCrossfade: hasExistingBg
+                    });
+                }),
+                startBgm(savedBg.bgmFile, { autoplay: hasExistingBg }).catch((err) => {
+                    console.warn('[mypage] Saved home BGM failed, falling back to default:', err);
+                    return startBgm(DEFAULT_HOME_BGM_FILE, { autoplay: hasExistingBg }).catch(() => {});
+                })
+            ]);
         }
-        await Promise.all(transitionTasks);
         if (requestToken !== homeRequestToken || !homeActive || generation !== homeGeneration) return;
 
         setBgWebcamVideo(null);

@@ -12,7 +12,7 @@ import {
     applySubtitlePlacement,
     loadOutfitModels,
     destroyStageModels,
-    fadeOutAndDestroyStageModels,
+    clearStageModels,
     getActiveModelEntries,
     setModelFadeAlpha,
     fadeModelTo,
@@ -117,18 +117,10 @@ export async function enterCollectionTop({ onBeforeReveal, hadLive2d = false } =
     setBgWebcamVideo(null);
     setBgPortrait(false);
 
-    const step2Tasks = [
-        changeBg(ARCHIVE_BG, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((e) =>
-            console.warn('[collection-top] BG load error:', e)
-        )
-    ];
-    if (hadLive2d) {
-        step2Tasks.push(fadeOutAndDestroyStageModels(200));
-    } else {
-        stopVoice();
-        destroyStageModels();
-    }
-    await Promise.all(step2Tasks);
+    clearStageModels();
+    await changeBg(ARCHIVE_BG, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((e) =>
+        console.warn('[collection-top] BG load error:', e)
+    );
     if (token !== collectionTopRequestToken || !collectionTopActive) return;
 
     setStageContext({ mode: 'collectionTop' });

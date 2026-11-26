@@ -28,7 +28,7 @@ import {
     getScenarioPlayer,
     stopVoice,
     destroyStageModels,
-    fadeOutAndDestroyStageModels
+    clearStageModels
 } from './engine/l2d-stage.js';
 
 const CHARA_CARDS_URL = repoUrl('assets/charaCards.json');
@@ -1052,19 +1052,11 @@ export async function enterCameraTop({ initialCharaId, onBeforeReveal, hadLive2d
     setBgWebcamVideo(null);
     setBgPortrait(false);
 
-    const step2Tasks = [
-        changeBg(bgTarget, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((err) => {
-            console.warn('[camera-top] BG load failed, falling back to default:', err);
-            return changeBg(`bg/web/${DEFAULT_HOME_BG_FILE}`, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true });
-        })
-    ];
-    if (hadLive2d) {
-        step2Tasks.push(fadeOutAndDestroyStageModels(200));
-    } else {
-        stopVoice();
-        destroyStageModels();
-    }
-    await Promise.all(step2Tasks);
+    clearStageModels();
+    await changeBg(bgTarget, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((err) => {
+        console.warn('[camera-top] BG load failed, falling back to default:', err);
+        return changeBg(`bg/web/${DEFAULT_HOME_BG_FILE}`, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true });
+    });
     if (token !== cameraRequestToken || !cameraTopActive) return;
 
     setStageContext({ mode: 'camera', cameraPresetIndex: 0, cameraWearOpen: false });

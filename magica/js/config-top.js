@@ -12,9 +12,7 @@ import {
     setVoiceVolumeStep
 } from './engine/audio.js';
 import {
-    stopVoice,
-    destroyStageModels,
-    fadeOutAndDestroyStageModels
+    clearStageModels
 } from './engine/l2d-stage.js';
 import {
     getPlayerName,
@@ -151,19 +149,11 @@ export async function enterConfigTop({ onBeforeReveal, hadLive2d = false } = {})
     setBgWebcamVideo(null);
     setBgPortrait(false);
 
-    const step2Tasks = [
-        changeBg(bgTarget, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((err) => {
-            console.warn('[config-top] web_common BG failed, falling back:', err);
-            return changeBg('bg/web/web_0015.ExportJson', { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true });
-        })
-    ];
-    if (hadLive2d) {
-        step2Tasks.push(fadeOutAndDestroyStageModels(200));
-    } else {
-        stopVoice();
-        destroyStageModels();
-    }
-    await Promise.all(step2Tasks);
+    clearStageModels();
+    await changeBg(bgTarget, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((err) => {
+        console.warn('[config-top] web_common BG failed, falling back:', err);
+        return changeBg('bg/web/web_0015.ExportJson', { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true });
+    });
     if (token !== configRequestToken || !configTopActive) return;
 
     document.body.classList.remove('connecting');

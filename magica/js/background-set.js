@@ -21,7 +21,7 @@ import {
     applySubtitlePlacement,
     loadOutfitModels,
     destroyStageModels,
-    fadeOutAndDestroyStageModels,
+    clearStageModels,
     getActiveModelEntries,
     setModelFadeAlpha,
     fadeModelTo,
@@ -281,19 +281,11 @@ export async function enterBackgroundSet({ onBeforeReveal, hadLive2d = false } =
         setBgWebcamVideo(null);
         setBgPortrait(false);
 
-        const step2Tasks = [
-            changeBg(bgTarget, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((err) => {
-                console.warn('[background-set] BG load failed, falling back to default:', err);
-                return changeBg(`bg/web/${DEFAULT_HOME_BG_FILE}`, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true });
-            })
-        ];
-        if (hadLive2d) {
-            step2Tasks.push(fadeOutAndDestroyStageModels(200));
-        } else {
-            stopVoice();
-            destroyStageModels();
-        }
-        await Promise.all(step2Tasks);
+        clearStageModels();
+        await changeBg(bgTarget, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((err) => {
+            console.warn('[background-set] BG load failed, falling back to default:', err);
+            return changeBg(`bg/web/${DEFAULT_HOME_BG_FILE}`, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true });
+        });
         if (token !== bgSetRequestToken || !bgSetActive) return;
 
         setStageContext({ mode: 'bgSet' });

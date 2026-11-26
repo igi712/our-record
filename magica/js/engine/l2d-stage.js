@@ -317,33 +317,11 @@ export function hasActiveStageModels() {
     return getActiveModelEntries().some((m) => m && !m.destroyed && m.visible);
 }
 
-export function fadeOutAndDestroyStageModels(ms = 180) {
+export function clearStageModels() {
     stopVoice();
     cancelOutfitChanges();
     cancelModelFades();
-    const fadeToken = modelFadeToken;
-    const targets = getActiveModelEntries().filter((m) => m && !m.destroyed && m.visible);
-    if (targets.length === 0 || ms <= 0) {
-        destroyStageModels();
-        return Promise.resolve();
-    }
-    return new Promise((resolve) => {
-        let remaining = targets.length;
-        let cancelled = false;
-        const finishOne = (wasCancelled) => {
-            if (wasCancelled) cancelled = true;
-            remaining--;
-            if (remaining <= 0) {
-                if (!cancelled && fadeToken === modelFadeToken) {
-                    destroyStageModels();
-                }
-                resolve();
-            }
-        };
-        targets.forEach((m) => {
-            fadeModelTo(m, ms, 0, () => finishOne(false), () => finishOne(true));
-        });
-    });
+    destroyStageModels();
 }
 
 export function stopTransformationEffects() {

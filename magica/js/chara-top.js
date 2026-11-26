@@ -13,9 +13,7 @@ import {
     setStageContext,
     setStageXOffset,
     applySubtitlePlacement,
-    destroyStageModels,
-    fadeOutAndDestroyStageModels,
-    stopVoice
+    clearStageModels
 } from './engine/l2d-stage.js';
 import { state } from './viewer/model.js';
 
@@ -789,24 +787,16 @@ export async function enterCharaTop({ initialCharaId, onBeforeReveal, hadLive2d 
         if (token !== charaTopRequestToken) return;
     }
 
-    // Step 2: crossfade background while outgoing Live2D fades out and disappears.
+    // Step 2: outgoing Live2D disappears immediately as background crossfades.
     document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
     setBgWebcamVideo(null);
     setBgPortrait(false);
 
-    const step2Tasks = [
-        changeBg(bgTarget, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((err) => {
-            console.warn('[chara-top] web_common BG failed, falling back:', err);
-            return changeBg('bg/web/web_0015.ExportJson', { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true });
-        })
-    ];
-    if (hadLive2d) {
-        step2Tasks.push(fadeOutAndDestroyStageModels(200));
-    } else {
-        stopVoice();
-        destroyStageModels();
-    }
-    await Promise.all(step2Tasks);
+    clearStageModels();
+    await changeBg(bgTarget, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((err) => {
+        console.warn('[chara-top] web_common BG failed, falling back:', err);
+        return changeBg('bg/web/web_0015.ExportJson', { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true });
+    });
     if (token !== charaTopRequestToken) return;
 
     // Step 3: Connecting disappears and CharaTop UI appears.

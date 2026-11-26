@@ -22,7 +22,7 @@ import {
     getScenarioPlayer,
     stopVoice,
     destroyStageModels,
-    fadeOutAndDestroyStageModels
+    clearStageModels
 } from './engine/l2d-stage.js';
 
 const DETAIL_BG = 'bg/web/web_0015.ExportJson';
@@ -33,6 +33,7 @@ let currentLoadedCharaId = null;
 let detailVoicePrefix = '00';
 let detailScenarioUrl = '';
 let detailActive = false;
+let detailRequestToken = 0;
 
 function updateHeaderName(nameEl, charaName, charaTitle) {
     if (!nameEl || !charaName) return;
@@ -285,40 +286,34 @@ async function initDetailMetadata(charaId) {
 
 export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID, onBeforeReveal, hadLive2d = false } = {}) {
     detailActive = true;
-    const token = bumpOutfitChangeToken();
+    const reqToken = ++detailRequestToken;
 
     const step1Start = performance.now();
     await Promise.all([
         preloadBg(DETAIL_BG).catch((e) => console.warn('[detail] background preload error:', e)),
         startBgm(DETAIL_BGM, { autoplay: true }).catch((e) => console.warn('[detail] bgm error:', e))
     ]);
-    if (token !== getOutfitChangeToken() || !detailActive) return;
+    if (reqToken !== detailRequestToken || !detailActive) return;
 
     if (hadLive2d) {
         const elapsed = performance.now() - step1Start;
         if (elapsed < 200) {
             await new Promise((r) => setTimeout(r, 200 - elapsed));
         }
-        if (token !== getOutfitChangeToken() || !detailActive) return;
+        if (reqToken !== detailRequestToken || !detailActive) return;
     }
 
     document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
     setBgWebcamVideo(null);
     setBgPortrait(false);
 
-    const step2Tasks = [
-        changeBg(DETAIL_BG, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((e) =>
-            console.warn('[detail] background error:', e)
-        )
-    ];
-    if (hadLive2d) {
-        step2Tasks.push(fadeOutAndDestroyStageModels(200));
-    } else {
-        stopVoice();
-        destroyStageModels();
-    }
-    await Promise.all(step2Tasks);
-    if (token !== getOutfitChangeToken() || !detailActive) return;
+    clearStageModels();
+    await changeBg(DETAIL_BG, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((e) =>
+        console.warn('[detail] background error:', e)
+    );
+    if (reqToken !== detailRequestToken || !detailActive) return;
+
+    const token = bumpOutfitChangeToken();
 
     setStageContext({ mode: 'detail' });
     setStageXOffset(DETAIL_X_OFFSET);
@@ -351,7 +346,7 @@ export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID, o
     detailVoicePrefix = '00';
     let scenarioJson = null;
     const scenarioResult = await fetchScenarioJson(`${charaId}00.json`);
-    if (token !== getOutfitChangeToken() || !detailActive) return;
+    if (reqToken !== detailRequestToken || token !== getOutfitChangeToken() || !detailActive) return;
 
     if (scenarioResult.json) {
         scenarioJson = scenarioResult.json;
@@ -360,7 +355,7 @@ export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID, o
     }
 
     const attrs = await loadCharaAttributes();
-    if (token !== getOutfitChangeToken() || !detailActive) return;
+    if (reqToken !== detailRequestToken || token !== getOutfitChangeToken() || !detailActive) return;
 
     const attEl = document.getElementById('att');
     if (attEl) attEl.className = attrs[charaId] || 'light';
@@ -403,20 +398,20 @@ export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID, o
         )
     ]);
 
-    if (token !== getOutfitChangeToken() || !detailActive) return;
+    if (reqToken !== detailRequestToken || token !== getOutfitChangeToken() || !detailActive) return;
     document.body.classList.remove('connecting');
 
     try {
         state.currentLive2dId = '00';
         const loadedOk = await loadOutfitModels(charaId, '00', token, allowedExpressions, allowedMotions);
-        if (!loadedOk || token !== getOutfitChangeToken() || !detailActive) return;
+        if (!loadedOk || reqToken !== detailRequestToken || token !== getOutfitChangeToken() || !detailActive) return;
 
         await metadataPromise;
-        if (token !== getOutfitChangeToken() || !detailActive) return;
+        if (reqToken !== detailRequestToken || token !== getOutfitChangeToken() || !detailActive) return;
         setupOutfitButtons(charaId);
         setupVoiceButtons();
         const res = await loadScenarioForOutfit(charaId, '00', token);
-        if (token !== getOutfitChangeToken() || !detailActive) return;
+        if (reqToken !== detailRequestToken || token !== getOutfitChangeToken() || !detailActive) return;
         applyScenarioResult(charaId, res);
         setupTabs();
         setupVoiceDisplaySwitch();
@@ -427,6 +422,7 @@ export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID, o
 
 export function leaveCharaCollectionDetail({ keepStage = false } = {}) {
     detailActive = false;
+    detailRequestToken++;
     currentLoadedCharaId = null;
     resetDetailViewState({ keepStage });
     if (!keepStage) {

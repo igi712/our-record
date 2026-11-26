@@ -8,9 +8,7 @@ import {
     setStageContext,
     setStageXOffset,
     applySubtitlePlacement,
-    stopVoice,
-    destroyStageModels,
-    fadeOutAndDestroyStageModels
+    clearStageModels
 } from '../engine/l2d-stage.js';
 
 const CHARA_ATTRIBUTES_URL = repoUrl('assets/charaAttributes.json');
@@ -434,18 +432,10 @@ export async function enterCharaCollection({ onBeforeReveal, hadLive2d = false }
     setBgWebcamVideo(null);
     setBgPortrait(false);
 
-    const step2Tasks = [
-        changeBg(COLLECTION_BG, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((e) =>
-            console.warn('[chara-collection] background error:', e)
-        )
-    ];
-    if (hadLive2d) {
-        step2Tasks.push(fadeOutAndDestroyStageModels(200));
-    } else {
-        stopVoice();
-        destroyStageModels();
-    }
-    await Promise.all(step2Tasks);
+    clearStageModels();
+    await changeBg(COLLECTION_BG, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((e) =>
+        console.warn('[chara-collection] background error:', e)
+    );
     if (token !== collectionRequestToken) return;
 
     setStageContext({ mode: 'detail' });
