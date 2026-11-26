@@ -4,7 +4,7 @@ import { openFavoriteChangedPopup, openCharaFilterPopup } from './popups.js';
 import { repoUrl } from './paths.js';
 import { resolveSavedHomeBackground, DEFAULT_HOME_BGM_FILE } from './home-bg.js';
 import { getCommittedHomeBg, setCommittedHomeBg } from './background-set.js';
-import { changeBg, getImageNativeBase, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
+import { changeBg, preloadBg, getImageNativeBase, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
 import { startBgm } from './engine/audio.js';
 import { showMiniChara, hideMiniChara } from './engine/mini-chara.js';
 import { markDragScroll } from './engine/common-events.js';
@@ -14,6 +14,7 @@ import {
     setStageXOffset,
     applySubtitlePlacement,
     destroyStageModels,
+    fadeOutAndDestroyStageModels,
     stopVoice
 } from './engine/l2d-stage.js';
 import { state } from './viewer/model.js';
@@ -52,6 +53,7 @@ let iconObserver = null;
 let scrollFadeTimer = null;
 let didDragScroll = false;
 let charaTopRequestToken = 0;
+let charaSelectToken = 0;
 const iconElementsByCharaId = new Map();
 
 export function getFavoriteCharaId() {
@@ -289,7 +291,7 @@ function updateScrollIndicator() {
     scrollFadeTimer = setTimeout(() => inner.classList.remove('onScroll'), 650);
 }
 
-function applySortAndFilter(cards, nativeRoot) {
+function applySortAndFilter(cards, nativeRoot, { hydrateIcons = true } = {}) {
     const listEl = document.getElementById('charaListElms');
     const cautionEl = document.querySelector('#CharaTop .charaListCaution');
     if (!listEl) return;
@@ -312,15 +314,45 @@ function applySortAndFilter(cards, nativeRoot) {
     if (cautionEl) cautionEl.classList.toggle('hide', visibleCount > 0);
     updateSortAndFilterControls();
 
-    let hydrated = 0;
-    for (const card of sorted) {
-        const li = iconElementsByCharaId.get(card.charaId);
-        if (li && !li.classList.contains('hide')) {
-            loadCardIconAssets(li, nativeRoot);
-            if (++hydrated >= 20) break;
+    if (hydrateIcons) {
+        let hydrated = 0;
+        for (const card of sorted) {
+            const li = iconElementsByCharaId.get(card.charaId);
+            if (li && !li.classList.contains('hide')) {
+                loadCardIconAssets(li, nativeRoot);
+                if (++hydrated >= 20) break;
+            }
         }
     }
     updateScrollIndicator();
+}
+
+function hydrateVisibleIcons(listEl, scrollWrap, nativeRoot, signal) {
+    if (!listEl || !scrollWrap || signal?.aborted) return;
+
+    let hydrated = 0;
+    for (const li of listEl.querySelectorAll('li.userCharaIcon:not(.hide)')) {
+        loadCardIconAssets(li, nativeRoot);
+        if (++hydrated >= 20) break;
+    }
+
+    if (iconObserver) {
+        iconObserver.disconnect();
+        iconObserver = null;
+    }
+    iconObserver = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            loadCardIconAssets(entry.target, nativeRoot);
+            iconObserver?.unobserve(entry.target);
+        }
+    }, { root: scrollWrap, rootMargin: '240px' });
+
+    for (const li of iconElementsByCharaId.values()) {
+        if (li.dataset.loaded !== 'true') {
+            iconObserver.observe(li);
+        }
+    }
 }
 
 function renderCharaDataCard(card) {
@@ -401,21 +433,72 @@ function renderCharaDataCard(card) {
     }
 }
 
-function updateLargeCardImage(card, nativeRoot) {
+function clearLargeCardImage() {
+    const imgWrap = document.getElementById('charaImgL');
+    const imgEl = document.getElementById('charaLargeImg');
+    if (!imgWrap || !imgEl) return;
+
+    imgWrap.classList.remove('anim');
+    imgEl.onload = null;
+    imgEl.onerror = null;
+    imgEl.removeAttribute('src');
+    void imgWrap.offsetWidth;
+}
+
+async function loadLargeCardImage(card, nativeRoot, selToken) {
     const imgWrap = document.getElementById('charaImgL');
     const imgEl = document.getElementById('charaLargeImg');
     if (!imgWrap || !imgEl || !card) return;
 
-    imgWrap.classList.remove('anim');
-    imgEl.src = '';
-    void imgWrap.offsetWidth;
-    imgEl.src = `${nativeRoot}/card/image/card_${card.displayCardId}_l.png`;
+    clearLargeCardImage();
+    const src = `${nativeRoot}/card/image/card_${card.displayCardId}_l.png`;
+    const loadedOk = await new Promise((resolve) => {
+        let settled = false;
+        const done = (ok) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            imgEl.onload = null;
+            imgEl.onerror = null;
+            resolve(ok);
+        };
+        const timer = setTimeout(() => done(false), 4000);
+        imgEl.onload = () => done(true);
+        imgEl.onerror = () => done(false);
+        imgEl.src = src;
+        if (imgEl.complete && imgEl.naturalWidth > 0) done(true);
+    });
+
+    if (!loadedOk || selToken !== charaSelectToken || !activeController || activeController.signal.aborted) {
+        return;
+    }
+
     imgWrap.classList.add('anim');
+    await new Promise((resolve) => {
+        let settled = false;
+        const finish = () => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            imgWrap.removeEventListener('animationstart', onAnimStart);
+            imgWrap.removeEventListener('webkitAnimationStart', onAnimStart);
+            resolve();
+        };
+        const onAnimStart = (e) => {
+            if (!e.animationName || e.animationName === 'chara_L_frame_in') {
+                finish();
+            }
+        };
+        const timer = setTimeout(finish, 600);
+        imgWrap.addEventListener('animationstart', onAnimStart);
+        imgWrap.addEventListener('webkitAnimationStart', onAnimStart);
+    });
 }
 
-function selectChara(charaId, cardsById, nativeRoot) {
+async function selectChara(charaId, cardsById, nativeRoot) {
     const card = cardsById.get(Number(charaId));
     if (!card) return;
+    const selToken = ++charaSelectToken;
     selectedCharaId = card.charaId;
 
     iconElementsByCharaId.forEach((li, id) => {
@@ -424,7 +507,9 @@ function selectChara(charaId, cardsById, nativeRoot) {
     });
 
     renderCharaDataCard(card);
-    updateLargeCardImage(card, nativeRoot);
+    hideMiniChara();
+    await loadLargeCardImage(card, nativeRoot, selToken);
+    if (selToken !== charaSelectToken || !activeController || activeController.signal.aborted) return;
     showMiniChara(card.miniCharaNo, { standPose: getMiniCharaStandPose() });
 }
 
@@ -514,7 +599,7 @@ function pickFallbackCharaId(listEl, cards) {
     return targetLi ? Number(targetLi.dataset.charaId) : (cards[0]?.charaId ?? null);
 }
 
-export async function initCharaTop({ initialCharaId } = {}) {
+function setupCharaTopView({ cards, nativeRoot, initialCharaId }) {
     resetCharaTop();
     activeController = new AbortController();
     const { signal } = activeController;
@@ -522,10 +607,7 @@ export async function initCharaTop({ initialCharaId } = {}) {
     const rootEl = document.getElementById('CharaTop');
     const listEl = document.getElementById('charaListElms');
     const scrollWrap = document.getElementById('charaListScrollWrap');
-    if (!rootEl || !listEl || !scrollWrap) return;
-
-    const [cards, nativeRoot] = await Promise.all([loadCharaCards(), getImageNativeBase()]);
-    if (signal.aborted) return;
+    if (!rootEl || !listEl || !scrollWrap) return null;
 
     const cardsById = new Map(cards.map((c) => [c.charaId, c]));
     currentSortPrm = loadSortMemory();
@@ -533,33 +615,25 @@ export async function initCharaTop({ initialCharaId } = {}) {
     iconElementsByCharaId.clear();
     listEl.innerHTML = '';
 
-    iconObserver = new IntersectionObserver((entries) => {
-        for (const entry of entries) {
-            if (!entry.isIntersecting) continue;
-            loadCardIconAssets(entry.target, nativeRoot);
-            iconObserver?.unobserve(entry.target);
-        }
-    }, { root: scrollWrap, rootMargin: '240px' });
-
     const frag = document.createDocumentFragment();
     for (const card of cards) {
         const li = createCharaIconElement(card);
         iconElementsByCharaId.set(card.charaId, li);
         frag.appendChild(li);
-        iconObserver.observe(li);
     }
     listEl.appendChild(frag);
 
-    applySortAndFilter(cards, nativeRoot);
+    applySortAndFilter(cards, nativeRoot, { hydrateIcons: false });
 
     const requested = Number(initialCharaId);
-    if (cardsById.has(requested)) {
-        selectChara(requested, cardsById, nativeRoot);
-        scrollSelectedIntoView(requested);
-    } else {
-        const startId = pickFallbackCharaId(listEl, cards);
-        if (startId != null) selectChara(startId, cardsById, nativeRoot);
-        scrollWrap.scrollLeft = 0;
+    const startId = cardsById.has(requested) ? requested : pickFallbackCharaId(listEl, cards);
+    const initialCard = startId != null ? cardsById.get(startId) || null : null;
+    if (initialCard) {
+        selectedCharaId = initialCard.charaId;
+        iconElementsByCharaId.forEach((li, id) => {
+            li.classList.toggle('select', id === initialCard.charaId);
+        });
+        renderCharaDataCard(initialCard);
     }
 
     listEl.addEventListener('click', (e) => {
@@ -636,6 +710,14 @@ export async function initCharaTop({ initialCharaId } = {}) {
 
     setupDragScroll(scrollWrap, signal);
     setupTouchFeedback(rootEl, signal);
+
+    return {
+        initialCard,
+        requestedMatched: cardsById.has(requested),
+        listEl,
+        scrollWrap,
+        signal
+    };
 }
 
 export function resetCharaTop() {
@@ -654,45 +736,111 @@ export function resetCharaTop() {
     didDragScroll = false;
     selectedCharaId = null;
     iconElementsByCharaId.clear();
+    clearLargeCardImage();
     const listEl = document.getElementById('charaListElms');
     if (listEl) listEl.innerHTML = '';
 }
 
-export async function enterCharaTop({ initialCharaId } = {}) {
+export async function enterCharaTop({ initialCharaId, onBeforeReveal, hadLive2d = false } = {}) {
     const token = ++charaTopRequestToken;
 
-    stopVoice();
+    // Step 1: preload CharaTop assets & target background while outgoing Live2D stays & keeps speaking.
+    const step1Start = performance.now();
+    let bgTarget = CH_TOP_COMMON_BG;
+    const bgPreloadTask = preloadBg(CH_TOP_COMMON_BG).catch((err) => {
+        console.warn('[chara-top] web_common BG preload failed, falling back:', err);
+        bgTarget = 'bg/web/web_0015.ExportJson';
+        return preloadBg(bgTarget).catch(() => {});
+    });
+    const bgmTask = (async () => {
+        const savedBg = getCommittedHomeBg() || await resolveSavedHomeBackground();
+        if (token !== charaTopRequestToken) return;
+        setCommittedHomeBg(savedBg);
+        await startBgm(savedBg.bgmFile, { autoplay: true }).catch((err) => {
+            console.warn('[chara-top] BGM load failed, falling back to default:', err);
+            return startBgm(DEFAULT_HOME_BGM_FILE, { autoplay: true }).catch(() => {});
+        });
+    })();
+
+    const [cards, nativeRoot] = await Promise.all([
+        loadCharaCards(),
+        getImageNativeBase(),
+        bgPreloadTask,
+        bgmTask
+    ]);
+    if (token !== charaTopRequestToken) return;
+
+    if (hadLive2d) {
+        const elapsed = performance.now() - step1Start;
+        if (elapsed < 200) {
+            await new Promise((r) => setTimeout(r, 200 - elapsed));
+        }
+        if (token !== charaTopRequestToken) return;
+    }
+
+    // Step 2: crossfade background while outgoing Live2D fades out and disappears.
+    document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
     setBgWebcamVideo(null);
     setBgPortrait(false);
+
+    const step2Tasks = [
+        changeBg(bgTarget, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((err) => {
+            console.warn('[chara-top] web_common BG failed, falling back:', err);
+            return changeBg('bg/web/web_0015.ExportJson', { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true });
+        })
+    ];
+    if (hadLive2d) {
+        step2Tasks.push(fadeOutAndDestroyStageModels(200));
+    } else {
+        stopVoice();
+        destroyStageModels();
+    }
+    await Promise.all(step2Tasks);
+    if (token !== charaTopRequestToken) return;
+
+    // Step 3: Connecting disappears and CharaTop UI appears.
     setStageContext({ mode: 'detail' });
     setStageXOffset(HOME_X_OFFSET);
     if (typeof window.updateViewerViewport === 'function') {
         window.updateViewerViewport();
     }
     applySubtitlePlacement();
-    destroyStageModels();
 
-    const savedBg = getCommittedHomeBg() || await resolveSavedHomeBackground();
-    if (token !== charaTopRequestToken) return;
-    setCommittedHomeBg(savedBg);
+    const setupResult = setupCharaTopView({ cards, nativeRoot, initialCharaId });
+    if (typeof onBeforeReveal === 'function') {
+        onBeforeReveal();
+    }
+    if (!setupResult) return;
 
-    const bgTask = changeBg(CH_TOP_COMMON_BG, { visible: true, autoplay: true, crossfadeMs: 200 }).catch((err) => {
-        console.warn('[chara-top] web_common BG failed, falling back:', err);
-        return changeBg('bg/web/web_0015.ExportJson', { visible: true, autoplay: true, crossfadeMs: 200 });
-    });
-    const bgmTask = startBgm(savedBg.bgmFile, { autoplay: true }).catch((err) => {
-        console.warn('[chara-top] BGM load failed, falling back to default:', err);
-        return startBgm(DEFAULT_HOME_BGM_FILE, { autoplay: true }).catch(() => {});
-    });
+    const { initialCard, requestedMatched, listEl, scrollWrap, signal } = setupResult;
+    if (initialCard && requestedMatched) {
+        scrollSelectedIntoView(initialCard.charaId);
+    } else {
+        scrollWrap.scrollLeft = 0;
+    }
+    updateScrollIndicator();
 
-    await Promise.all([bgTask, bgmTask]);
-    if (token !== charaTopRequestToken) return;
+    // Step 4: load magical girls icons and the current selected splash art.
+    await new Promise((r) => requestAnimationFrame(r));
+    if (token !== charaTopRequestToken || signal.aborted) return;
 
-    await initCharaTop({ initialCharaId });
+    hydrateVisibleIcons(listEl, scrollWrap, nativeRoot, signal);
+    if (!initialCard) return;
+
+    const selectedLi = iconElementsByCharaId.get(initialCard.charaId);
+    if (selectedLi) loadCardIconAssets(selectedLi, nativeRoot);
+
+    const selToken = ++charaSelectToken;
+    await loadLargeCardImage(initialCard, nativeRoot, selToken);
+    if (token !== charaTopRequestToken || selToken !== charaSelectToken || signal.aborted) return;
+
+    // Step 5: load selected magical girl mini anime model.
+    showMiniChara(initialCard.miniCharaNo, { standPose: getMiniCharaStandPose() });
 }
 
 export function leaveCharaTop() {
     charaTopRequestToken++;
+    charaSelectToken++;
     resetCharaTop();
     hideMiniChara();
 }

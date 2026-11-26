@@ -2,7 +2,12 @@
 
 import { loadViewTemplate } from './view-loader.js';
 import { magicaUrl } from './paths.js';
-import { initHomeMenu, resetHomeMenu, initGlobalMenuForPage } from './home-menu.js';
+import {
+    initGlobalMenuForPage,
+    collapseSideMenuForTransition,
+    configureGlobalMenuForMyPage
+} from './home-menu.js';
+import { hasActiveStageModels } from './engine/l2d-stage.js';
 import { enterMyPage, leaveMyPage } from './mypage.js';
 import { enterBackgroundSet, leaveBackgroundSet } from './background-set.js';
 import { enterCharaTop, leaveCharaTop } from './chara-top.js';
@@ -29,18 +34,17 @@ function isHomeFamilyRoute(routeKey) {
         || routeKey === 'CameraTop';
 }
 
-async function loadRouteTemplate(relPath, generation, ...staleHideIds) {
+async function loadRouteTemplate(relPath, generation, ...hiddenIds) {
     const mounted = await loadViewTemplate(magicaUrl(relPath), 'ui-layer');
-    if (generation === routeGeneration) return true;
     if (mounted) {
-        for (const id of staleHideIds) {
+        for (const id of hiddenIds) {
             const el = document.getElementById(id);
             if (!el) continue;
-            if (id === 'sideMenu') el.style.visibility = 'hidden';
+            if (id === 'globalMenu' || id === 'sideMenu') el.style.visibility = 'hidden';
             else el.style.display = 'none';
         }
     }
-    return false;
+    return generation === routeGeneration;
 }
 
 function setupBackBtn() {
@@ -76,29 +80,29 @@ function hideAllViews() {
 function leaveActiveRoute(nextRouteKey) {
     switch (activeRouteKey) {
         case 'MyPage':
-            leaveMyPage({ keepHomeCache: isHomeFamilyRoute(nextRouteKey) });
+            leaveMyPage({ keepHomeCache: isHomeFamilyRoute(nextRouteKey), keepStage: true });
             break;
         case 'BackgroundSet':
-            leaveBackgroundSet();
+            leaveBackgroundSet({ keepStage: true });
             break;
         case 'CharaListTop':
             leaveCharaTop();
             break;
         case 'CameraTop':
-            leaveCameraTop();
+            leaveCameraTop({ keepStage: true });
             break;
         case 'CharaCollection':
             leaveCharaCollection();
             break;
         case 'CharaCollectionDetail':
-            leaveCharaCollectionDetail();
+            leaveCharaCollectionDetail({ keepStage: true });
             break;
         default:
             break;
     }
-    if (!isHomeFamilyRoute(nextRouteKey)) {
+    if (!isHomeFamilyRoute(nextRouteKey) && activeRouteKey !== 'MyPage') {
         // Clear any cached MyPage state when leaving the Home family entirely.
-        leaveMyPage({ keepHomeCache: false });
+        leaveMyPage({ keepHomeCache: false, keepStage: true });
     }
 }
 
@@ -109,137 +113,175 @@ export async function handleRoute() {
     const uiLayer = document.getElementById('ui-layer');
     if (!uiLayer) return;
 
+    const prevRouteKey = activeRouteKey;
     const nextRouteKey = resolveRouteKey(hash);
+    const hadLive2d = hasActiveStageModels();
+
+    // Phase 1: hide outgoing page UI immediately while keeping top global chrome & Live2D stage alive.
+    hideAllViews();
     leaveActiveRoute(nextRouteKey);
     activeRouteKey = nextRouteKey;
-    resetHomeMenu();
+    if (prevRouteKey !== null) {
+        collapseSideMenuForTransition();
+    }
 
-    if (nextRouteKey === 'MyPage') {
-        let homeMenuEl = document.getElementById('globalMenu');
-        if (!homeMenuEl) {
-            if (!await loadRouteTemplate('template/base/GlobalMenu.html', generation, 'globalMenu', 'sideMenu')) return;
-            homeMenuEl = document.getElementById('globalMenu');
+    document.body.classList.add('connecting');
+    uiLayer.classList.add('route-transitioning');
+
+    try {
+        if (nextRouteKey === 'MyPage') {
+            if (!document.getElementById('globalMenu')) {
+                if (!await loadRouteTemplate('template/base/GlobalMenu.html', generation, 'globalMenu', 'sideMenu')) return;
+            }
+            if (!document.getElementById('MyPage')) {
+                if (!await loadRouteTemplate('template/base/MyPage.html', generation, 'MyPage')) return;
+            }
+
+            await enterMyPage({
+                hasStageToUnload: hadLive2d,
+                onBeforeReveal: () => {
+                    if (generation !== routeGeneration) return;
+                    const myPageEl = document.getElementById('MyPage');
+                    const globalBackBtn = document.getElementById('globalBackBtn');
+                    if (globalBackBtn) globalBackBtn.style.display = 'none';
+                    configureGlobalMenuForMyPage();
+                    if (myPageEl) {
+                        myPageEl.style.display = 'block';
+                        myPageEl.style.visibility = 'hidden';
+                    }
+                    setupBackBtn();
+                    uiLayer.classList.remove('route-transitioning');
+                }
+            });
+        } else if (nextRouteKey === 'BackgroundSet') {
+            if (!document.getElementById('BackgroundSet')) {
+                if (!await loadRouteTemplate('template/user/BackgroundSet.html', generation, 'BackgroundSet')) return;
+            }
+
+            await enterBackgroundSet({
+                hadLive2d,
+                onBeforeReveal: () => {
+                    if (generation !== routeGeneration) return;
+                    const bgSetEl = document.getElementById('BackgroundSet');
+                    const homeMenuEl = document.getElementById('globalMenu');
+                    const sideMenuEl = document.getElementById('sideMenu');
+                    const globalBackBtn = document.getElementById('globalBackBtn');
+                    if (homeMenuEl) homeMenuEl.style.display = 'none';
+                    if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
+                    if (bgSetEl) bgSetEl.style.display = 'block';
+                    if (globalBackBtn) globalBackBtn.style.display = 'block';
+                    setupBackBtn();
+                    uiLayer.classList.remove('route-transitioning');
+                }
+            });
+        } else if (nextRouteKey === 'CharaListTop') {
+            if (!document.getElementById('globalMenu')) {
+                if (!await loadRouteTemplate('template/base/GlobalMenu.html', generation, 'globalMenu', 'sideMenu')) return;
+            }
+            if (!document.getElementById('CharaTop')) {
+                if (!await loadRouteTemplate('template/chara/CharaTop.html', generation, 'CharaTop')) return;
+            }
+
+            const urlParams = new URLSearchParams(hash.split('?')[1] || '');
+            const pathMatch = hash.match(/^#\/CharaListTop\/(\d{4})\b/);
+            const rawId = urlParams.get('id') || (pathMatch ? pathMatch[1] : '');
+            const initialCharaId = /^\d{4}$/.test(rawId) ? Number(rawId) : undefined;
+
+            await enterCharaTop({
+                initialCharaId,
+                hadLive2d,
+                onBeforeReveal: () => {
+                    if (generation !== routeGeneration) return;
+                    document.body.classList.remove('connecting');
+                    const homeMenuEl = document.getElementById('globalMenu');
+                    const charaTopEl = document.getElementById('CharaTop');
+                    const globalBackBtn = document.getElementById('globalBackBtn');
+                    if (homeMenuEl) homeMenuEl.style.display = 'block';
+                    initGlobalMenuForPage();
+                    if (charaTopEl) charaTopEl.style.display = 'block';
+                    if (globalBackBtn) globalBackBtn.style.display = 'block';
+                    setupBackBtn();
+                    uiLayer.classList.remove('route-transitioning');
+                }
+            });
+        } else if (nextRouteKey === 'CameraTop') {
+            if (!document.getElementById('CameraTop')) {
+                if (!await loadRouteTemplate('template/camera/CameraTop.html', generation, 'CameraTop')) return;
+            }
+
+            const urlParams = new URLSearchParams(hash.split('?')[1] || '');
+            const rawId = urlParams.get('id') || '';
+            const initialCharaId = /^\d{4}$/.test(rawId) ? Number(rawId) : undefined;
+
+            await enterCameraTop({
+                initialCharaId,
+                hadLive2d,
+                onBeforeReveal: () => {
+                    if (generation !== routeGeneration) return;
+                    const cameraTopEl = document.getElementById('CameraTop');
+                    const homeMenuEl = document.getElementById('globalMenu');
+                    const sideMenuEl = document.getElementById('sideMenu');
+                    const globalBackBtn = document.getElementById('globalBackBtn');
+                    if (homeMenuEl) homeMenuEl.style.display = 'none';
+                    if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
+                    if (globalBackBtn) globalBackBtn.style.display = 'none';
+                    if (cameraTopEl) cameraTopEl.style.display = 'block';
+                    setupBackBtn();
+                    uiLayer.classList.remove('route-transitioning');
+                }
+            });
+        } else if (nextRouteKey === 'CharaCollectionDetail') {
+            if (!document.getElementById('cardDetail')) {
+                if (!await loadRouteTemplate('template/collection/CharaCollectionDetail.html', generation, 'cardDetail')) return;
+            }
+
+            const urlParams = new URLSearchParams(hash.split('?')[1] || '');
+            const charaId = Number(urlParams.get('id')) || 1001;
+
+            await enterCharaCollectionDetail({
+                charaId,
+                hadLive2d,
+                onBeforeReveal: () => {
+                    if (generation !== routeGeneration) return;
+                    const charaDetailEl = document.getElementById('cardDetail');
+                    const homeMenuEl = document.getElementById('globalMenu');
+                    const sideMenuEl = document.getElementById('sideMenu');
+                    const globalBackBtn = document.getElementById('globalBackBtn');
+                    if (homeMenuEl) homeMenuEl.style.display = 'none';
+                    if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
+                    if (charaDetailEl) charaDetailEl.style.display = 'block';
+                    if (globalBackBtn) globalBackBtn.style.display = 'block';
+                    setupBackBtn();
+                    uiLayer.classList.remove('route-transitioning');
+                }
+            });
+        } else {
+            if (!document.getElementById('CharaCollection')) {
+                if (!await loadRouteTemplate('template/collection/CharaCollection.html', generation, 'CharaCollection')) return;
+            }
+
+            await enterCharaCollection({
+                hadLive2d,
+                onBeforeReveal: () => {
+                    if (generation !== routeGeneration) return;
+                    document.body.classList.remove('connecting');
+                    const charaCollectionEl = document.getElementById('CharaCollection');
+                    const homeMenuEl = document.getElementById('globalMenu');
+                    const sideMenuEl = document.getElementById('sideMenu');
+                    const globalBackBtn = document.getElementById('globalBackBtn');
+                    if (homeMenuEl) homeMenuEl.style.display = 'none';
+                    if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
+                    if (charaCollectionEl) charaCollectionEl.style.display = 'block';
+                    if (globalBackBtn) globalBackBtn.style.display = 'block';
+                    setupBackBtn();
+                    uiLayer.classList.remove('route-transitioning');
+                }
+            });
         }
-        if (homeMenuEl) homeMenuEl.style.visibility = 'hidden';
-        const sideMenuEl = document.getElementById('sideMenu');
-        if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
-        if (!await loadRouteTemplate('template/base/MyPage.html', generation, 'MyPage')) return;
-
-        hideAllViews();
-        const myPageEl = document.getElementById('MyPage');
-        const globalBackBtn = document.getElementById('globalBackBtn');
-        if (homeMenuEl) homeMenuEl.style.display = 'block';
-        if (myPageEl) {
-            myPageEl.style.display = 'block';
-            myPageEl.style.visibility = 'hidden';
+    } finally {
+        if (generation === routeGeneration) {
+            uiLayer.classList.remove('route-transitioning');
         }
-        if (globalBackBtn) globalBackBtn.style.display = 'none';
-
-        setupBackBtn();
-        initHomeMenu();
-        await enterMyPage();
-    } else if (nextRouteKey === 'BackgroundSet') {
-        let bgSetEl = document.getElementById('BackgroundSet');
-        if (!bgSetEl) {
-            if (!await loadRouteTemplate('template/user/BackgroundSet.html', generation, 'BackgroundSet')) return;
-            bgSetEl = document.getElementById('BackgroundSet');
-        }
-
-        hideAllViews();
-        const homeMenuEl = document.getElementById('globalMenu');
-        const sideMenuEl = document.getElementById('sideMenu');
-        const globalBackBtn = document.getElementById('globalBackBtn');
-        if (homeMenuEl) homeMenuEl.style.display = 'none';
-        if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
-        if (bgSetEl) bgSetEl.style.display = 'block';
-        if (globalBackBtn) globalBackBtn.style.display = 'block';
-
-        setupBackBtn();
-        await enterBackgroundSet();
-    } else if (nextRouteKey === 'CharaListTop') {
-        let homeMenuEl = document.getElementById('globalMenu');
-        if (!homeMenuEl) {
-            if (!await loadRouteTemplate('template/base/GlobalMenu.html', generation, 'globalMenu', 'sideMenu')) return;
-            homeMenuEl = document.getElementById('globalMenu');
-        }
-        let charaTopEl = document.getElementById('CharaTop');
-        if (!charaTopEl) {
-            if (!await loadRouteTemplate('template/chara/CharaTop.html', generation, 'CharaTop')) return;
-            charaTopEl = document.getElementById('CharaTop');
-        }
-
-        hideAllViews();
-        const globalBackBtn = document.getElementById('globalBackBtn');
-        if (homeMenuEl) homeMenuEl.style.display = 'block';
-        if (charaTopEl) charaTopEl.style.display = 'block';
-        if (globalBackBtn) globalBackBtn.style.display = 'block';
-
-        setupBackBtn();
-        initGlobalMenuForPage();
-        const urlParams = new URLSearchParams(hash.split('?')[1] || '');
-        const pathMatch = hash.match(/^#\/CharaListTop\/(\d{4})\b/);
-        const rawId = urlParams.get('id') || (pathMatch ? pathMatch[1] : '');
-        const initialCharaId = /^\d{4}$/.test(rawId) ? Number(rawId) : undefined;
-        await enterCharaTop({ initialCharaId });
-    } else if (nextRouteKey === 'CameraTop') {
-        let cameraTopEl = document.getElementById('CameraTop');
-        if (!cameraTopEl) {
-            if (!await loadRouteTemplate('template/camera/CameraTop.html', generation, 'CameraTop')) return;
-            cameraTopEl = document.getElementById('CameraTop');
-        }
-
-        hideAllViews();
-        const homeMenuEl = document.getElementById('globalMenu');
-        const sideMenuEl = document.getElementById('sideMenu');
-        const globalBackBtn = document.getElementById('globalBackBtn');
-        if (homeMenuEl) homeMenuEl.style.display = 'none';
-        if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
-        if (globalBackBtn) globalBackBtn.style.display = 'none';
-        if (cameraTopEl) cameraTopEl.style.display = 'block';
-
-        setupBackBtn();
-        const urlParams = new URLSearchParams(hash.split('?')[1] || '');
-        const rawId = urlParams.get('id') || '';
-        const initialCharaId = /^\d{4}$/.test(rawId) ? Number(rawId) : undefined;
-        await enterCameraTop({ initialCharaId });
-    } else if (nextRouteKey === 'CharaCollectionDetail') {
-        let charaDetailEl = document.getElementById('cardDetail');
-        if (!charaDetailEl) {
-            if (!await loadRouteTemplate('template/collection/CharaCollectionDetail.html', generation, 'cardDetail')) return;
-            charaDetailEl = document.getElementById('cardDetail');
-        }
-
-        hideAllViews();
-        const homeMenuEl = document.getElementById('globalMenu');
-        const sideMenuEl = document.getElementById('sideMenu');
-        const globalBackBtn = document.getElementById('globalBackBtn');
-        if (homeMenuEl) homeMenuEl.style.display = 'none';
-        if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
-        if (charaDetailEl) charaDetailEl.style.display = 'block';
-        if (globalBackBtn) globalBackBtn.style.display = 'block';
-
-        setupBackBtn();
-        const urlParams = new URLSearchParams(hash.split('?')[1] || '');
-        const charaId = Number(urlParams.get('id')) || 1001;
-        await enterCharaCollectionDetail({ charaId });
-    } else {
-        let charaCollectionEl = document.getElementById('CharaCollection');
-        if (!charaCollectionEl) {
-            if (!await loadRouteTemplate('template/collection/CharaCollection.html', generation, 'CharaCollection')) return;
-            charaCollectionEl = document.getElementById('CharaCollection');
-        }
-
-        hideAllViews();
-        const homeMenuEl = document.getElementById('globalMenu');
-        const sideMenuEl = document.getElementById('sideMenu');
-        const globalBackBtn = document.getElementById('globalBackBtn');
-        if (homeMenuEl) homeMenuEl.style.display = 'none';
-        if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
-        if (charaCollectionEl) charaCollectionEl.style.display = 'block';
-        if (globalBackBtn) globalBackBtn.style.display = 'block';
-
-        setupBackBtn();
-        await enterCharaCollection();
     }
 }
 

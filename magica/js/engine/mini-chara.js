@@ -597,6 +597,8 @@ export async function showMiniChara(miniCharaNo, options = {}) {
         return;
     }
 
+    destroyMiniCharacterOnly();
+
     try {
         const assets = await getMiniAssets(key);
         if (token !== miniLoadToken || !miniStageActive || !layer || layer.destroyed) return;

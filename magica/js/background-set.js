@@ -11,7 +11,7 @@ import {
 } from './home-bg.js';
 import { state } from './viewer/model.js';
 import { setAssetPreloadConnecting } from './viewer/model-assets.js';
-import { changeBg, prefetchBg, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
+import { changeBg, preloadBg, prefetchBg, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
 import { startBgm, prefetchBgm, hasActiveBgmPlayer } from './engine/audio.js';
 import {
     DEFAULT_CHARA_ID,
@@ -21,6 +21,7 @@ import {
     applySubtitlePlacement,
     loadOutfitModels,
     destroyStageModels,
+    fadeOutAndDestroyStageModels,
     getActiveModelEntries,
     setModelFadeAlpha,
     fadeModelTo,
@@ -238,37 +239,28 @@ export function resetBackgroundSet() {
     prefetchTimer = null;
 }
 
-export async function enterBackgroundSet() {
+export async function enterBackgroundSet({ onBeforeReveal, hadLive2d = false } = {}) {
     bgSetActive = true;
     const token = ++bgSetRequestToken;
-
-    stopVoice();
-    setBgWebcamVideo(null);
-    setBgPortrait(false);
-    setStageContext({ mode: 'bgSet' });
-    setStageXOffset(BG_SET_X_OFFSET);
-    if (typeof window.updateViewerViewport === 'function') {
-        window.updateViewerViewport();
-    }
-    applySubtitlePlacement();
 
     const requestedId = resolveRequestedCharaId();
     state.currentCharacterId = requestedId;
     const live2dId = String(state.currentLive2dId ?? '00').padStart(2, '0');
 
-    await initBackgroundSet();
-    if (token !== bgSetRequestToken || !bgSetActive) return;
-
-    const savedBg = committedHomeBg || await resolveSavedHomeBackground();
-    if (token !== bgSetRequestToken || !bgSetActive) return;
-    committedHomeBg = savedBg;
-
     setAssetPreloadConnecting(true);
     try {
+        const step1Start = performance.now();
+        const savedBg = committedHomeBg || await resolveSavedHomeBackground();
+        if (token !== bgSetRequestToken || !bgSetActive) return;
+        committedHomeBg = savedBg;
+
+        let bgTarget = savedBg;
         await Promise.all([
-            changeBg(savedBg, { visible: true, autoplay: true, crossfadeMs: 200 }).catch((err) => {
-                console.warn('[background-set] BG load failed, falling back to default:', err);
-                return changeBg(`bg/web/${DEFAULT_HOME_BG_FILE}`, { visible: true, autoplay: true, crossfadeMs: 200 });
+            loadHomeBackgroundList(),
+            preloadBg(savedBg).catch((err) => {
+                console.warn('[background-set] BG preload failed, falling back to default:', err);
+                bgTarget = `bg/web/${DEFAULT_HOME_BG_FILE}`;
+                return preloadBg(bgTarget).catch(() => {});
             }),
             startBgm(savedBg.bgmFile, { autoplay: true }).catch((err) => {
                 console.warn('[background-set] BGM load failed, falling back to default:', err);
@@ -277,7 +269,46 @@ export async function enterBackgroundSet() {
         ]);
         if (token !== bgSetRequestToken || !bgSetActive) return;
 
-        destroyStageModels();
+        if (hadLive2d) {
+            const elapsed = performance.now() - step1Start;
+            if (elapsed < 200) {
+                await new Promise((r) => setTimeout(r, 200 - elapsed));
+            }
+            if (token !== bgSetRequestToken || !bgSetActive) return;
+        }
+
+        document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
+        setBgWebcamVideo(null);
+        setBgPortrait(false);
+
+        const step2Tasks = [
+            changeBg(bgTarget, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((err) => {
+                console.warn('[background-set] BG load failed, falling back to default:', err);
+                return changeBg(`bg/web/${DEFAULT_HOME_BG_FILE}`, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true });
+            })
+        ];
+        if (hadLive2d) {
+            step2Tasks.push(fadeOutAndDestroyStageModels(200));
+        } else {
+            stopVoice();
+            destroyStageModels();
+        }
+        await Promise.all(step2Tasks);
+        if (token !== bgSetRequestToken || !bgSetActive) return;
+
+        setStageContext({ mode: 'bgSet' });
+        setStageXOffset(BG_SET_X_OFFSET);
+        if (typeof window.updateViewerViewport === 'function') {
+            window.updateViewerViewport();
+        }
+        applySubtitlePlacement();
+
+        await initBackgroundSet();
+        if (token !== bgSetRequestToken || !bgSetActive) return;
+        if (typeof onBeforeReveal === 'function') {
+            onBeforeReveal();
+        }
+
         const loadedOk = await loadOutfitModels(requestedId, live2dId, undefined, null, null, null, { startHidden: true });
         if (!loadedOk || token !== bgSetRequestToken || !bgSetActive) {
             if (!bgSetActive) destroyStageModels();
@@ -295,10 +326,12 @@ export async function enterBackgroundSet() {
     }
 }
 
-export function leaveBackgroundSet() {
+export function leaveBackgroundSet({ keepStage = false } = {}) {
     bgSetActive = false;
     bgSetRequestToken++;
     bgPreviewToken++;
     resetBackgroundSet();
-    destroyStageModels();
+    if (!keepStage) {
+        destroyStageModels();
+    }
 }

@@ -83,6 +83,11 @@ canvas {
     overflow: hidden;
 }
 
+#ui-layer.route-transitioning,
+#ui-layer.route-transitioning * {
+    pointer-events: none !important;
+}
+
 #cardDetail {
     font-family: 'Open Sans', sans-serif !important;
     font-weight: 600 !important;

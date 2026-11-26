@@ -7,7 +7,7 @@ import { openCharaFilterPopup, openCameraSavedPopup, openCameraHelpPopup } from 
 import { repoUrl } from './paths.js';
 import { resolveSavedHomeBackground, DEFAULT_HOME_BG_FILE, DEFAULT_HOME_BGM_FILE } from './home-bg.js';
 import { getCommittedHomeBg, setCommittedHomeBg } from './background-set.js';
-import { changeBg, getImageNativeBase, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
+import { changeBg, preloadBg, getImageNativeBase, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
 import { startBgm, startSe } from './engine/audio.js';
 import { updateUILayer, markDragScroll } from './engine/common-events.js';
 import {
@@ -27,7 +27,8 @@ import {
     getActiveScenario,
     getScenarioPlayer,
     stopVoice,
-    destroyStageModels
+    destroyStageModels,
+    fadeOutAndDestroyStageModels
 } from './engine/l2d-stage.js';
 
 const CHARA_CARDS_URL = repoUrl('assets/charaCards.json');
@@ -1005,44 +1006,77 @@ export function resetCameraTop() {
     if (listEl) listEl.innerHTML = '';
 }
 
-export async function enterCameraTop({ initialCharaId } = {}) {
+export async function enterCameraTop({ initialCharaId, onBeforeReveal, hadLive2d = false } = {}) {
     cameraTopActive = true;
     const token = ++cameraRequestToken;
 
-    stopVoice();
+    const step1Start = performance.now();
+    const savedBg = getCommittedHomeBg() || await resolveSavedHomeBackground();
+    if (token !== cameraRequestToken || !cameraTopActive) return;
+    setCommittedHomeBg(savedBg);
+
+    let bgTarget = savedBg;
+    await Promise.all([
+        preloadBg(savedBg).catch((err) => {
+            console.warn('[camera-top] BG preload failed, falling back to default:', err);
+            bgTarget = `bg/web/${DEFAULT_HOME_BG_FILE}`;
+            return preloadBg(bgTarget).catch(() => {});
+        }),
+        startBgm(savedBg.bgmFile, { autoplay: true }).catch((err) => {
+            console.warn('[camera-top] BGM load failed, falling back to default:', err);
+            return startBgm(DEFAULT_HOME_BGM_FILE, { autoplay: true }).catch(() => {});
+        }),
+        ensureMetadataLoaded().catch(() => {})
+    ]);
+    if (token !== cameraRequestToken || !cameraTopActive) return;
+
+    if (hadLive2d) {
+        const elapsed = performance.now() - step1Start;
+        if (elapsed < 200) {
+            await new Promise((r) => setTimeout(r, 200 - elapsed));
+        }
+        if (token !== cameraRequestToken || !cameraTopActive) return;
+    }
+
+    document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
     setBgWebcamVideo(null);
     setBgPortrait(false);
+
+    const step2Tasks = [
+        changeBg(bgTarget, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((err) => {
+            console.warn('[camera-top] BG load failed, falling back to default:', err);
+            return changeBg(`bg/web/${DEFAULT_HOME_BG_FILE}`, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true });
+        })
+    ];
+    if (hadLive2d) {
+        step2Tasks.push(fadeOutAndDestroyStageModels(200));
+    } else {
+        stopVoice();
+        destroyStageModels();
+    }
+    await Promise.all(step2Tasks);
+    if (token !== cameraRequestToken || !cameraTopActive) return;
+
     setStageContext({ mode: 'camera', cameraPresetIndex: 0, cameraWearOpen: false });
     setStageXOffset(0);
     if (typeof window.updateViewerViewport === 'function') {
         window.updateViewerViewport();
     }
 
-    const savedBg = getCommittedHomeBg() || await resolveSavedHomeBackground();
-    if (token !== cameraRequestToken || !cameraTopActive) return;
-    setCommittedHomeBg(savedBg);
-
-    await Promise.all([
-        changeBg(savedBg, { visible: true, autoplay: true, crossfadeMs: 200 }).catch((err) => {
-            console.warn('[camera-top] BG load failed, falling back to default:', err);
-            return changeBg(`bg/web/${DEFAULT_HOME_BG_FILE}`, { visible: true, autoplay: true, crossfadeMs: 200 });
-        }),
-        startBgm(savedBg.bgmFile, { autoplay: true }).catch((err) => {
-            console.warn('[camera-top] BGM load failed, falling back to default:', err);
-            return startBgm(DEFAULT_HOME_BGM_FILE, { autoplay: true }).catch(() => {});
-        })
-    ]);
-    if (token !== cameraRequestToken || !cameraTopActive) return;
-
+    if (typeof onBeforeReveal === 'function') {
+        onBeforeReveal();
+    }
     await initCameraTop({ initialCharaId });
 }
 
-export function leaveCameraTop() {
+export function leaveCameraTop({ keepStage = false } = {}) {
     cameraTopActive = false;
     cameraRequestToken++;
     cameraSpawnToken++;
-    cancelOutfitChanges();
-    stopVoice();
     resetCameraTop();
-    destroyStageModels();
+    if (!keepStage) {
+        cancelOutfitChanges();
+        stopVoice();
+        destroyStageModels();
+    }
 }

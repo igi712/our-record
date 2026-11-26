@@ -4,7 +4,7 @@ import { state, getOutfitsForCharacter, buildModelId } from './viewer/model.js';
 import { preloadModelToRam } from './viewer/model-assets.js';
 import { preloadScenarioVoices, scenarioCache } from './viewer/quotes-sequence.js';
 import { fetchScenarioJson } from './viewer/model-scenario.js';
-import { changeBg } from './engine/bg.js';
+import { changeBg, preloadBg, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
 import { startBgm } from './engine/audio.js';
 import {
     DEFAULT_CHARA_ID,
@@ -21,7 +21,8 @@ import {
     getOutfitChangeToken,
     getScenarioPlayer,
     stopVoice,
-    destroyStageModels
+    destroyStageModels,
+    fadeOutAndDestroyStageModels
 } from './engine/l2d-stage.js';
 
 const DETAIL_BG = 'bg/web/web_0015.ExportJson';
@@ -232,7 +233,7 @@ function setupVoiceButtons() {
     });
 }
 
-function resetDetailViewState() {
+function resetDetailViewState({ keepStage = false } = {}) {
     const detailTab = document.getElementById('detailTab');
     if (detailTab) {
         detailTab.querySelectorAll('li').forEach((tab) => {
@@ -263,7 +264,9 @@ function resetDetailViewState() {
             if (child.scrollTop > 0) child.scrollTop = 0;
         });
     }
-    destroyStageModels();
+    if (!keepStage) {
+        destroyStageModels();
+    }
 }
 
 async function initDetailMetadata(charaId) {
@@ -280,27 +283,49 @@ async function initDetailMetadata(charaId) {
     }
 }
 
-export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID } = {}) {
+export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID, onBeforeReveal, hadLive2d = false } = {}) {
     detailActive = true;
+    const token = bumpOutfitChangeToken();
+
+    const step1Start = performance.now();
+    await Promise.all([
+        preloadBg(DETAIL_BG).catch((e) => console.warn('[detail] background preload error:', e)),
+        startBgm(DETAIL_BGM, { autoplay: true }).catch((e) => console.warn('[detail] bgm error:', e))
+    ]);
+    if (token !== getOutfitChangeToken() || !detailActive) return;
+
+    if (hadLive2d) {
+        const elapsed = performance.now() - step1Start;
+        if (elapsed < 200) {
+            await new Promise((r) => setTimeout(r, 200 - elapsed));
+        }
+        if (token !== getOutfitChangeToken() || !detailActive) return;
+    }
+
+    document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
+    setBgWebcamVideo(null);
+    setBgPortrait(false);
+
+    const step2Tasks = [
+        changeBg(DETAIL_BG, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((e) =>
+            console.warn('[detail] background error:', e)
+        )
+    ];
+    if (hadLive2d) {
+        step2Tasks.push(fadeOutAndDestroyStageModels(200));
+    } else {
+        stopVoice();
+        destroyStageModels();
+    }
+    await Promise.all(step2Tasks);
+    if (token !== getOutfitChangeToken() || !detailActive) return;
+
     setStageContext({ mode: 'detail' });
     setStageXOffset(DETAIL_X_OFFSET);
     if (typeof window.updateViewerViewport === 'function') {
         window.updateViewerViewport();
     }
     applySubtitlePlacement();
-
-    changeBg(DETAIL_BG, { visible: true, autoplay: true, crossfadeMs: 200 }).catch((e) =>
-        console.warn('[detail] background error:', e)
-    );
-    startBgm(DETAIL_BGM, { autoplay: true }).catch((e) =>
-        console.warn('[detail] bgm error:', e)
-    );
-
-    if (currentLoadedCharaId === charaId && state.currentModel) {
-        state.currentModel.visible = true;
-        document.body.classList.remove('connecting');
-        return;
-    }
 
     resetDetailViewState();
     currentLoadedCharaId = charaId;
@@ -316,8 +341,11 @@ export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID } 
         if (attEl && cardAtt) attEl.className = cardAtt.toLowerCase();
     }
 
+    if (typeof onBeforeReveal === 'function') {
+        onBeforeReveal();
+    }
+
     document.body.classList.add('connecting');
-    const token = bumpOutfitChangeToken();
 
     const defaultModelId = buildModelId(charaId, '00');
     detailVoicePrefix = '00';
@@ -397,11 +425,13 @@ export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID } 
     }
 }
 
-export function leaveCharaCollectionDetail() {
+export function leaveCharaCollectionDetail({ keepStage = false } = {}) {
     detailActive = false;
     currentLoadedCharaId = null;
-    cancelOutfitChanges();
-    stopVoice();
-    resetDetailViewState();
-    document.body.classList.remove('connecting');
+    resetDetailViewState({ keepStage });
+    if (!keepStage) {
+        cancelOutfitChanges();
+        stopVoice();
+        document.body.classList.remove('connecting');
+    }
 }

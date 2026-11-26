@@ -260,9 +260,9 @@ export function cancelModelFades() {
     modelFadeToken++;
 }
 
-export function fadeModelTo(model, ms, toAlpha, onDone) {
-    if (!model) {
-        if (onDone) onDone();
+export function fadeModelTo(model, ms, toAlpha, onDone, onCancel) {
+    if (!model || model.destroyed) {
+        if (onCancel) onCancel();
         return;
     }
     const filter = modelFadeFilter(model);
@@ -270,7 +270,10 @@ export function fadeModelTo(model, ms, toAlpha, onDone) {
     const from = filter.alpha;
     const start = performance.now();
     const tick = () => {
-        if (!model || model.destroyed || token !== modelFadeToken) return;
+        if (!model || model.destroyed || token !== modelFadeToken) {
+            if (onCancel) onCancel();
+            return;
+        }
         const t = Math.min(1, (performance.now() - start) / ms);
         const eased = 1 - Math.pow(1 - t, 3);
         filter.alpha = from + (toAlpha - from) * eased;
@@ -302,6 +305,39 @@ export function getActiveModelEntries() {
     ));
     if (targets.length === 0 && state.currentModel) targets.push(state.currentModel);
     return targets;
+}
+
+export function hasActiveStageModels() {
+    return getActiveModelEntries().some((m) => m && !m.destroyed && m.visible);
+}
+
+export function fadeOutAndDestroyStageModels(ms = 180) {
+    stopVoice();
+    cancelOutfitChanges();
+    cancelModelFades();
+    const fadeToken = modelFadeToken;
+    const targets = getActiveModelEntries().filter((m) => m && !m.destroyed && m.visible);
+    if (targets.length === 0 || ms <= 0) {
+        destroyStageModels();
+        return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+        let remaining = targets.length;
+        let cancelled = false;
+        const finishOne = (wasCancelled) => {
+            if (wasCancelled) cancelled = true;
+            remaining--;
+            if (remaining <= 0) {
+                if (!cancelled && fadeToken === modelFadeToken) {
+                    destroyStageModels();
+                }
+                resolve();
+            }
+        };
+        targets.forEach((m) => {
+            fadeModelTo(m, ms, 0, () => finishOne(false), () => finishOne(true));
+        });
+    });
 }
 
 export function stopTransformationEffects() {

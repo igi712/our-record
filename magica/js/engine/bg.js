@@ -17,6 +17,7 @@ let outgoingBgArmature = null;
 let outgoingBgTicker = null;
 let bgLoadToken = 0;
 let bgFadeToken = 0;
+let bgFadeResolve = null;
 let bgPrefetchToken = 0;
 let currentBgKey = null;
 let currentBgMovement = 'action';
@@ -177,6 +178,8 @@ function disposeBgNode(armature, ticker, keepBaseTextures = null) {
 
 function finishOutgoingBgFade(keepBaseTextures = null) {
     bgFadeToken++;
+    const resolveFade = bgFadeResolve;
+    bgFadeResolve = null;
     if (outgoingBgArmature || outgoingBgTicker) {
         const oldArm = outgoingBgArmature;
         const oldTick = outgoingBgTicker;
@@ -187,6 +190,7 @@ function finishOutgoingBgFade(keepBaseTextures = null) {
     if (bgArmature && !bgArmature.destroyed) {
         bgArmature.alpha = 1;
     }
+    if (resolveFade) resolveFade();
 }
 
 function teardownCurrentBgNode(keepBaseTextures = null) {
@@ -242,13 +246,14 @@ export function hasVisibleBg() {
 export function showBg() {
     if (!bgArmature || bgArmature.destroyed) return;
     bgArmature.visible = cameraWebcamSprite ? false : true;
-    if (currentBgMovement !== null) {
+    if (!bgArmature.playing && currentBgMovement !== null) {
         bgArmature.play(currentBgMovement, true);
         applyMovementScale(bgArmature);
+        bgArmature.update(0);
     }
 }
 
-export async function changeBg(bgInput = 'bg/web/web_0015.ExportJson', { visible = true, autoplay = true, crossfadeMs = 200 } = {}) {
+export async function changeBg(bgInput = 'bg/web/web_0015.ExportJson', { visible = true, autoplay = true, crossfadeMs = 200, waitForCrossfade = false } = {}) {
     const token = ++bgLoadToken;
     const target = await resolveBackgroundTarget(bgInput);
     if (token !== bgLoadToken) return;
@@ -256,7 +261,7 @@ export async function changeBg(bgInput = 'bg/web/web_0015.ExportJson', { visible
     if (bgArmature && currentBgKey === target.key) {
         bgArmature.visible = cameraWebcamSprite ? false : visible;
         applyPortraitTransform(bgArmature);
-        if (autoplay && !bgArmature.isPlaying && currentBgMovement !== null) {
+        if (autoplay && !bgArmature.playing && currentBgMovement !== null) {
             bgArmature.play(currentBgMovement, true);
             applyMovementScale(bgArmature);
         }
@@ -313,8 +318,24 @@ export async function changeBg(bgInput = 'bg/web/web_0015.ExportJson', { visible
     if (canCrossfade) {
         const fadeId = ++bgFadeToken;
         const start = performance.now();
+        let fadePromise = null;
+        if (waitForCrossfade) {
+            fadePromise = new Promise((resolve) => {
+                bgFadeResolve = resolve;
+            });
+        }
+        const finishNow = () => {
+            if (bgFadeResolve) {
+                const resolveFade = bgFadeResolve;
+                bgFadeResolve = null;
+                resolveFade();
+            }
+        };
         const step = () => {
-            if (fadeId !== bgFadeToken || bgArmature !== armature || armature.destroyed) return;
+            if (fadeId !== bgFadeToken || bgArmature !== armature || armature.destroyed) {
+                finishNow();
+                return;
+            }
             const t = Math.min(1, (performance.now() - start) / crossfadeMs);
             armature.alpha = t;
             if (t < 1) {
@@ -324,6 +345,15 @@ export async function changeBg(bgInput = 'bg/web/web_0015.ExportJson', { visible
             }
         };
         requestAnimationFrame(step);
+        if (fadePromise) await fadePromise;
+    }
+}
+
+export async function preloadBg(bgInput) {
+    if (!bgInput) return;
+    const target = await resolveBackgroundTarget(bgInput);
+    if (!bgAssetCache.has(target.key)) {
+        await getOrLoadCachedBgAssets(target.key, target.url);
     }
 }
 

@@ -2,9 +2,16 @@
 
 import { state } from './model.js';
 import { repoUrl } from '../paths.js';
-import { changeBg } from '../engine/bg.js';
+import { changeBg, preloadBg, setBgPortrait, setBgWebcamVideo } from '../engine/bg.js';
 import { startBgm } from '../engine/audio.js';
-import { setStageContext, setStageXOffset, applySubtitlePlacement } from '../engine/l2d-stage.js';
+import {
+    setStageContext,
+    setStageXOffset,
+    applySubtitlePlacement,
+    stopVoice,
+    destroyStageModels,
+    fadeOutAndDestroyStageModels
+} from '../engine/l2d-stage.js';
 
 const CHARA_ATTRIBUTES_URL = repoUrl('assets/charaAttributes.json');
 const COLLECTION_BG = 'bg/web/web_0015.ExportJson';
@@ -401,7 +408,46 @@ function setupSearchFilter() {
     });
 }
 
-export async function enterCharaCollection() {
+let collectionRequestToken = 0;
+
+export async function enterCharaCollection({ onBeforeReveal, hadLive2d = false } = {}) {
+    const token = ++collectionRequestToken;
+
+    const step1Start = performance.now();
+    await Promise.all([
+        preloadBg(COLLECTION_BG).catch((e) => console.warn('[chara-collection] background preload error:', e)),
+        startBgm(COLLECTION_BGM, { autoplay: true }).catch((e) => console.warn('[chara-collection] bgm error:', e)),
+        loadCharaAttributes(),
+        (!state.charaListData || state.charaListData.length === 0) ? fetchCharacterCatalog() : Promise.resolve()
+    ]);
+    if (token !== collectionRequestToken) return;
+
+    if (hadLive2d) {
+        const elapsed = performance.now() - step1Start;
+        if (elapsed < 200) {
+            await new Promise((r) => setTimeout(r, 200 - elapsed));
+        }
+        if (token !== collectionRequestToken) return;
+    }
+
+    document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
+    setBgWebcamVideo(null);
+    setBgPortrait(false);
+
+    const step2Tasks = [
+        changeBg(COLLECTION_BG, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((e) =>
+            console.warn('[chara-collection] background error:', e)
+        )
+    ];
+    if (hadLive2d) {
+        step2Tasks.push(fadeOutAndDestroyStageModels(200));
+    } else {
+        stopVoice();
+        destroyStageModels();
+    }
+    await Promise.all(step2Tasks);
+    if (token !== collectionRequestToken) return;
+
     setStageContext({ mode: 'detail' });
     setStageXOffset(COLLECTION_X_OFFSET);
     if (typeof window.updateViewerViewport === 'function') {
@@ -409,17 +455,13 @@ export async function enterCharaCollection() {
     }
     applySubtitlePlacement();
 
-    changeBg(COLLECTION_BG, { visible: true, autoplay: true, crossfadeMs: 200 }).catch((e) =>
-        console.warn('[chara-collection] background error:', e)
-    );
-    startBgm(COLLECTION_BGM, { autoplay: true }).catch((e) =>
-        console.warn('[chara-collection] bgm error:', e)
-    );
-
-    document.body.classList.remove('connecting');
+    if (typeof onBeforeReveal === 'function') {
+        onBeforeReveal();
+    }
     await renderCharaCollectionGrid();
 }
 
 export function leaveCharaCollection() {
+    collectionRequestToken++;
     saveCollectionScrollPosition();
 }

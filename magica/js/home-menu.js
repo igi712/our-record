@@ -235,6 +235,28 @@ export function initGlobalMenuForPage() {
     showMenuUI();
 }
 
+export function collapseSideMenuForTransition() {
+    clearPress();
+    columnRevealId++;
+    setMenuClosed();
+}
+
+export function configureGlobalMenuForMyPage() {
+    const globalMenu = document.getElementById('globalMenu');
+    const sideMenu = document.getElementById('sideMenu');
+    if (globalMenu) globalMenu.style.display = 'block';
+    document.querySelector('#globalMenu #status')?.classList.remove('noneDisp');
+    const helpBtn = document.querySelector('#globalMenu .helpBtn');
+    if (helpBtn) {
+        helpBtn.classList.remove('on');
+        helpBtn.classList.add('off');
+    }
+    fillStatusDemo();
+    bindEvents();
+    setMenuClosed();
+    if (sideMenu) showMenuUI();
+}
+
 export function revealHomeMenu() {
     const sideMenu = document.getElementById('sideMenu');
     if (!sideMenu) return;
