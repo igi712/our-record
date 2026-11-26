@@ -28,6 +28,8 @@ const FILES = [
   'magica/js/mypage.js',
   'magica/js/chara-top.js',
   'magica/js/camera-top.js',
+  'magica/js/config-top.js',
+  'magica/js/collection-top.js',
   'magica/js/background-set.js',
   'magica/js/chara-collection-detail.js',
   'magica/js/popups.js',

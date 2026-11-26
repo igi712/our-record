@@ -5,7 +5,7 @@ import { preloadModelToRam, ramFolderCache } from '../viewer/model-assets.js';
 import { ScenarioSequencePlayer, scenarioCache } from '../viewer/quotes-sequence.js';
 import { fetchScenarioJson, checkScenarioUrlExists, getDualUnitConfig } from '../viewer/model-scenario.js';
 import { repoUrl } from '../paths.js';
-import { getHcaRuntime, startSe, stopSfx } from './audio.js';
+import { getHcaRuntime, getVoiceVolume, onVoiceVolumeChange, startSe, stopSfx } from './audio.js';
 import { playTransformVfx, stopVfx } from './vfx.js';
 
 export const WORLD_W = 1024;
@@ -14,6 +14,7 @@ export const HOME16_H = 576;
 export const DEFAULT_CHARA_ID = 1001;
 export const HOME_X_OFFSET = -132;
 export const BG_SET_X_OFFSET = -162;
+export const COLLECTION_TOP_X_OFFSET = -192;
 
 const OUTFIT_SFX_REL = 'jingle/7205_magic_girl_hca.hca';
 
@@ -59,8 +60,10 @@ export function getScenarioPlayer() {
         scenarioPlayer = new ScenarioSequencePlayer({
             controller: null,
             subtitleElement: document.getElementById('subtitle'),
-            getHcaRuntime
+            getHcaRuntime,
+            getVoiceVolume
         });
+        onVoiceVolumeChange((level) => scenarioPlayer?.setVolume(level));
         window.scenarioPlayer = scenarioPlayer;
     }
     return scenarioPlayer;
@@ -179,6 +182,9 @@ export function resolveActivePlacement(isDual) {
     }
     if (stageCtx.mode === 'bgSet') {
         return isDual ? { dualX: [164, 420] } : { singleX: 350 };
+    }
+    if (stageCtx.mode === 'collectionTop') {
+        return isDual ? { dualX: [180, 416] } : { singleX: 320 };
     }
     if (stageCtx.mode === 'home') {
         if (stageCtx.portrait) {

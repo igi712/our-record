@@ -182,6 +182,15 @@ function matchesFilter(card, sortPrm) {
         const initType = card.filterInitialType || card.initialType;
         if (set.size && !set.has(initType)) return false;
     }
+    if (sortPrm[6]) {
+        const q = String(sortPrm[6]).toLowerCase().trim();
+        if (q) {
+            const name = String(card.name || '').toLowerCase();
+            const title = String(card.title || '').toLowerCase();
+            const idStr = String(card.charaId || '');
+            if (!name.includes(q) && !title.includes(q) && !idStr.includes(q)) return false;
+        }
+    }
     return true;
 }
 
@@ -253,7 +262,7 @@ function updateSortAndFilterControls() {
         orderBtn.classList.toggle('desc', ascDesc !== 'asc');
     }
     if (filterBtn) {
-        const hasFilter = Boolean(currentSortPrm[2] || currentSortPrm[3] || currentSortPrm[4] || currentSortPrm[5]);
+        const hasFilter = Boolean(currentSortPrm[2] || currentSortPrm[3] || currentSortPrm[4] || currentSortPrm[5] || currentSortPrm[6]);
         filterBtn.classList.toggle('filterOn', hasFilter);
     }
     if (listEl) {
@@ -567,6 +576,7 @@ async function ensureCharaListBuilt(signal) {
             currentSortPrm[3] = filters[1] || null;
             currentSortPrm[4] = filters[2] || null;
             currentSortPrm[5] = filters[3] || null;
+            currentSortPrm[6] = filters[4] || null;
             saveSortMemory(currentSortPrm);
             applySortAndFilter(cards, nativeRoot);
         });

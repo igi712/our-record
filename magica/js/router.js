@@ -12,16 +12,35 @@ import { enterMyPage, leaveMyPage } from './mypage.js';
 import { enterBackgroundSet, leaveBackgroundSet } from './background-set.js';
 import { enterCharaTop, leaveCharaTop } from './chara-top.js';
 import { enterCameraTop, leaveCameraTop } from './camera-top.js';
+import { enterConfigTop, leaveConfigTop } from './config-top.js';
+import { enterCollectionTop, leaveCollectionTop } from './collection-top.js';
 import { enterCharaCollection, leaveCharaCollection } from './viewer/chara-collection.js';
 import { enterCharaCollectionDetail, leaveCharaCollectionDetail } from './chara-collection-detail.js';
 
+const OPENED_FROM_ROOT_INDEX = (() => {
+    try {
+        const navigation = performance.getEntriesByType('navigation')[0];
+        if (navigation?.type === 'reload') return false;
+        if (!document.referrer) return false;
+        const referrer = new URL(document.referrer);
+        if (referrer.origin !== window.location.origin) return false;
+        const path = referrer.pathname.replace(/\/+$/, '');
+        return !path.endsWith('/magica/index.html') && (path === '' || path.endsWith('/index.html'));
+    } catch {
+        return false;
+    }
+})();
+
 let routeGeneration = 0;
 let activeRouteKey = null;
+let collectionEntrySource = OPENED_FROM_ROOT_INDEX ? 'index' : 'direct';
 
 function resolveRouteKey(hash) {
     if (hash.startsWith('#/BackgroundSet')) return 'BackgroundSet';
     if (hash.startsWith('#/CharaListTop')) return 'CharaListTop';
     if (hash.startsWith('#/CameraTop')) return 'CameraTop';
+    if (hash.startsWith('#/ConfigTop')) return 'ConfigTop';
+    if (hash.startsWith('#/CollectionTop')) return 'CollectionTop';
     if (hash.startsWith('#/CharaCollectionDetail')) return 'CharaCollectionDetail';
     if (hash.startsWith('#/CharaCollection')) return 'CharaCollection';
     return 'MyPage';
@@ -31,7 +50,8 @@ function isHomeFamilyRoute(routeKey) {
     return routeKey === 'MyPage'
         || routeKey === 'BackgroundSet'
         || routeKey === 'CharaListTop'
-        || routeKey === 'CameraTop';
+        || routeKey === 'CameraTop'
+        || routeKey === 'ConfigTop';
 }
 
 async function loadRouteTemplate(relPath, generation, ...hiddenIds) {
@@ -53,13 +73,25 @@ function setupBackBtn() {
         const currentHash = window.location.hash;
         if (currentHash.startsWith('#/CharaCollectionDetail')) {
             window.location.hash = '#/CharaCollection';
+        } else if (currentHash.startsWith('#/CharaCollection')) {
+            if (collectionEntrySource === 'archive') {
+                window.location.hash = '#/CollectionTop';
+            } else if (collectionEntrySource === 'index') {
+                window.location.href = '../index.html';
+            } else {
+                window.location.hash = '#/MyPage';
+            }
+        } else if (currentHash.startsWith('#/CollectionTop')) {
+            window.location.hash = '#/MyPage';
+        } else if (currentHash.startsWith('#/ConfigTop')) {
+            window.location.hash = '#/MyPage';
         } else if (currentHash.startsWith('#/BackgroundSet')) {
             const q = currentHash.split('?')[1];
             window.location.hash = q ? `#/MyPage?${q}` : '#/MyPage';
         } else if (currentHash.startsWith('#/CharaListTop')) {
             window.location.hash = '#/MyPage';
         } else {
-            window.location.href = '../index.html';
+            window.location.hash = '#/MyPage';
         }
     };
 
@@ -70,7 +102,7 @@ function setupBackBtn() {
 }
 
 function hideAllViews() {
-    const ids = ['CharaCollection', 'cardDetail', 'MyPage', 'BackgroundSet', 'CharaTop', 'CameraTop'];
+    const ids = ['CharaCollection', 'CollectionTop', 'ConfigTop', 'cardDetail', 'MyPage', 'BackgroundSet', 'CharaTop', 'CameraTop'];
     for (const id of ids) {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
@@ -90,6 +122,12 @@ function leaveActiveRoute(nextRouteKey) {
             break;
         case 'CameraTop':
             leaveCameraTop({ keepStage: true });
+            break;
+        case 'ConfigTop':
+            leaveConfigTop();
+            break;
+        case 'CollectionTop':
+            leaveCollectionTop({ keepStage: true });
             break;
         case 'CharaCollection':
             leaveCharaCollection();
@@ -115,6 +153,15 @@ export async function handleRoute() {
 
     const prevRouteKey = activeRouteKey;
     const nextRouteKey = resolveRouteKey(hash);
+    if (nextRouteKey === 'CharaCollection') {
+        if (prevRouteKey === 'CollectionTop') {
+            collectionEntrySource = 'archive';
+        } else if (prevRouteKey === null && OPENED_FROM_ROOT_INDEX) {
+            collectionEntrySource = 'index';
+        } else if (prevRouteKey !== 'CharaCollectionDetail') {
+            collectionEntrySource = 'direct';
+        }
+    }
     const hadLive2d = hasActiveStageModels();
 
     // Phase 1: hide outgoing page UI immediately while keeping top global chrome & Live2D stage alive.
@@ -226,6 +273,52 @@ export async function handleRoute() {
                     if (sideMenuEl) sideMenuEl.style.visibility = 'hidden';
                     if (globalBackBtn) globalBackBtn.style.display = 'none';
                     if (cameraTopEl) cameraTopEl.style.display = 'block';
+                    setupBackBtn();
+                    uiLayer.classList.remove('route-transitioning');
+                }
+            });
+        } else if (nextRouteKey === 'ConfigTop') {
+            if (!document.getElementById('globalMenu')) {
+                if (!await loadRouteTemplate('template/base/GlobalMenu.html', generation, 'globalMenu', 'sideMenu')) return;
+            }
+            if (!document.getElementById('ConfigTop')) {
+                if (!await loadRouteTemplate('template/config/ConfigTop.html', generation, 'ConfigTop')) return;
+            }
+
+            await enterConfigTop({
+                hadLive2d,
+                onBeforeReveal: () => {
+                    if (generation !== routeGeneration) return;
+                    const homeMenuEl = document.getElementById('globalMenu');
+                    const configTopEl = document.getElementById('ConfigTop');
+                    const globalBackBtn = document.getElementById('globalBackBtn');
+                    if (homeMenuEl) homeMenuEl.style.display = 'block';
+                    initGlobalMenuForPage({ showHelp: false });
+                    if (configTopEl) configTopEl.style.display = 'block';
+                    if (globalBackBtn) globalBackBtn.style.display = 'block';
+                    setupBackBtn();
+                    uiLayer.classList.remove('route-transitioning');
+                }
+            });
+        } else if (nextRouteKey === 'CollectionTop') {
+            if (!document.getElementById('globalMenu')) {
+                if (!await loadRouteTemplate('template/base/GlobalMenu.html', generation, 'globalMenu', 'sideMenu')) return;
+            }
+            if (!document.getElementById('CollectionTop')) {
+                if (!await loadRouteTemplate('template/collection/CollectionTop.html', generation, 'CollectionTop')) return;
+            }
+
+            await enterCollectionTop({
+                hadLive2d,
+                onBeforeReveal: () => {
+                    if (generation !== routeGeneration) return;
+                    const homeMenuEl = document.getElementById('globalMenu');
+                    const collectionTopEl = document.getElementById('CollectionTop');
+                    const globalBackBtn = document.getElementById('globalBackBtn');
+                    if (homeMenuEl) homeMenuEl.style.display = 'block';
+                    initGlobalMenuForPage({ showHelp: false });
+                    if (collectionTopEl) collectionTopEl.style.display = 'block';
+                    if (globalBackBtn) globalBackBtn.style.display = 'block';
                     setupBackBtn();
                     uiLayer.classList.remove('route-transitioning');
                 }

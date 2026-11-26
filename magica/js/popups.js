@@ -13,6 +13,8 @@ const ETC_TEMPLATE = magicaUrl('template/etc/EtcPopup.html');
 const PROFILE_TEMPLATE = magicaUrl('template/user/MyProfilePopup.html');
 const CARD_SORT_TEMPLATE = magicaUrl('template/card/CardSort.html');
 const CLOSE_ANIM_MS = 200;
+const STORAGE_PLAYER_NAME_KEY = 'mrPlayerName';
+const MAX_PLAYER_NAME_LEN = 12;
 
 const PROFILE_DEMO = {
     userName: 'Our Record',
@@ -29,6 +31,27 @@ const PROFILE_DEMO = {
     mirrorsWins: '999'
 };
 
+export function getPlayerName() {
+    try {
+        const saved = localStorage.getItem(STORAGE_PLAYER_NAME_KEY);
+        if (saved && saved.trim()) return saved.trim().slice(0, MAX_PLAYER_NAME_LEN);
+    } catch {}
+    return PROFILE_DEMO.userName;
+}
+
+export function setPlayerName(name) {
+    const trimmed = String(name ?? '').trim().slice(0, MAX_PLAYER_NAME_LEN);
+    if (!trimmed) return getPlayerName();
+    try {
+        localStorage.setItem(STORAGE_PLAYER_NAME_KEY, trimmed);
+    } catch {}
+    return trimmed;
+}
+
+export function getPlayerId() {
+    return PROFILE_DEMO.playerId;
+}
+
 const TOUCH_SELECTOR = [
     '#popupArea .etcPopWrap .se_decide',
     '#popupArea #myProfile .profBtn',
@@ -38,6 +61,9 @@ const TOUCH_SELECTOR = [
     '#popupArea #myProfile .arenaHelpBtn',
     '#popupArea #bgChangePop .decideBtn',
     '#popupArea #favChangePop .popupCloseBtn',
+    '#popupArea #configNoticePop .popupCloseBtn',
+    '#popupArea #nameChangePopWrap .popupCloseBtn',
+    '#popupArea #nameChangePopWrap .decideBtn',
     '#popupArea .uiHidePop .popupCloseBtn',
     '#popupArea .uiHidePop .decideBtn',
     '#popupArea #cameraSavedPop .popupCloseBtn',
@@ -47,6 +73,7 @@ const TOUCH_SELECTOR = [
     '#popupArea #sortFilterPop .filterRank',
     '#popupArea #sortFilterPop .filterEnhance',
     '#popupArea #sortFilterPop .filterInitial',
+    '#popupArea #sortFilterPop #filterNameClear',
     '#popupArea #sortFilterPop #cardSortBtnsArea .sort'
 ].join(', ');
 
@@ -94,7 +121,7 @@ async function fetchTemplate(url, kind) {
     if (kind === 'etc' && etcTemplateCache) return etcTemplateCache;
     if (kind === 'profile' && profileTemplateCache) return profileTemplateCache;
     if (kind === 'sortFilter' && cardSortTemplateCache) return cardSortTemplateCache;
-    const resp = await fetch(url);
+    const resp = await fetch(url, { cache: 'no-cache' });
     if (!resp.ok) throw new Error(`Failed to fetch ${url}: ${resp.status}`);
     const html = await resp.text();
     if (kind === 'etc') etcTemplateCache = html;
@@ -195,14 +222,14 @@ function populateProfileDemo(rootEl) {
     };
     setText('#myProfStone .pointWrap', stoneText);
     setText('#myProfHasRiche .pointWrap', PROFILE_DEMO.riche);
-    setText('.profUserName', PROFILE_DEMO.userName);
+    setText('.profUserName', getPlayerName());
     setText('.userLevel', HOME_STATUS_DEMO.rank);
     setText('.reachingAccomplish', PROFILE_DEMO.stage);
     setText('#totalForces', PROFILE_DEMO.totalForces);
     setText('#totalForcesRanking', PROFILE_DEMO.totalForcesRank);
     setText('.userFollow', PROFILE_DEMO.followCount);
     setText('.userFollower', PROFILE_DEMO.followerCount);
-    setText('.myprofUserId .colValue', PROFILE_DEMO.playerId);
+    setText('.myprofUserId .colValue', getPlayerId());
     setText('.markWrap.freeRank', PROFILE_DEMO.freeRankLayer);
     const arenaNums = rootEl.querySelectorAll('.arenaParams .freeNum');
     if (arenaNums[0]) arenaNums[0].textContent = PROFILE_DEMO.mirrorsPts;
@@ -345,6 +372,158 @@ export function openFavoriteChangedPopup(charaName) {
         canClose: true
     };
     bindEvents();
+}
+
+export async function copyTextToClipboard(text) {
+    const value = String(text ?? '');
+    try {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+            await navigator.clipboard.writeText(value);
+            return true;
+        }
+    } catch {}
+    try {
+        const ta = document.createElement('textarea');
+        ta.value = value;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        return ok;
+    } catch {
+        return false;
+    }
+}
+
+export function openConfigNoticePopup(titleText, messageText, buttonLabel = 'OK') {
+    if (activePopup) closeActivePopup({ immediate: true });
+    const area = ensurePopupArea();
+
+    const el = document.createElement('div');
+    el.id = 'configNoticePop';
+    el.className = 'popupContent open typeC';
+
+    const inner = document.createElement('div');
+    inner.className = 'popupInner';
+
+    const closeX = document.createElement('span');
+    closeX.className = 'popupCloseBtn closeDefault se_cancel TE';
+
+    const title = document.createElement('div');
+    title.className = 'popupTitle';
+    title.textContent = titleText || '';
+
+    const textArea = document.createElement('div');
+    textArea.className = 'popupTextArea';
+    textArea.textContent = messageText || '';
+
+    const btnTable = document.createElement('table');
+    btnTable.className = 'popupBtnArea';
+    btnTable.innerHTML = `
+        <tr>
+            <td><span class="popupCloseBtn btn b_white TE se_decide"><span class="b_screen"></span></span></td>
+        </tr>`;
+    btnTable.querySelector('.popupCloseBtn')?.appendChild(document.createTextNode(buttonLabel));
+
+    inner.appendChild(closeX);
+    inner.appendChild(title);
+    inner.appendChild(textArea);
+    inner.appendChild(btnTable);
+    el.appendChild(inner);
+    area.appendChild(el);
+
+    applyPopupScale(inner);
+
+    const curtain = area.querySelector('#popupCurtain');
+    if (curtain) curtain.classList.add('show');
+    activePopup = {
+        kind: 'configNotice',
+        el,
+        canClose: true
+    };
+    bindEvents();
+}
+
+export function openNameChangePopup({ currentName, maxLength = MAX_PLAYER_NAME_LEN, onSave } = {}) {
+    if (activePopup) closeActivePopup({ immediate: true });
+    const area = ensurePopupArea();
+
+    const el = document.createElement('div');
+    el.id = 'nameChangePopWrap';
+    el.className = 'popupContent open typeC';
+
+    const inner = document.createElement('div');
+    inner.className = 'popupInner';
+
+    const closeX = document.createElement('span');
+    closeX.className = 'popupCloseBtn closeDefault se_cancel TE';
+
+    const title = document.createElement('div');
+    title.className = 'popupTitle';
+    title.textContent = 'Change Name';
+
+    const initialValue = String(currentName ?? getPlayerName()).slice(0, maxLength);
+
+    const textArea = document.createElement('div');
+    textArea.className = 'popupTextArea';
+    textArea.innerHTML = `
+        <div class="nameChangeBody">
+            <p class="namePrompt">Please enter your new Player Name.</p>
+            <div class="nameInputRow">
+                <input id="changeName" class="commonFrame3" type="text" maxlength="${maxLength}" autocomplete="off">
+                <span class="textCount"><span id="textCount">0</span>/${maxLength}</span>
+            </div>
+            <div id="nameChangeError" class="c_red"></div>
+        </div>`;
+
+    const inputEl = textArea.querySelector('#changeName');
+    const countEl = textArea.querySelector('#textCount');
+    const errorEl = textArea.querySelector('#nameChangeError');
+    if (inputEl) {
+        inputEl.value = initialValue;
+        if (countEl) countEl.textContent = String(initialValue.length);
+        inputEl.addEventListener('input', () => {
+            if (countEl) countEl.textContent = String(inputEl.value.length);
+            if (errorEl) errorEl.textContent = '';
+        });
+    }
+
+    const btnTable = document.createElement('table');
+    btnTable.className = 'popupBtnArea';
+    btnTable.innerHTML = `
+        <tr>
+            <td><span class="popupCloseBtn btn b_white TE se_cancel"><span class="b_screen"></span>Cancel</span></td>
+            <td><span class="decideBtn btn b_pink TE se_decide"><span class="b_screen"></span>Change</span></td>
+        </tr>`;
+
+    inner.appendChild(closeX);
+    inner.appendChild(title);
+    inner.appendChild(textArea);
+    inner.appendChild(btnTable);
+    el.appendChild(inner);
+    area.appendChild(el);
+
+    applyPopupScale(inner);
+
+    const curtain = area.querySelector('#popupCurtain');
+    if (curtain) curtain.classList.add('show');
+    activePopup = {
+        kind: 'nameChange',
+        el,
+        canClose: true,
+        onSave: typeof onSave === 'function' ? onSave : null
+    };
+    bindEvents();
+
+    requestAnimationFrame(() => {
+        if (inputEl && inputEl.isConnected) {
+            inputEl.focus();
+            inputEl.select();
+        }
+    });
 }
 
 export function openUiHidePopup({ portrait = false, onConfirm } = {}) {
@@ -523,10 +702,14 @@ function applyFilterStateToPopup(root, sortPrm) {
             }
         }
     }
+    const searchInput = root.querySelector('#charaFilterSearchInput');
+    if (searchInput) {
+        searchInput.value = sortPrm?.[6] ? String(sortPrm[6]) : '';
+    }
 }
 
 function readFilterStateFromPopup(root) {
-    return FILTER_GROUPS.map((group) => {
+    const groups = FILTER_GROUPS.map((group) => {
         const allBtn = root.querySelector(`${group.selector}.ALL`);
         if (allBtn?.classList.contains('current')) return null;
         const vals = [];
@@ -536,6 +719,8 @@ function readFilterStateFromPopup(root) {
         });
         return vals.length ? vals.join(',') : null;
     });
+    const searchVal = root.querySelector('#charaFilterSearchInput')?.value?.trim() || '';
+    return [...groups, searchVal || null];
 }
 
 export async function openCharaFilterPopup(currentSortPrm, onApply) {
@@ -595,14 +780,56 @@ function onPointerUp() {
     popupArea.querySelectorAll('.touch').forEach((el) => el.classList.remove('touch'));
 }
 
+function submitActiveNameChange() {
+    if (!activePopup || activePopup.kind !== 'nameChange') return;
+    const inputEl = activePopup.el.querySelector('#changeName');
+    const errorEl = activePopup.el.querySelector('#nameChangeError');
+    const trimmed = String(inputEl?.value ?? '').trim();
+    if (!trimmed) {
+        if (errorEl) errorEl.textContent = 'Enter your Player Name.';
+        inputEl?.focus();
+        return;
+    }
+    const saved = setPlayerName(trimmed);
+    const cb = activePopup.onSave;
+    closeActivePopup({ immediate: true });
+    if (cb) cb(saved);
+    openConfigNoticePopup('Change Name', 'Your Player Name has been updated.', 'Close');
+}
+
 function onKeyDown(e) {
-    if (e.key !== 'Escape' || !activePopup || !activePopup.canClose) return;
+    if (!activePopup) return;
+    if (e.key === 'Enter') {
+        if (activePopup.kind === 'nameChange' && e.target?.id === 'changeName') {
+            e.preventDefault();
+            submitActiveNameChange();
+            return;
+        }
+        if (activePopup.kind === 'sortFilter' && e.target?.id === 'charaFilterSearchInput') {
+            e.preventDefault();
+            const filters = readFilterStateFromPopup(activePopup.el);
+            const cb = activePopup.onApply;
+            closeActivePopup();
+            if (cb) cb(filters);
+            return;
+        }
+    }
+    if (e.key !== 'Escape' || !activePopup.canClose) return;
     e.preventDefault();
     closeActivePopup();
 }
 
 function onPopupClick(e) {
     if (!activePopup) return;
+
+    if (activePopup.kind === 'nameChange') {
+        if (e.target.closest('#nameChangePopWrap .decideBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            submitActiveNameChange();
+            return;
+        }
+    }
 
     if (activePopup.kind === 'uiHide') {
         if (e.target.closest('.uiHidePop .decideBtn')) {
@@ -639,6 +866,16 @@ function onPopupClick(e) {
     }
 
     if (activePopup.kind === 'sortFilter') {
+        if (e.target.closest('#sortFilterPop #filterNameClear')) {
+            e.preventDefault();
+            e.stopPropagation();
+            const input = activePopup.el.querySelector('#charaFilterSearchInput');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+            return;
+        }
         const applyBtn = e.target.closest('#sortFilterPop #cardSortBtnsArea .sort');
         if (applyBtn) {
             e.preventDefault();
@@ -690,7 +927,14 @@ function onPopupClick(e) {
             e.preventDefault();
             e.stopPropagation();
             closeActivePopup();
-            window.location.hash = '#/CharaCollection';
+            window.location.hash = '#/CollectionTop';
+            return;
+        }
+        if (e.target.closest('.etcPopWrap .configBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeActivePopup();
+            window.location.hash = '#/ConfigTop';
             return;
         }
         if (e.target.closest('.etcPopWrap .se_decide')) {
@@ -715,6 +959,14 @@ function onPopupClick(e) {
             const cb = activePopup.onChangeFavorite;
             closeActivePopup();
             if (cb) cb();
+            return;
+        }
+        if (e.target.closest('#myProfile .userIdCopyBtn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            copyTextToClipboard(getPlayerId()).then(() => {
+                openConfigNoticePopup('Player ID', 'Copied to your clipboard.', 'OK');
+            });
             return;
         }
         if (e.target.closest('#myProfile .se_decide')) {

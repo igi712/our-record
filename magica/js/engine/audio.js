@@ -34,9 +34,106 @@ let currentBgmFile = null;
 let bgmLoadToken = 0;
 
 let seAudioCtx = null;
+let seGainNode = null;
 let trackedSfxToken = 0;
 let trackedSfxSource = null;
 let coreSePreloadStarted = false;
+
+const VOLUME_STORAGE_KEY = 'mrVolumeSettings';
+const DEFAULT_VOLUME_STEPS = Object.freeze({ bgm: 10, se: 10, voice: 10 });
+const voiceVolumeListeners = new Set();
+
+function clampVolumeStep(val) {
+    const num = Math.round(Number(val));
+    if (!Number.isFinite(num)) return 10;
+    return Math.max(0, Math.min(10, num));
+}
+
+function loadVolumeSteps() {
+    try {
+        const raw = localStorage.getItem(VOLUME_STORAGE_KEY);
+        if (!raw) return { ...DEFAULT_VOLUME_STEPS };
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') return { ...DEFAULT_VOLUME_STEPS };
+        return {
+            bgm: parsed.bgm !== undefined ? clampVolumeStep(parsed.bgm) : 10,
+            se: parsed.se !== undefined ? clampVolumeStep(parsed.se) : 10,
+            voice: parsed.voice !== undefined ? clampVolumeStep(parsed.voice) : 10
+        };
+    } catch {
+        return { ...DEFAULT_VOLUME_STEPS };
+    }
+}
+
+const volumeSteps = loadVolumeSteps();
+
+function saveVolumeSteps() {
+    try {
+        localStorage.setItem(VOLUME_STORAGE_KEY, JSON.stringify(volumeSteps));
+    } catch {}
+}
+
+export function getVolumeSteps() {
+    return { ...volumeSteps };
+}
+
+export function getBgmVolume() {
+    return volumeSteps.bgm / 10;
+}
+
+export function getSeVolume() {
+    return volumeSteps.se / 10;
+}
+
+export function getVoiceVolume() {
+    return volumeSteps.voice / 10;
+}
+
+export function setBgmVolumeStep(step) {
+    volumeSteps.bgm = clampVolumeStep(step);
+    saveVolumeSteps();
+    const vol = getBgmVolume();
+    if (bgmPlayer && !bgmPlayer.closed && bgmPlayer.gainNode && bgmPlayer.audioCtx && bgmPlayer.audioCtx.state !== 'closed') {
+        const now = bgmPlayer.audioCtx.currentTime;
+        const gain = bgmPlayer.gainNode.gain;
+        gain.cancelScheduledValues(now);
+        gain.setValueAtTime(vol, now);
+    }
+    return volumeSteps.bgm;
+}
+
+export function setSeVolumeStep(step) {
+    volumeSteps.se = clampVolumeStep(step);
+    saveVolumeSteps();
+    const vol = getSeVolume();
+    if (seGainNode && seAudioCtx && seAudioCtx.state !== 'closed') {
+        const now = seAudioCtx.currentTime;
+        const gain = seGainNode.gain;
+        gain.cancelScheduledValues(now);
+        gain.setValueAtTime(vol, now);
+    }
+    return volumeSteps.se;
+}
+
+export function setVoiceVolumeStep(step) {
+    volumeSteps.voice = clampVolumeStep(step);
+    saveVolumeSteps();
+    const vol = getVoiceVolume();
+    for (const listener of voiceVolumeListeners) {
+        try {
+            listener(vol);
+        } catch {}
+    }
+    return volumeSteps.voice;
+}
+
+export function onVoiceVolumeChange(listener) {
+    if (typeof listener !== 'function') return () => {};
+    voiceVolumeListeners.add(listener);
+    return () => {
+        voiceVolumeListeners.delete(listener);
+    };
+}
 
 export async function getHcaRuntime() {
     if (worker && hcaModule) return { worker, hcaModule };
@@ -237,7 +334,7 @@ export async function startBgm(fileName, { autoplay = true } = {}) {
     const decrypted = await getOrFetchDecryptedBgm(fileName);
     if (token !== bgmLoadToken) return;
 
-    const newPlayer = await mod.HCAWebAudioLoopPlayer.create(decrypted.slice(), activeWorker);
+    const newPlayer = await mod.HCAWebAudioLoopPlayer.create(decrypted.slice(), activeWorker, getBgmVolume());
     if (token !== bgmLoadToken) {
         await safeStopHcaPlayer(newPlayer, { fadeMs: 0 });
         return;
@@ -254,11 +351,14 @@ export async function startBgm(fileName, { autoplay = true } = {}) {
     bgmPlayer = newPlayer;
     currentBgmFile = fileName;
     bgmPlayer.playInBackground = true;
+    const targetVolume = getBgmVolume();
     if (autoplay) {
         if (bgmPlayer.gainNode && bgmPlayer.audioCtx) {
             const now = bgmPlayer.audioCtx.currentTime;
             bgmPlayer.gainNode.gain.setValueAtTime(0, now);
-            bgmPlayer.gainNode.gain.linearRampToValueAtTime(1, now + 0.015);
+            if (targetVolume > 0) {
+                bgmPlayer.gainNode.gain.linearRampToValueAtTime(targetVolume, now + 0.015);
+            }
         }
         bgmPlayer.play();
     }
@@ -278,6 +378,7 @@ export async function stopBgm({ fadeMs = 30 } = {}) {
 
 export function playPreparedBgm() {
     if (bgmPlayer && !bgmPlayer.closed) {
+        bgmPlayer.volume = getBgmVolume();
         bgmPlayer.play();
     }
 }
@@ -310,8 +411,19 @@ function getSeAudioContext() {
     if (!seAudioCtx || seAudioCtx.state === 'closed') {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         seAudioCtx = new AudioCtx();
+        seGainNode = null;
     }
     return seAudioCtx;
+}
+
+function getSeGainNode() {
+    const ctx = getSeAudioContext();
+    if (!seGainNode) {
+        seGainNode = ctx.createGain();
+        seGainNode.gain.value = getSeVolume();
+        seGainNode.connect(ctx.destination);
+    }
+    return seGainNode;
 }
 
 function loadSeBuffer(cacheKey, url) {
@@ -407,7 +519,7 @@ export async function startSe(seIdOrRelPath, { trackAsSfx = false } = {}) {
 
         const src = ctx.createBufferSource();
         src.buffer = audioBuffer;
-        src.connect(ctx.destination);
+        src.connect(getSeGainNode());
         if (trackAsSfx) {
             trackedSfxSource = src;
         }

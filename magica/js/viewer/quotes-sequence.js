@@ -100,7 +100,7 @@ export async function preloadScenarioVoices(voices, voicePlayer) {
 }
 
 class HcaVoicePlayer {
-    constructor({ getHcaRuntime = null } = {}) {
+    constructor({ getHcaRuntime = null, getVoiceVolume = null } = {}) {
         this.player = null;
         this.analyser = null;
         this.worker = null;
@@ -110,6 +110,7 @@ class HcaVoicePlayer {
         this.base = null;
         this.playToken = 0;
         this.getHcaRuntime = typeof getHcaRuntime === 'function' ? getHcaRuntime : null;
+        this.getVoiceVolume = typeof getVoiceVolume === 'function' ? getVoiceVolume : () => 1;
     }
 
     async resolveBase() {
@@ -174,7 +175,8 @@ class HcaVoicePlayer {
             voiceCache.set(fileName, decrypted);
         }
 
-        const player = await this.hcaModule.HCAWebAudioLoopPlayer.create(decrypted, this.worker);
+        const targetVolume = this.getVoiceVolume();
+        const player = await this.hcaModule.HCAWebAudioLoopPlayer.create(decrypted, this.worker, targetVolume);
         if (token !== this.playToken) {
             await stopPlayer(player);
             return;
@@ -188,6 +190,7 @@ class HcaVoicePlayer {
         player.bufSrc.disconnect();
         player.bufSrc.connect(analyser);
         analyser.connect(player.gainNode);
+        player.volume = this.getVoiceVolume();
         player.bufSrc.loop = false;
         player.playInBackground = true;
         player.bufSrc.onended = () => {
@@ -218,6 +221,12 @@ class HcaVoicePlayer {
     resume() {
         if (this.player?.audioCtx?.state === 'suspended') this.player.audioCtx.resume();
     }
+
+    setVolume(level) {
+        if (this.player && !this.player.closed) {
+            this.player.volume = level;
+        }
+    }
 }
 
 const OUTFIT_GROUP_STEP_DELAYS_MS = {
@@ -228,17 +237,21 @@ const OUTFIT_GROUP_STEP_DELAYS_MS = {
 };
 
 export class ScenarioSequencePlayer {
-    constructor({ controller, controllers, subtitleElement, stepDelayMs = 0, getHcaRuntime = null } = {}) {
+    constructor({ controller, controllers, subtitleElement, stepDelayMs = 0, getHcaRuntime = null, getVoiceVolume = null } = {}) {
         this.controller = controller || null;
         this.controllers = controllers || new Map();
         this.subtitleElement = subtitleElement;
         this.stepDelayMs = stepDelayMs;
-        this.voice = new HcaVoicePlayer({ getHcaRuntime });
+        this.voice = new HcaVoicePlayer({ getHcaRuntime, getVoiceVolume });
         this.timer = null;
         this.buttonResetTimeout = null;
         this.runToken = 0;
         this.activeAnalyser = null;
         this.activeBuffer = null;
+    }
+
+    setVolume(level) {
+        this.voice.setVolume(level);
     }
 
     setControllers(controllersMap, primaryController = null) {

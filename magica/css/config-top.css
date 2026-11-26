@@ -1,0 +1,446 @@
+@charset "UTF-8";
+/* config-top.css — Settings (#/ConfigTop) + Name Change & Notice popup styles
+ * Ported from totentanz/en-text ConfigTop.css + puella-historia common.css.
+ */
+
+#ConfigTop {
+  width: 1024px;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  user-select: none;
+  color: #5b5b5b;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+}
+
+#ConfigTop,
+#ConfigTop * {
+  box-sizing: border-box;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+}
+
+#ConfigTop ul,
+#ConfigTop li,
+#ConfigTop dl,
+#ConfigTop dt,
+#ConfigTop dd,
+#ConfigTop h2,
+#ConfigTop h3 {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-weight: 600;
+}
+
+#ConfigTop #menuPanel,
+#ConfigTop #configWrap {
+  pointer-events: auto;
+}
+
+#ConfigTop #menuPanel {
+  width: 222px;
+  height: auto;
+  padding: 28px 18px 15px;
+  position: absolute;
+  top: 70px;
+  left: 85px;
+}
+
+#ConfigTop #menuPanel .common_tab {
+  padding: 0;
+}
+
+#ConfigTop #menuPanel .btn {
+  width: 186px;
+  margin-bottom: 13px;
+}
+
+#ConfigTop #menuPanel .btn:last-child {
+  margin-bottom: 0;
+}
+
+#ConfigTop #menuPanel .btn.playerData {
+  font-size: 98%;
+}
+
+#ConfigTop #menuPanel .btn:not(.se_tabs) {
+  cursor: default;
+}
+
+/* Pink tab buttons (from common.css .common_tab.t_pink) */
+#ConfigTop .common_tab.t_pink li {
+  background: url("../resource/image_web/common/btn/tab_pink_off_c.png") center top no-repeat;
+  background-size: calc(100% - 60px) 100%;
+  border-radius: 30px;
+  isolation: isolate;
+  color: #ffffff;
+  text-shadow: -1px -1px 2px #ff5e7c, 1px -1px 2px #ff5e7c, -1px 1px 2px #ff5e7c, 1px 1px 2px #ff5e7c, -1px -1px 2px #ff5e7c, 1px -1px 2px #ff5e7c, -1px 1px 2px #ff5e7c, 1px 1px 2px #ff5e7c;
+}
+
+#ConfigTop .common_tab.t_pink li:before,
+#ConfigTop .common_tab.t_pink li:after {
+  z-index: -1;
+}
+
+#ConfigTop .common_tab.t_pink li:before {
+  background: url("../resource/image_web/common/btn/tab_pink_off_l.png") left top no-repeat;
+  background-size: 100% 100%;
+}
+
+#ConfigTop .common_tab.t_pink li:after {
+  background: url("../resource/image_web/common/btn/tab_pink_off_r.png") left top no-repeat;
+  background-size: 100% 100%;
+}
+
+#ConfigTop .common_tab.t_pink li.current {
+  background: url("../resource/image_web/common/btn/tab_pink_on_c.png") center top no-repeat;
+  background-size: calc(100% - 60px) 100%;
+  color: #ff5e7c;
+  text-shadow: none;
+}
+
+#ConfigTop .common_tab.t_pink li.current:before {
+  background: url("../resource/image_web/common/btn/tab_pink_on_l.png") left top no-repeat;
+  background-size: 100% 100%;
+}
+
+#ConfigTop .common_tab.t_pink li.current:after {
+  background: url("../resource/image_web/common/btn/tab_pink_on_r.png") left top no-repeat;
+  background-size: 100% 100%;
+}
+
+/* Right settings panel */
+#ConfigTop #configWrap {
+  width: 610px;
+  height: calc(100% - 98px);
+  padding: 10px 5px;
+  position: absolute;
+  top: 70px;
+  left: 326px;
+}
+
+#ConfigTop #configWrap #listTitle {
+  width: 458px;
+  padding: 0 20px;
+  background: url("../resource/image_web/common/frame/frame_title.png") left top no-repeat;
+  background-size: 458px 32px;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 32px;
+  border-radius: 10px 0 0 0;
+  text-shadow: -1px -1px 2px #ff4f92, 1px -1px 2px #ff4f92, -1px 1px 2px #ff4f92, 1px 1px 2px #ff4f92, -1px -1px 2px #ff4f92, 1px -1px 2px #ff4f92, -1px 1px 2px #ff4f92, 1px 1px 2px #ff4f92;
+  z-index: 1;
+}
+
+#ConfigTop #configWrap .commonConfigMain {
+  display: none;
+  width: 100%;
+  height: calc(100% - 47px);
+  overflow: hidden;
+  padding: 0 10px;
+  position: relative;
+  top: 37px;
+}
+
+#ConfigTop #configWrap.user #userWrap {
+  display: block;
+}
+
+#ConfigTop #configWrap .commonConfigMain h3 {
+  color: #ff4f9e;
+  position: relative;
+  line-height: 20px;
+  padding: 4px 0 0 30px;
+  font-size: 18px;
+  margin-top: 6px;
+  margin-bottom: 8px;
+}
+
+#ConfigTop #configWrap .commonConfigMain h3:before {
+  background: url("../resource/image_web/common/frame/title_icon.png") left top no-repeat;
+  width: 14px;
+  height: 14px;
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: 10px;
+}
+
+/* .common_dl + row layout */
+#ConfigTop .common_dl {
+  display: flex;
+  font-size: 16px;
+}
+
+#ConfigTop .common_dl dt {
+  padding: 0 10px;
+  background: #b28750;
+  color: #ffffff;
+  text-align: center;
+  border: 1px solid #b28750;
+  border-radius: 5px 0 0 5px;
+}
+
+#ConfigTop .common_dl dd {
+  padding: 0 10px;
+  border-top: 1px solid #eadecc;
+  border-right: 1px solid #eadecc;
+  border-bottom: 1px solid #eadecc;
+  border-radius: 0 5px 5px 0;
+}
+
+#ConfigTop #configWrap .commonConfigMain .colWrap {
+  width: 570px;
+  height: auto;
+  margin-bottom: 10px;
+  padding: 0 15px 0;
+  position: relative;
+}
+
+#ConfigTop #configWrap .commonConfigMain .colWrap .colLeft,
+#ConfigTop #configWrap .commonConfigMain .colWrap .colRight {
+  padding: 11px 10px !important;
+  line-height: 22px;
+}
+
+#ConfigTop #configWrap .commonConfigMain .colWrap .colLeft {
+  margin-left: 10px;
+  width: 120px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#ConfigTop #configWrap .commonConfigMain .colWrap .colLeft.playerName {
+  font-size: 15px;
+}
+
+#ConfigTop #configWrap .commonConfigMain .colWrap.soundDl .colRight,
+#ConfigTop #configWrap .commonConfigMain .colWrap.soundDl .colLeft {
+  padding: 20px 10px !important;
+}
+
+#ConfigTop #configWrap .commonConfigMain .colWrap .colRight {
+  min-width: 250px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+#ConfigTop #configWrap .commonConfigMain .colWrap .colRight span.black {
+  color: #333333;
+  text-shadow: none;
+  max-width: 228px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#ConfigTop #configWrap .commonConfigMain .colWrap .colRight .btn.rightPosition {
+  width: 111px;
+  position: absolute;
+  top: 4px;
+  right: -140px;
+}
+
+#ConfigTop .sb_gold_01 {
+  overflow: hidden;
+}
+
+#ConfigTop .sb_gold_01 .b_screen {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.4);
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: 6px;
+}
+
+#ConfigTop .sb_gold_01.touch {
+  transform: scale(0.95);
+}
+
+#ConfigTop .sb_gold_01.touch .b_screen {
+  opacity: 1;
+}
+
+/* Volume sliders */
+#ConfigTop #configWrap .commonConfigMain .colWrap .colRight.soundCol {
+  width: 450px;
+}
+
+#ConfigTop #configWrap .commonConfigMain .colWrap .colRight.soundCol:before {
+  width: 26px;
+  height: 24px;
+  background-image: url("../resource/image_web/page/config/icon_sound_off.png");
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  content: '';
+}
+
+#ConfigTop #configWrap .commonConfigMain .colWrap .colRight.soundCol:after {
+  width: 29px;
+  height: 26px;
+  background-image: url("../resource/image_web/page/config/icon_sound_on.png");
+  display: block;
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  content: '';
+}
+
+#ConfigTop #configWrap .commonConfigMain .colWrap .colRight .slider {
+  width: 336px;
+  height: 15px;
+  margin: 0 0 0 30px;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#ConfigTop input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 15px;
+  background-color: #dcd7ce;
+  border-radius: 10px;
+}
+
+#ConfigTop input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 38px;
+  height: 39px;
+  margin-top: -11px;
+  background-image: url("../resource/image_web/page/config/icon_slider_tab.png");
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-size: 38px 39px;
+  border-radius: 39px;
+  border-width: 0 !important;
+  cursor: pointer;
+}
+
+#ConfigTop input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 15px;
+  background-color: #dcd7ce;
+  border-radius: 10px;
+}
+
+#ConfigTop input[type=range]::-moz-range-thumb {
+  width: 38px;
+  height: 39px;
+  background-image: url("../resource/image_web/page/config/icon_slider_tab.png");
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-size: 38px 39px;
+  border: none;
+  border-radius: 39px;
+  cursor: pointer;
+}
+
+/* Name Change & Config Notice Popups */
+#nameChangePopWrap .popupInner,
+#configNoticePop .popupInner {
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+}
+
+#nameChangePopWrap .popupCloseBtn.closeDefault,
+#configNoticePop .popupCloseBtn.closeDefault {
+  width: 52px;
+  height: 51px;
+  background: url("../resource/image_web/common/popup/popup_close.png") left top no-repeat;
+  display: inline-block;
+  position: absolute;
+  top: -18px;
+  right: -18px;
+  z-index: 20;
+  cursor: pointer;
+}
+
+#nameChangePopWrap .popupTextArea,
+#configNoticePop .popupTextArea {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+#nameChangePopWrap .popupBtnArea,
+#configNoticePop .popupBtnArea {
+  margin: 0 auto;
+  text-align: center;
+}
+
+#nameChangePopWrap .nameChangeBody {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+#nameChangePopWrap .namePrompt {
+  margin: 0;
+  font-size: 20px;
+  color: #555555;
+}
+
+#nameChangePopWrap .nameInputRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+#nameChangePopWrap #changeName {
+  width: 300px;
+  height: 40px;
+  padding: 5px 12px;
+  background-color: #ffffff;
+  border: 2px solid #c6a882;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px #e1d5c5;
+  color: #333333;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  outline: none;
+  text-shadow: none;
+}
+
+#nameChangePopWrap #changeName:focus {
+  border-color: #ff3b81;
+}
+
+#nameChangePopWrap .textCount {
+  font-size: 18px;
+  color: #555555;
+  min-width: 52px;
+  text-align: left;
+}
+
+#nameChangePopWrap #nameChangeError {
+  min-height: 22px;
+  font-size: 16px;
+  color: #e6002d;
+}

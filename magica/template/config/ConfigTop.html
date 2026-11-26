@@ -1,0 +1,45 @@
+<div id="ConfigTop">
+	<div id="menuPanel" class="commonFrame2">
+		<ul class="common_tab t_pink">
+			<li class="btn se_tabs TE current" data-type="user">Game Settings</li>
+			<li class="btn TE" data-type="push">Notifications</li>
+			<li class="btn TE" data-type="datas">Manage Data</li>
+			<li class="btn TE" data-type="transfer">Transfer Data</li>
+			<li class="btn TE" data-type="inputCode">Serial Code</li>
+			<li class="btn TE playerData" data-type="deleteUserData">Player Data</li>
+		</ul>
+	</div>
+	<div id="configWrap" class="commonFrame1 user">
+		<h2 id="listTitle">Game Settings</h2>
+		<div id="userWrap" class="commonConfigMain">
+			<h3>Player</h3>
+			<dl class="colWrap common_dl">
+				<dt class="colLeft playerName">Player Name</dt>
+				<dd class="colRight"><span id="configUserName" class="black"></span><span class="btn rightPosition sb_gold_01 TE se_decide" id="nameChange"><span class="b_screen"></span>Change</span></dd>
+			</dl>
+			<dl class="colWrap common_dl">
+				<dt class="colLeft">Player ID</dt>
+				<dd class="colRight"><span id="configPlayerId" class="black"></span><span class="btn rightPosition se_decide sb_gold_01 TE" id="idCopy"><span class="b_screen"></span>Copy</span></dd>
+			</dl>
+			<h3>Volume</h3>
+			<dl class="colWrap common_dl soundDl">
+				<dt class="colLeft">BGM</dt>
+				<dd class="colRight soundCol">
+					<input id="bgmSlider" class="slider" type="range" min="0" max="10" step="1" value="10">
+				</dd>
+			</dl>
+			<dl class="colWrap common_dl soundDl">
+				<dt class="colLeft">SE</dt>
+				<dd class="colRight soundCol">
+					<input id="soundSlider" class="slider" type="range" min="0" max="10" step="1" value="10">
+				</dd>
+			</dl>
+			<dl class="colWrap common_dl soundDl">
+				<dt class="colLeft">Voices</dt>
+				<dd class="colRight soundCol">
+					<input id="voiceSlider" class="slider" type="range" min="0" max="10" step="1" value="10">
+				</dd>
+			</dl>
+		</div>
+	</div>
+</div>

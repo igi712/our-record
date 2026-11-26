@@ -1,12 +1,26 @@
 // js/view-loader.js — HTML view fragment loader and cacher
 
+import { magicaUrl } from './paths.js';
+
 const templateCache = new Map();
+
+function normalizeTemplateAssetUrls(root) {
+    for (const img of root.querySelectorAll('img[src]')) {
+        const rawSrc = img.getAttribute('src');
+        if (!rawSrc) continue;
+        if (rawSrc.startsWith('resource/')) {
+            img.setAttribute('src', magicaUrl(rawSrc));
+        } else if (rawSrc.startsWith('magica/resource/')) {
+            img.setAttribute('src', magicaUrl(rawSrc.slice('magica/'.length)));
+        }
+    }
+}
 
 export async function loadViewTemplate(path, targetContainerId) {
     let html = templateCache.get(path);
     if (!html) {
         try {
-            const resp = await fetch(path);
+            const resp = await fetch(path, { cache: 'no-cache' });
             if (!resp.ok) {
                 console.error(`[view-loader] Failed to fetch template at ${path}: ${resp.status}`);
                 return false;
@@ -26,6 +40,7 @@ export async function loadViewTemplate(path, targetContainerId) {
         // whole top-level fragment is mounted rather than just the first child.
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = html;
+        normalizeTemplateAssetUrls(tempDiv);
         const roots = Array.from(tempDiv.children);
         let mounted = false;
         for (const child of roots) {

@@ -219,15 +219,15 @@ export function initHomeMenu() {
     hideMenuUI();
 }
 
-export function initGlobalMenuForPage() {
+export function initGlobalMenuForPage({ showHelp = true } = {}) {
     const sideMenu = document.getElementById('sideMenu');
     if (!sideMenu) return;
 
     document.querySelector('#globalMenu #status')?.classList.remove('noneDisp');
     const helpBtn = document.querySelector('#globalMenu .helpBtn');
     if (helpBtn) {
-        helpBtn.classList.remove('off');
-        helpBtn.classList.add('on');
+        helpBtn.classList.toggle('on', Boolean(showHelp));
+        helpBtn.classList.toggle('off', !showHelp);
     }
     fillStatusDemo();
     bindEvents();
