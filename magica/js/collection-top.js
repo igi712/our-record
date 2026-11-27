@@ -116,7 +116,7 @@ export async function enterCollectionTop({ onBeforeReveal, hadLive2d = false } =
 
     document.body.classList.remove('connecting');
     clearStageModels();
-    await changeBg(ARCHIVE_BG, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((e) =>
+    await changeBg(ARCHIVE_BG, { visible: true, autoplay: true, crossfadeMs: 160, waitForCrossfade: true }).catch((e) =>
         console.warn('[collection-top] BG load error:', e)
     );
     if (token !== collectionTopRequestToken || !collectionTopActive) return;
@@ -129,8 +129,14 @@ export async function enterCollectionTop({ onBeforeReveal, hadLive2d = false } =
     applySubtitlePlacement();
 
     setupCollectionTopView();
+    const root = document.getElementById('CollectionTop');
+    root?.classList.remove('fadein');
     if (typeof onBeforeReveal === 'function') {
         onBeforeReveal();
+    }
+    if (root) {
+        void root.offsetWidth;
+        root.classList.add('fadein');
     }
 
     const charaId = pickRandomOwnedCharaId(cards);
@@ -160,6 +166,7 @@ export async function enterCollectionTop({ onBeforeReveal, hadLive2d = false } =
 export function leaveCollectionTop({ keepStage = false } = {}) {
     collectionTopActive = false;
     collectionTopRequestToken++;
+    document.getElementById('CollectionTop')?.classList.remove('fadein');
     resetCollectionTop();
     if (!keepStage) {
         stopVoice();

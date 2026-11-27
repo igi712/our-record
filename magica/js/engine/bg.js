@@ -317,7 +317,7 @@ export async function changeBg(bgInput = 'bg/web/web_0015.ExportJson', { visible
 
     if (canCrossfade) {
         const fadeId = ++bgFadeToken;
-        const start = performance.now();
+        let start = null;
         let fadePromise = null;
         if (waitForCrossfade) {
             fadePromise = new Promise((resolve) => {
@@ -331,12 +331,13 @@ export async function changeBg(bgInput = 'bg/web/web_0015.ExportJson', { visible
                 resolveFade();
             }
         };
-        const step = () => {
+        const step = (now) => {
             if (fadeId !== bgFadeToken || bgArmature !== armature || armature.destroyed) {
                 finishNow();
                 return;
             }
-            const t = Math.min(1, (performance.now() - start) / crossfadeMs);
+            if (start === null) start = now;
+            const t = Math.min(1, (now - start) / crossfadeMs);
             armature.alpha = t;
             if (t < 1) {
                 requestAnimationFrame(step);

@@ -510,13 +510,21 @@ export async function enterCharaCollection({ onBeforeReveal, hadLive2d = false, 
     applySubtitlePlacement();
 
     document.body.classList.remove('connecting');
+    const root = document.getElementById('CharaCollection');
+    root?.classList.remove('fadein');
     if (typeof onBeforeReveal === 'function') {
         onBeforeReveal();
     }
     await renderCharaCollectionGrid();
+    if (token !== collectionRequestToken) return;
+    if (root) {
+        void root.offsetWidth;
+        root.classList.add('fadein');
+    }
 }
 
 export function leaveCharaCollection() {
     collectionRequestToken++;
+    document.getElementById('CharaCollection')?.classList.remove('fadein');
     saveCollectionScrollPosition();
 }

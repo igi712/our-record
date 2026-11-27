@@ -1,12 +1,30 @@
+@-webkit-keyframes readyFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes readyFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
 #CollectionTop {
   width: 1024px;
   height: 100%;
   padding: 160px 0 0;
   position: relative;
   overflow: hidden;
+  opacity: 0;
   pointer-events: none;
   user-select: none;
   box-sizing: border-box;
+}
+
+#CollectionTop.fadein {
+  -webkit-animation: readyFadeIn .25s ease-in;
+  animation: readyFadeIn .25s ease-in;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
 }
 
 #CollectionTop * {

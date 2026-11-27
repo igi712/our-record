@@ -1,8 +1,25 @@
+@-webkit-keyframes readyFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes readyFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
 #CharaCollection {
   width: 1024px;
   height: 100%;
   position: relative;
-  overflow: hidden; }
+  overflow: hidden;
+  opacity: 0; }
+
+#CharaCollection.fadein {
+  -webkit-animation: readyFadeIn .25s ease-in;
+  animation: readyFadeIn .25s ease-in;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards; }
   #CharaCollection .hide {
     display: none; }
   #CharaCollection #tabArea {

@@ -1136,14 +1136,14 @@ export async function enterMyPage({ onBeforeReveal, hasStageToUnload = false, fr
             await changeBg(bgTarget, {
                 visible: true,
                 autoplay: hasExistingBg,
-                crossfadeMs: hasExistingBg ? 250 : 0,
+                crossfadeMs: hasExistingBg ? 350 : 0,
                 waitForCrossfade: hasExistingBg
             }).catch((err) => {
                 console.warn('[mypage] Saved home background failed, falling back to default:', err);
                 return changeBg(`bg/web/${DEFAULT_HOME_BG_FILE}`, {
                     visible: true,
                     autoplay: hasExistingBg,
-                    crossfadeMs: hasExistingBg ? 250 : 0,
+                    crossfadeMs: hasExistingBg ? 350 : 0,
                     waitForCrossfade: hasExistingBg
                 });
             });
