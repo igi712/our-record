@@ -1,7 +1,6 @@
 // js/collection-top.js — Archive hub (#/CollectionTop) controller
 
-import { state, buildModelId } from './viewer/model.js';
-import { preloadModelToRam, setAssetPreloadConnecting, ramFolderCache } from './viewer/model-assets.js';
+import { state } from './viewer/model.js';
 import { repoUrl } from './paths.js';
 import { changeBg, preloadBg, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
 import { startBgm } from './engine/audio.js';
@@ -105,18 +104,17 @@ export async function enterCollectionTop({ onBeforeReveal, hadLive2d = false } =
     ]);
     if (token !== collectionTopRequestToken || !collectionTopActive) return;
 
-    if (hadLive2d) {
-        const elapsed = performance.now() - step1Start;
-        if (elapsed < 200) {
-            await new Promise((r) => setTimeout(r, 200 - elapsed));
-        }
-        if (token !== collectionTopRequestToken || !collectionTopActive) return;
+    const elapsed = performance.now() - step1Start;
+    if (elapsed < 200) {
+        await new Promise((r) => setTimeout(r, 200 - elapsed));
     }
+    if (token !== collectionTopRequestToken || !collectionTopActive) return;
 
     document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
     setBgWebcamVideo(null);
     setBgPortrait(false);
 
+    document.body.classList.remove('connecting');
     clearStageModels();
     await changeBg(ARCHIVE_BG, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((e) =>
         console.warn('[collection-top] BG load error:', e)
@@ -136,22 +134,14 @@ export async function enterCollectionTop({ onBeforeReveal, hadLive2d = false } =
     }
 
     const charaId = pickRandomOwnedCharaId(cards);
-    const modelId = buildModelId(charaId, '00');
     state.currentCharacterId = charaId;
     state.currentLive2dId = '00';
 
-    const needsPreload = !ramFolderCache.has(modelId);
-    if (needsPreload) {
-        setAssetPreloadConnecting(true);
-    } else {
-        document.body.classList.remove('connecting');
-    }
-
     try {
-        await preloadModelToRam(modelId);
-        if (token !== collectionTopRequestToken || !collectionTopActive) return;
-
-        const loadedOk = await loadOutfitModels(charaId, '00', undefined, null, null, null, { startHidden: true });
+        const loadedOk = await loadOutfitModels(charaId, '00', undefined, null, null, null, {
+            startHidden: true,
+            showConnecting: false
+        });
         if (!loadedOk || token !== collectionTopRequestToken || !collectionTopActive) {
             if (!collectionTopActive) destroyStageModels();
             return;
@@ -164,9 +154,6 @@ export async function enterCollectionTop({ onBeforeReveal, hadLive2d = false } =
         });
     } catch (e) {
         console.warn('[collection-top] Random Live2D load failed:', e);
-    } finally {
-        setAssetPreloadConnecting(false);
-        document.body.classList.remove('connecting');
     }
 }
 

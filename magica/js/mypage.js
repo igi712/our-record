@@ -91,6 +91,8 @@ let live2dMenuRevealTimer = null;
 let homeActive = false;
 let homeReady = false;
 let homeRevealed = false;
+let homeModelVisible = false;
+let homeModelVisibleWaiters = [];
 let homeNeedsRespawn = false;
 let homeLoadedCharaId = null;
 let homePendingCharaId = null;
@@ -108,6 +110,32 @@ let menuChoreId = 0;
 let menuChoreTimers = [];
 let homeMenuSpawnToken = 0;
 let measureTextCtx = null;
+
+function isHomeModelVisible() {
+    if (!homeModelVisible) return false;
+    return getActiveModelEntries().some((m) => m && !m.destroyed && m.visible);
+}
+
+function flushHomeModelVisibleWaiters(ready) {
+    if (homeModelVisibleWaiters.length === 0) return;
+    const waiters = homeModelVisibleWaiters;
+    homeModelVisibleWaiters = [];
+    waiters.forEach((resolve) => resolve(Boolean(ready)));
+}
+
+function setHomeModelVisible(visible) {
+    homeModelVisible = Boolean(visible);
+    if (homeModelVisible) {
+        flushHomeModelVisibleWaiters(true);
+    }
+}
+
+function waitForHomeModelVisible() {
+    if (isHomeModelVisible()) return Promise.resolve(true);
+    return new Promise((resolve) => {
+        homeModelVisibleWaiters.push(resolve);
+    });
+}
 
 function fillDemoData() {
     const present = document.getElementById('present');
@@ -358,6 +386,7 @@ async function respawnHomeModel() {
     const live2dId = String(state.currentLive2dId ?? '00').padStart(2, '0');
     const charaId = state.currentCharacterId || DEFAULT_CHARA_ID;
 
+    setHomeModelVisible(false);
     destroyStageModels();
     try {
         await loadOutfitModels(charaId, live2dId, undefined);
@@ -367,7 +396,12 @@ async function respawnHomeModel() {
         }
         getActiveModelEntries().forEach((m) => { m.visible = true; });
         await loadScenarioForOutfit(charaId, live2dId);
+        if (token !== homeMenuSpawnToken || !homeActive) return;
+        setHomeModelVisible(true);
     } catch (e) {
+        if (token === homeMenuSpawnToken) {
+            flushHomeModelVisibleWaiters(false);
+        }
         console.warn('[mypage] Home menu model respawn failed:', e);
     }
 }
@@ -384,6 +418,7 @@ export function onMyPageMenuChoreography(open) {
     if (!state.currentModel) return;
     stopVoice();
     cancelOutfitChanges();
+    flushHomeModelVisibleWaiters(false);
     respawnHomeModel();
 }
 
@@ -394,6 +429,7 @@ async function setMyPagePortraitMode(enabled, { silent = false } = {}) {
     cancelMenuChoreography();
     stopVoice();
     cancelOutfitChanges();
+    flushHomeModelVisibleWaiters(false);
 
     const sideMenu = document.getElementById('sideMenu');
     const xOffset = portrait ? 0 : (sideMenu?.classList.contains('anim') ? HOME_X_OFFSET : 0);
@@ -542,8 +578,6 @@ async function swapMyPageOutfit(live2dIdRaw) {
 
     const charaId = state.currentCharacterId || DEFAULT_CHARA_ID;
     const token = bumpOutfitChangeToken();
-    const previousLive2dId = state.currentLive2dId;
-    state.currentLive2dId = live2dId;
 
     const btn = document.getElementById('live2dBtn');
     btn?.classList.add('block');
@@ -551,6 +585,26 @@ async function swapMyPageOutfit(live2dIdRaw) {
     wearWrap?.classList.add('block');
 
     try {
+        if (!isHomeModelVisible()) {
+            const modelReady = await waitForHomeModelVisible();
+            if (
+                !modelReady
+                || !homeActive
+                || token !== getOutfitChangeToken()
+                || (state.currentCharacterId || DEFAULT_CHARA_ID) !== charaId
+            ) {
+                syncMyPageOutfitUI();
+                return false;
+            }
+        }
+
+        const previousLive2dId = state.currentLive2dId;
+        if (String(previousLive2dId || '00').padStart(2, '0') === live2dId) {
+            syncMyPageOutfitUI();
+            return false;
+        }
+        state.currentLive2dId = live2dId;
+
         let loadedOk = false;
         try {
             loadedOk = await performOutfitSwap(charaId, live2dId, {
@@ -789,15 +843,30 @@ async function revealHomeScreen() {
     });
     choreTimer(550, () => {
         const targets = getActiveModelEntries();
-        if (targets.length === 0) return;
+        if (targets.length === 0) {
+            flushHomeModelVisibleWaiters(false);
+            return;
+        }
+        let remaining = targets.length;
+        const onFadeDone = () => {
+            remaining--;
+            if (remaining === 0 && homeActive) {
+                setHomeModelVisible(true);
+            }
+        };
+        const onFadeCancel = () => {
+            flushHomeModelVisibleWaiters(false);
+        };
         targets.forEach((m) => {
             m.visible = true;
             setModelFadeAlpha(m, 0);
-            fadeModelTo(m, 250, 1);
+            fadeModelTo(m, 250, 1, onFadeDone, onFadeCancel);
         });
-        playHomeVoice(chooseHomeLoginVoice()).catch((e) => {
-            console.warn('[mypage] Home login voice failed:', e);
-        });
+        if (!mypageOutfitBusy) {
+            playHomeVoice(chooseHomeLoginVoice()).catch((e) => {
+                console.warn('[mypage] Home login voice failed:', e);
+            });
+        }
     });
 }
 
@@ -1001,7 +1070,7 @@ export function resetMyPage({ keepStage = false } = {}) {
     document.querySelector('#globalMenu .user #status')?.classList.remove('myPageHide', 'myPageShow');
 }
 
-export async function enterMyPage({ onBeforeReveal, hasStageToUnload = false } = {}) {
+export async function enterMyPage({ onBeforeReveal, hasStageToUnload = false, fromCollectionTop = false } = {}) {
     const requestToken = ++homeRequestToken;
     const generation = ++homeGeneration;
 
@@ -1016,18 +1085,34 @@ export async function enterMyPage({ onBeforeReveal, hasStageToUnload = false } =
 
     homeActive = true;
     homeRevealed = false;
+    setHomeModelVisible(false);
+    flushHomeModelVisibleWaiters(false);
     homeNeedsRespawn = false;
     homePendingCharaId = requestedId;
-    document.body.classList.add('connecting');
+    if (!fromCollectionTop) {
+        document.body.classList.add('connecting');
+    }
 
     const loadTask = (async () => {
-        const savedBg = await resolveSavedHomeBackground();
-        if (requestToken !== homeRequestToken || !homeActive || generation !== homeGeneration) return;
-        setCommittedHomeBg(savedBg);
+        if (fromCollectionTop) {
+            const savedBgPromise = resolveSavedHomeBackground();
+            const hasExistingBg = hasVisibleBg();
 
-        const hasExistingBg = hasVisibleBg();
-        if (hasStageToUnload) {
-            const step1Start = performance.now();
+            // Let Archive UI disappearing paint first, then clear the Archive Live2D model, then show Connecting...
+            await new Promise((r) => setTimeout(r, 60));
+            if (requestToken !== homeRequestToken || !homeActive || generation !== homeGeneration) return;
+
+            clearStageModels();
+            await new Promise((r) => setTimeout(r, 60));
+            if (requestToken !== homeRequestToken || !homeActive || generation !== homeGeneration) return;
+
+            document.body.classList.add('connecting');
+            const connectStart = performance.now();
+
+            const savedBg = await savedBgPromise;
+            if (requestToken !== homeRequestToken || !homeActive || generation !== homeGeneration) return;
+            setCommittedHomeBg(savedBg);
+
             let bgTarget = savedBg;
             await Promise.all([
                 preloadBg(savedBg).catch((err) => {
@@ -1042,13 +1127,12 @@ export async function enterMyPage({ onBeforeReveal, hasStageToUnload = false } =
             ]);
             if (requestToken !== homeRequestToken || !homeActive || generation !== homeGeneration) return;
 
-            const elapsed = performance.now() - step1Start;
+            const elapsed = performance.now() - connectStart;
             if (elapsed < 200) {
                 await new Promise((r) => setTimeout(r, 200 - elapsed));
             }
             if (requestToken !== homeRequestToken || !homeActive || generation !== homeGeneration) return;
 
-            clearStageModels();
             await changeBg(bgTarget, {
                 visible: true,
                 autoplay: hasExistingBg,
@@ -1064,8 +1148,35 @@ export async function enterMyPage({ onBeforeReveal, hasStageToUnload = false } =
                 });
             });
         } else {
-            await Promise.all([
-                changeBg(savedBg, {
+            const savedBg = await resolveSavedHomeBackground();
+            if (requestToken !== homeRequestToken || !homeActive || generation !== homeGeneration) return;
+            setCommittedHomeBg(savedBg);
+
+            const hasExistingBg = hasVisibleBg();
+            if (hasStageToUnload) {
+                const step1Start = performance.now();
+                let bgTarget = savedBg;
+                await Promise.all([
+                    preloadBg(savedBg).catch((err) => {
+                        console.warn('[mypage] Saved home background preload failed, falling back to default:', err);
+                        bgTarget = `bg/web/${DEFAULT_HOME_BG_FILE}`;
+                        return preloadBg(bgTarget).catch(() => {});
+                    }),
+                    startBgm(savedBg.bgmFile, { autoplay: hasExistingBg }).catch((err) => {
+                        console.warn('[mypage] Saved home BGM failed, falling back to default:', err);
+                        return startBgm(DEFAULT_HOME_BGM_FILE, { autoplay: hasExistingBg }).catch(() => {});
+                    })
+                ]);
+                if (requestToken !== homeRequestToken || !homeActive || generation !== homeGeneration) return;
+
+                const elapsed = performance.now() - step1Start;
+                if (elapsed < 200) {
+                    await new Promise((r) => setTimeout(r, 200 - elapsed));
+                }
+                if (requestToken !== homeRequestToken || !homeActive || generation !== homeGeneration) return;
+
+                clearStageModels();
+                await changeBg(bgTarget, {
                     visible: true,
                     autoplay: hasExistingBg,
                     crossfadeMs: hasExistingBg ? 250 : 0,
@@ -1078,12 +1189,29 @@ export async function enterMyPage({ onBeforeReveal, hasStageToUnload = false } =
                         crossfadeMs: hasExistingBg ? 250 : 0,
                         waitForCrossfade: hasExistingBg
                     });
-                }),
-                startBgm(savedBg.bgmFile, { autoplay: hasExistingBg }).catch((err) => {
-                    console.warn('[mypage] Saved home BGM failed, falling back to default:', err);
-                    return startBgm(DEFAULT_HOME_BGM_FILE, { autoplay: hasExistingBg }).catch(() => {});
-                })
-            ]);
+                });
+            } else {
+                await Promise.all([
+                    changeBg(savedBg, {
+                        visible: true,
+                        autoplay: hasExistingBg,
+                        crossfadeMs: hasExistingBg ? 250 : 0,
+                        waitForCrossfade: hasExistingBg
+                    }).catch((err) => {
+                        console.warn('[mypage] Saved home background failed, falling back to default:', err);
+                        return changeBg(`bg/web/${DEFAULT_HOME_BG_FILE}`, {
+                            visible: true,
+                            autoplay: hasExistingBg,
+                            crossfadeMs: hasExistingBg ? 250 : 0,
+                            waitForCrossfade: hasExistingBg
+                        });
+                    }),
+                    startBgm(savedBg.bgmFile, { autoplay: hasExistingBg }).catch((err) => {
+                        console.warn('[mypage] Saved home BGM failed, falling back to default:', err);
+                        return startBgm(DEFAULT_HOME_BGM_FILE, { autoplay: hasExistingBg }).catch(() => {});
+                    })
+                ]);
+            }
         }
         if (requestToken !== homeRequestToken || !homeActive || generation !== homeGeneration) return;
 
@@ -1181,6 +1309,8 @@ export async function enterMyPage({ onBeforeReveal, hasStageToUnload = false } =
     })().catch((error) => {
         console.error('[mypage] Homescreen preload failed:', error);
         homeReady = false;
+        setHomeModelVisible(false);
+        flushHomeModelVisibleWaiters(false);
         if (generation === homeGeneration) {
             document.body.classList.remove('connecting');
         }
@@ -1199,6 +1329,8 @@ export function leaveMyPage({ keepHomeCache = true, keepStage = false } = {}) {
     homeRequestToken++;
     homeActive = false;
     homeRevealed = false;
+    setHomeModelVisible(false);
+    flushHomeModelVisibleWaiters(false);
     cancelMenuChoreography({ keepModelFades: keepStage });
 
     clearTimeout(live2dHoldTimer);

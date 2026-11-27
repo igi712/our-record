@@ -408,35 +408,99 @@ function setupSearchFilter() {
 
 let collectionRequestToken = 0;
 
-export async function enterCharaCollection({ onBeforeReveal, hadLive2d = false } = {}) {
+export async function enterCharaCollection({ onBeforeReveal, hadLive2d = false, fromCollectionTop = false, fromDetail = false } = {}) {
     const token = ++collectionRequestToken;
 
-    const step1Start = performance.now();
-    await Promise.all([
-        preloadBg(COLLECTION_BG).catch((e) => console.warn('[chara-collection] background preload error:', e)),
-        startBgm(COLLECTION_BGM, { autoplay: true }).catch((e) => console.warn('[chara-collection] bgm error:', e)),
-        loadCharaAttributes(),
-        (!state.charaListData || state.charaListData.length === 0) ? fetchCharacterCatalog() : Promise.resolve()
-    ]);
-    if (token !== collectionRequestToken) return;
+    if (fromDetail) {
+        document.body.classList.remove('connecting');
+        document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
+        setBgWebcamVideo(null);
+        setBgPortrait(false);
 
-    if (hadLive2d) {
-        const elapsed = performance.now() - step1Start;
-        if (elapsed < 200) {
-            await new Promise((r) => setTimeout(r, 200 - elapsed));
+        await Promise.all([
+            changeBg(COLLECTION_BG, { visible: true, autoplay: true, crossfadeMs: 0 }).catch((e) =>
+                console.warn('[chara-collection] background error:', e)
+            ),
+            startBgm(COLLECTION_BGM, { autoplay: true }).catch((e) => console.warn('[chara-collection] bgm error:', e)),
+            loadCharaAttributes(),
+            (!state.charaListData || state.charaListData.length === 0) ? fetchCharacterCatalog() : Promise.resolve()
+        ]);
+        if (token !== collectionRequestToken) return;
+    } else if (fromCollectionTop) {
+        const preloadTask = Promise.all([
+            preloadBg(COLLECTION_BG).catch((e) => console.warn('[chara-collection] background preload error:', e)),
+            startBgm(COLLECTION_BGM, { autoplay: true }).catch((e) => console.warn('[chara-collection] bgm error:', e)),
+            loadCharaAttributes(),
+            (!state.charaListData || state.charaListData.length === 0) ? fetchCharacterCatalog() : Promise.resolve()
+        ]);
+
+        // Step 1: let the Archive right-side UI disappear first.
+        await new Promise((r) => setTimeout(r, 60));
+        if (token !== collectionRequestToken) return;
+
+        // Step 2: show Connecting... while the Archive Live2D model is still on screen.
+        document.body.classList.add('connecting');
+        const connectStart = performance.now();
+
+        await preloadTask;
+        if (token !== collectionRequestToken) return;
+
+        const connectElapsed = performance.now() - connectStart;
+        if (connectElapsed < 180) {
+            await new Promise((r) => setTimeout(r, 180 - connectElapsed));
         }
         if (token !== collectionRequestToken) return;
+
+        // Step 3: while Connecting... is visible, clear the model instantly.
+        document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
+        setBgWebcamVideo(null);
+        setBgPortrait(false);
+        clearStageModels();
+
+        const afterClearStart = performance.now();
+        await changeBg(COLLECTION_BG, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((e) =>
+            console.warn('[chara-collection] background error:', e)
+        );
+        if (token !== collectionRequestToken) return;
+
+        const afterClearElapsed = performance.now() - afterClearStart;
+        if (afterClearElapsed < 150) {
+            await new Promise((r) => setTimeout(r, 150 - afterClearElapsed));
+        }
+        if (token !== collectionRequestToken) return;
+
+        // Step 4: hide Connecting... before Magical Girls Archive UI appears.
+        document.body.classList.remove('connecting');
+        await new Promise((r) => setTimeout(r, 60));
+        if (token !== collectionRequestToken) return;
+    } else {
+        const step1Start = performance.now();
+        await Promise.all([
+            preloadBg(COLLECTION_BG).catch((e) => console.warn('[chara-collection] background preload error:', e)),
+            startBgm(COLLECTION_BGM, { autoplay: true }).catch((e) => console.warn('[chara-collection] bgm error:', e)),
+            loadCharaAttributes(),
+            (!state.charaListData || state.charaListData.length === 0) ? fetchCharacterCatalog() : Promise.resolve()
+        ]);
+        if (token !== collectionRequestToken) return;
+
+        if (hadLive2d) {
+            const elapsed = performance.now() - step1Start;
+            if (elapsed < 200) {
+                await new Promise((r) => setTimeout(r, 200 - elapsed));
+            }
+            if (token !== collectionRequestToken) return;
+        }
+
+        document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
+        setBgWebcamVideo(null);
+        setBgPortrait(false);
+
+        clearStageModels();
+        await changeBg(COLLECTION_BG, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((e) =>
+            console.warn('[chara-collection] background error:', e)
+        );
+        if (token !== collectionRequestToken) return;
     }
-
-    document.getElementById('ui-layer')?.classList.remove('home-mode', 'menu-closed');
-    setBgWebcamVideo(null);
-    setBgPortrait(false);
-
-    clearStageModels();
-    await changeBg(COLLECTION_BG, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((e) =>
-        console.warn('[chara-collection] background error:', e)
-    );
-    if (token !== collectionRequestToken) return;
 
     setStageContext({ mode: 'detail' });
     setStageXOffset(COLLECTION_X_OFFSET);
@@ -445,6 +509,7 @@ export async function enterCharaCollection({ onBeforeReveal, hadLive2d = false }
     }
     applySubtitlePlacement();
 
+    document.body.classList.remove('connecting');
     if (typeof onBeforeReveal === 'function') {
         onBeforeReveal();
     }

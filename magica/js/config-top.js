@@ -149,6 +149,7 @@ export async function enterConfigTop({ onBeforeReveal, hadLive2d = false } = {})
     setBgWebcamVideo(null);
     setBgPortrait(false);
 
+    document.body.classList.remove('connecting');
     clearStageModels();
     await changeBg(bgTarget, { visible: true, autoplay: true, crossfadeMs: 250, waitForCrossfade: true }).catch((err) => {
         console.warn('[config-top] web_common BG failed, falling back:', err);
@@ -156,15 +157,21 @@ export async function enterConfigTop({ onBeforeReveal, hadLive2d = false } = {})
     });
     if (token !== configRequestToken || !configTopActive) return;
 
-    document.body.classList.remove('connecting');
     setupConfigTopView();
+    const root = document.getElementById('ConfigTop');
+    root?.classList.remove('fadein');
     if (typeof onBeforeReveal === 'function') {
         onBeforeReveal();
+    }
+    if (root) {
+        void root.offsetWidth;
+        root.classList.add('fadein');
     }
 }
 
 export function leaveConfigTop() {
     configTopActive = false;
     configRequestToken++;
+    document.getElementById('ConfigTop')?.classList.remove('fadein');
     resetConfigTop();
 }

@@ -393,7 +393,7 @@ export async function loadOutfitModels(
     allowedExpressions = null,
     allowedMotions = null,
     placementOverride = null,
-    { startHidden = false } = {}
+    { startHidden = false, showConnecting = true } = {}
 ) {
     destroyCurrentModels();
 
@@ -408,10 +408,10 @@ export async function loadOutfitModels(
 
         const preloadTasks = [];
         if (!ramFolderCache.has(primaryId)) {
-            preloadTasks.push(preloadModelToRam(primaryId, { allowedExpressions, allowedMotions }));
+            preloadTasks.push(preloadModelToRam(primaryId, { allowedExpressions, allowedMotions, showConnecting }));
         }
         if (!ramFolderCache.has(secondaryId)) {
-            preloadTasks.push(preloadModelToRam(secondaryId, { allowedExpressions, allowedMotions }));
+            preloadTasks.push(preloadModelToRam(secondaryId, { allowedExpressions, allowedMotions, showConnecting }));
         }
         if (preloadTasks.length > 0) {
             await Promise.all(preloadTasks);
@@ -424,7 +424,8 @@ export async function loadOutfitModels(
             allowedMotions,
             xOverride: xOverride[0],
             zOrder: primaryZOrder,
-            deferReveal: true
+            deferReveal: true,
+            showConnecting
         });
         if (token !== undefined && token !== outfitChangeToken) {
             destroyCurrentModels();
@@ -437,7 +438,8 @@ export async function loadOutfitModels(
             allowedMotions,
             xOverride: xOverride[1],
             zOrder: secondaryZOrder,
-            deferReveal: true
+            deferReveal: true,
+            showConnecting
         });
         if (token !== undefined && token !== outfitChangeToken) {
             destroyCurrentModels();
@@ -484,7 +486,8 @@ export async function loadOutfitModels(
         allowedExpressions,
         allowedMotions,
         xOverride: placement.singleX,
-        deferReveal: startHidden
+        deferReveal: startHidden,
+        showConnecting
     });
     if (token !== undefined && token !== outfitChangeToken) {
         destroyCurrentModels();
@@ -514,6 +517,7 @@ export async function performOutfitSwap(
         vfxDefaultX = 250,
         skipVfxIfDual = false,
         applyDefaultMotionAndFace = false,
+        showConnecting = true,
         onScenarioLoaded = null
     } = {}
 ) {
@@ -530,7 +534,7 @@ export async function performOutfitSwap(
             || (await getDualUnitConfig(charaId, '00')).isDual;
     }
 
-    await preloadModelToRam(modelId);
+    await preloadModelToRam(modelId, { showConnecting });
     if (token !== outfitChangeToken) return false;
 
     if (!skipVfxIfDual || !isDualUnit) {
@@ -540,7 +544,7 @@ export async function performOutfitSwap(
         if (token !== outfitChangeToken) return false;
     }
 
-    const loadedOk = await loadOutfitModels(charaId, l2d, token);
+    const loadedOk = await loadOutfitModels(charaId, l2d, token, null, null, null, { showConnecting });
     if (!loadedOk || token !== outfitChangeToken) return false;
 
     if (applyDefaultMotionAndFace) {

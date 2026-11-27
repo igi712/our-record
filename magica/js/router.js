@@ -133,7 +133,7 @@ function leaveActiveRoute(nextRouteKey) {
             leaveCharaCollection();
             break;
         case 'CharaCollectionDetail':
-            leaveCharaCollectionDetail({ keepStage: true });
+            leaveCharaCollectionDetail({ keepStage: nextRouteKey !== 'CharaCollection' });
             break;
         default:
             break;
@@ -163,16 +163,25 @@ export async function handleRoute() {
         }
     }
     const hadLive2d = hasActiveStageModels();
+    const isArchiveToHome = prevRouteKey === 'CollectionTop' && nextRouteKey === 'MyPage';
+    const isArchiveToCharaCollection = prevRouteKey === 'CollectionTop' && nextRouteKey === 'CharaCollection';
+    const isCharaCollectionDetailNav =
+        (prevRouteKey === 'CharaCollection' && nextRouteKey === 'CharaCollectionDetail')
+        || (prevRouteKey === 'CharaCollectionDetail' && nextRouteKey === 'CharaCollection');
 
-    // Phase 1: hide outgoing page UI immediately while keeping top global chrome & Live2D stage alive.
-    hideAllViews();
+    // Phase 1: tear down outgoing route state/stage (if required) and hide outgoing page UI immediately.
     leaveActiveRoute(nextRouteKey);
+    hideAllViews();
     activeRouteKey = nextRouteKey;
     if (prevRouteKey !== null) {
         collapseSideMenuForTransition();
     }
 
-    document.body.classList.add('connecting');
+    if (isCharaCollectionDetailNav) {
+        document.body.classList.remove('connecting');
+    } else if (!isArchiveToHome && !isArchiveToCharaCollection) {
+        document.body.classList.add('connecting');
+    }
     uiLayer.classList.add('route-transitioning');
 
     try {
@@ -186,6 +195,7 @@ export async function handleRoute() {
 
             await enterMyPage({
                 hasStageToUnload: hadLive2d,
+                fromCollectionTop: isArchiveToHome,
                 onBeforeReveal: () => {
                     if (generation !== routeGeneration) return;
                     const myPageEl = document.getElementById('MyPage');
@@ -334,6 +344,7 @@ export async function handleRoute() {
             await enterCharaCollectionDetail({
                 charaId,
                 hadLive2d,
+                fromCollection: prevRouteKey === 'CharaCollection',
                 onBeforeReveal: () => {
                     if (generation !== routeGeneration) return;
                     const charaDetailEl = document.getElementById('cardDetail');
@@ -357,7 +368,9 @@ export async function handleRoute() {
             }
 
             await enterCharaCollection({
-                hadLive2d,
+                hadLive2d: prevRouteKey === 'CharaCollectionDetail' ? false : hadLive2d,
+                fromCollectionTop: isArchiveToCharaCollection,
+                fromDetail: prevRouteKey === 'CharaCollectionDetail',
                 onBeforeReveal: () => {
                     if (generation !== routeGeneration) return;
                     document.body.classList.remove('connecting');

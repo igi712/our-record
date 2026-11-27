@@ -21,7 +21,6 @@ import {
     getOutfitChangeToken,
     getScenarioPlayer,
     stopVoice,
-    destroyStageModels,
     clearStageModels
 } from './engine/l2d-stage.js';
 
@@ -137,8 +136,9 @@ function setupOutfitButtons(charaId) {
                 await performOutfitSwap(charaId, newLive2dId, {
                     token,
                     vfxDefaultX: 250,
-                    skipVfxIfDual: false,
+                    skipVfxIfDual: true,
                     applyDefaultMotionAndFace: true,
+                    showConnecting: false,
                     onScenarioLoaded: (res) => applyScenarioResult(charaId, res)
                 });
             } catch (err) {
@@ -234,7 +234,7 @@ function setupVoiceButtons() {
     });
 }
 
-function resetDetailViewState({ keepStage = false } = {}) {
+function resetDetailViewState() {
     const detailTab = document.getElementById('detailTab');
     if (detailTab) {
         detailTab.querySelectorAll('li').forEach((tab) => {
@@ -265,9 +265,6 @@ function resetDetailViewState({ keepStage = false } = {}) {
             if (child.scrollTop > 0) child.scrollTop = 0;
         });
     }
-    if (!keepStage) {
-        destroyStageModels();
-    }
 }
 
 async function initDetailMetadata(charaId) {
@@ -284,7 +281,7 @@ async function initDetailMetadata(charaId) {
     }
 }
 
-export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID, onBeforeReveal, hadLive2d = false } = {}) {
+export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID, onBeforeReveal, hadLive2d = false, fromCollection = false } = {}) {
     detailActive = true;
     const reqToken = ++detailRequestToken;
 
@@ -336,11 +333,10 @@ export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID, o
         if (attEl && cardAtt) attEl.className = cardAtt.toLowerCase();
     }
 
+    document.body.classList.remove('connecting');
     if (typeof onBeforeReveal === 'function') {
         onBeforeReveal();
     }
-
-    document.body.classList.add('connecting');
 
     const defaultModelId = buildModelId(charaId, '00');
     detailVoicePrefix = '00';
@@ -389,7 +385,7 @@ export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID, o
     const seqPlayer = getScenarioPlayer();
     await Promise.all([
         ...Array.from(allowedModels).map((modelId) =>
-            preloadModelToRam(modelId, { allowedExpressions, allowedMotions }).catch((e) =>
+            preloadModelToRam(modelId, { allowedExpressions, allowedMotions, showConnecting: false }).catch((e) =>
                 console.warn('[detail] model preload error:', e)
             )
         ),
@@ -399,11 +395,12 @@ export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID, o
     ]);
 
     if (reqToken !== detailRequestToken || token !== getOutfitChangeToken() || !detailActive) return;
-    document.body.classList.remove('connecting');
 
     try {
         state.currentLive2dId = '00';
-        const loadedOk = await loadOutfitModels(charaId, '00', token, allowedExpressions, allowedMotions);
+        const loadedOk = await loadOutfitModels(charaId, '00', token, allowedExpressions, allowedMotions, null, {
+            showConnecting: false
+        });
         if (!loadedOk || reqToken !== detailRequestToken || token !== getOutfitChangeToken() || !detailActive) return;
 
         await metadataPromise;
@@ -424,10 +421,9 @@ export function leaveCharaCollectionDetail({ keepStage = false } = {}) {
     detailActive = false;
     detailRequestToken++;
     currentLoadedCharaId = null;
-    resetDetailViewState({ keepStage });
+    resetDetailViewState();
     if (!keepStage) {
-        cancelOutfitChanges();
-        stopVoice();
+        clearStageModels();
         document.body.classList.remove('connecting');
     }
 }

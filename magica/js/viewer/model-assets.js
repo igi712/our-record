@@ -116,7 +116,13 @@ function __mrSetConnecting(on) {
                             __mrWorldDimFilter = new PIXI.filters.ColorMatrixFilter();
                             try { __mrWorldDimFilter.brightness(0.95, false); } catch (e) {}
                         }
-                        try { window.worldContainer.filters = [__mrWorldDimFilter]; } catch (e) {}
+                        try { __mrWorldDimFilter.resolution = window.app?.renderer?.resolution ?? 1; } catch (e) {}
+                        // Live2DModel.getBounds() only covers the Cubism canvas rect, which clips wide
+                        // parts (e.g. Devil Homura's wings) while a filter is active. Use the full screen.
+                        try {
+                            if (window.app?.screen) window.worldContainer.filterArea = window.app.screen;
+                            window.worldContainer.filters = [__mrWorldDimFilter];
+                        } catch (e) {}
                     }
                 } catch (e) {}
 
@@ -132,7 +138,12 @@ function __mrSetConnecting(on) {
             __mrPreloadCount = Math.max(0, (__mrPreloadCount || 0) - 1);
             if (__mrPreloadCount === 0) {
                 root.classList.remove('connecting');
-                try { if (window.worldContainer) window.worldContainer.filters = null; } catch (e) {}
+                try {
+                    if (window.worldContainer) {
+                        window.worldContainer.filters = null;
+                        window.worldContainer.filterArea = null;
+                    }
+                } catch (e) {}
             }
         }
     } catch (e) {}
@@ -217,8 +228,11 @@ export async function preloadModelToRam(modelId, options = {}) {
         return cached;
     }
 
-    // Show connecting cursor / banner while preloading
-    __mrSetConnecting(true);
+    // Show connecting cursor / banner while preloading unless caller suppresses it
+    const showConnecting = options.showConnecting !== false;
+    if (showConnecting) {
+        __mrSetConnecting(true);
+    }
 
     const allowedExpressions = options.allowedExpressions; // normalized Sets of names
     const allowedMotions = options.allowedMotions; // Sets of numbers
@@ -402,7 +416,9 @@ export async function preloadModelToRam(modelId, options = {}) {
         putRamFolderCache(modelId, finalFiles);
         return finalFiles;
     } finally {
-        __mrSetConnecting(false);
+        if (showConnecting) {
+            __mrSetConnecting(false);
+        }
     }
 }
 
@@ -520,6 +536,7 @@ export function isLoadTokenStale(token) {
 // Prime the preloader for the initial/default model id so the first visible load benefits from parallel fetching.
 export function primePreloadForInitialModel() {
     try {
+        if (window.__QUOTES_CONFIG) return;
         const id = state.currentModelId;
         if (!id) return;
         if (ramFolderCache.has(id)) {
