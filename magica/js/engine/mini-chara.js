@@ -7,8 +7,20 @@ import { collectCocosBaseTextures, disposeCocosAssets, getImageNativeBase } from
 
 const CH_TOP_MARKER_URL = magicaUrl('resource/image_native/effect/web_ef_unit_marker/web_ef_unit_marker.ExportJson');
 const MINI_CHARA_X = 400;
-const MINI_CHARA_Y = 383;
+const MINI_CHARA_Y_OFFSET = 95; // 288 + 95 = 383 at 576h, 336 + 95 = 431 at 672h, 384 + 95 = 479 at 768h
 const MINI_CACHE_LIMIT = 16;
+
+function getMiniCharaY() {
+    return (window.VIEWPORT?.viewH || 576) / 2 + MINI_CHARA_Y_OFFSET;
+}
+
+try {
+    window.addEventListener('mrv2:viewportChange', () => {
+        const y = getMiniCharaY();
+        if (unitMarkerArmature && !unitMarkerArmature.destroyed) unitMarkerArmature.y = y;
+        if (miniCharaArmature && !miniCharaArmature.destroyed) miniCharaArmature.y = y;
+    });
+} catch {}
 
 let miniStageActive = false;
 let miniCharaLayer = null;
@@ -424,7 +436,7 @@ async function ensureUnitMarker(layer, token) {
 
         const marker = new MiniCharArmature(assets.json, assets.textures, assets.particles);
         marker.x = MINI_CHARA_X;
-        marker.y = MINI_CHARA_Y;
+        marker.y = getMiniCharaY();
         marker.scale.set(0.8, 0.2);
         marker.play('player_marker_01', true);
         layer.addChildAt(marker, 0);
@@ -607,7 +619,7 @@ export async function showMiniChara(miniCharaNo, options = {}) {
 
         const armature = new MiniCharArmature(assets.json, assets.textures, assets.particles, assets.frameMeta);
         armature.x = MINI_CHARA_X;
-        armature.y = MINI_CHARA_Y;
+        armature.y = getMiniCharaY();
         armature.scale.set(1.0);
         armature.alpha = options.fade === false ? 1 : 0;
         layer.addChild(armature);

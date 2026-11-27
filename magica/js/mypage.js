@@ -929,6 +929,7 @@ function setupHomeStageInteractions() {
             } else {
                 applyPortraitModelTransform(state.currentModel, 0, false);
             }
+            applySubtitlePlacement();
         }
     });
 }

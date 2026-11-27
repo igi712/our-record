@@ -168,7 +168,15 @@ function updateViewport() {
     let cameraLeft = VIEW43_LEFT;
     let cameraTop = VIEW43_TOP;
 
-    if (mode === 'home16') {
+    if (mode === 'dynamic') {
+        const minAspect = WORLD_W / WORLD_H;      // 4:3 (1024/768)
+        const maxAspect = HOME16_W / HOME16_H;    // 16:9 (1024/576)
+        const clampedAspect = Math.max(minAspect, Math.min(maxAspect, w / h));
+        viewW = WORLD_W;
+        viewH = Math.max(HOME16_H, Math.min(WORLD_H, WORLD_W / clampedAspect));
+        cameraLeft = 0;
+        cameraTop = (WORLD_H - viewH) / 2;
+    } else if (mode === 'home16') {
         viewW = HOME16_W;
         viewH = HOME16_H;
         cameraLeft = HOME16_LEFT;
@@ -234,28 +242,52 @@ function updateViewport() {
         scale = Math.min(w / viewW, h / viewH);
     }
     cameraContainer.scale.set(scale);
-    const vx = Math.floor((w - viewW * scale) / 2);
-    const vy = Math.floor((h - viewH * scale) / 2);
+    const activeW = viewW * scale;
+    const activeH = viewH * scale;
+    const vx = Math.max(0, Math.floor((w - activeW) / 2));
+    const vy = Math.max(0, Math.floor((h - activeH) / 2));
     cameraContainer.position.set(vx, vy);
 
     // Draw opaque borders over the letterbox/pillarbox areas when framing Story/Home/Quotes scenes.
     // Solid/test backgrounds omit borders so the solid color fills the full viewport seamlessly.
     viewerBgGraphics.clear();
     if (!isSolidBg) {
-        const matrix = new PIXI.Matrix();
-        matrix.scale(1, h / 256); // Stretch the 256px gradient to the screen height
-        viewerBgGraphics.beginTextureFill({ texture: viewerBgTexture, matrix: matrix });
+        const hasTop = vy > 0.5;
+        const hasBottom = (h - (vy + activeH)) > 0.5;
+        const hasLeft = vx > 0.5;
+        const hasRight = (w - (vx + activeW)) > 0.5;
 
-        // Top border
-        if (vy > 0) viewerBgGraphics.drawRect(0, 0, w, vy);
-        // Bottom border
-        if (h - (vy + viewH * scale) > 0) viewerBgGraphics.drawRect(0, vy + viewH * scale, w, h - (vy + viewH * scale));
-        // Left border
-        if (vx > 0) viewerBgGraphics.drawRect(0, vy, vx, viewH * scale);
-        // Right border
-        if (w - (vx + viewW * scale) > 0) viewerBgGraphics.drawRect(vx + viewW * scale, vy, w - (vx + viewW * scale), viewH * scale);
+        if (isQuotesMode) {
+            if (hasTop || hasBottom) {
+                viewerBgGraphics.beginFill(0x000000);
+                if (hasTop) viewerBgGraphics.drawRect(0, 0, w, vy);
+                if (hasBottom) viewerBgGraphics.drawRect(0, vy + activeH, w, h - (vy + activeH));
+                viewerBgGraphics.endFill();
+            }
+            if (hasLeft || hasRight) {
+                const matrix = new PIXI.Matrix();
+                matrix.scale(1, h / 256); // Stretch the 256px gradient to the screen height
+                viewerBgGraphics.beginTextureFill({ texture: viewerBgTexture, matrix: matrix });
+                if (hasLeft) viewerBgGraphics.drawRect(0, vy, vx, activeH);
+                if (hasRight) viewerBgGraphics.drawRect(vx + activeW, vy, w - (vx + activeW), activeH);
+                viewerBgGraphics.endFill();
+            }
+        } else {
+            const matrix = new PIXI.Matrix();
+            matrix.scale(1, h / 256); // Stretch the 256px gradient to the screen height
+            viewerBgGraphics.beginTextureFill({ texture: viewerBgTexture, matrix: matrix });
 
-        viewerBgGraphics.endFill();
+            // Top border
+            if (vy > 0) viewerBgGraphics.drawRect(0, 0, w, vy);
+            // Bottom border
+            if (h - (vy + activeH) > 0) viewerBgGraphics.drawRect(0, vy + activeH, w, h - (vy + activeH));
+            // Left border
+            if (vx > 0) viewerBgGraphics.drawRect(0, vy, vx, activeH);
+            // Right border
+            if (w - (vx + activeW) > 0) viewerBgGraphics.drawRect(vx + activeW, vy, w - (vx + activeW), activeH);
+
+            viewerBgGraphics.endFill();
+        }
     }
 
     // Expose active viewport metrics for placement code.

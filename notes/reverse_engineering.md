@@ -30,64 +30,41 @@ This indicates the **same home placement** is being mapped through a different p
   - `xGame = 512 + HOME_OFFSET_X`
 
 ### Y mapping from `params.json.height`
-A near‑perfect linear fit was derived from in‑game logs:
+From hooked `CubismRenderer::SetMvpMatrix` logs across `1024×576`, `1024×672`, and `1024×768` (7 characters, max error `0.000048`):
 
-- $y_{game} = a + b \cdot height$
-- Using collected samples:
-  - `a = 287.0999674453658`
-  - `b = 1.7775731122833498`
+- Normalized Cubism MVP Y translation:
+  - `ty = ((height - 0.5) / 512) * (1024 / viewH)^2`
+- Design-space Y (`0..viewH`, Y-up):
+  - `yGame = (viewH / 2) + (height - 0.5) * (1024 / viewH)`
+- Conversion to Pixi (Y-down) inside the `1024×768` world (`viewTop = (768 - viewH) / 2`):
+  - `model.y = viewTop + (viewH - yGame) = 384 - (height - 0.5) * (1024 / viewH)`
 
-So:
-- `yGame = HOME_Y_INTERCEPT + height * HOME_Y_PER_HEIGHT`
+(Note: an earlier 4:3 regression from 1200×900 tablet logs yielded slope `1.137932` due to a `1200/1024` scaling artifact; the true `1024×768` slope is `1024/768 = 1.333333`.)
 
-Conversion to Pixi (Y down) inside the centered home region:
-- `yWorld = HOME_TOP + (HOME_H - yGame)`
+At `height = 0.5`, all `viewH` values converge at `model.y = 384` (world center).
 
-### Y mapping — 4:3 (tablet) variant
-A separate regression from 1200×900 tablet landscape logs:
-- `yGame = (WORLD_H/2) * (1 + ty)` where `WORLD_H=768`
-- Fitted constants:
-  - `a = 383.35314268220066`
-  - `b = 1.1379321886101403`
-- `yGame = VIEW43_Y_INTERCEPT + height * VIEW43_Y_PER_HEIGHT`
+| viewH | slope (`1024/viewH`) | model.y (`height=0`) | model.y (`height=-80`) |
+|-------|----------------------|----------------------|------------------------|
+| 576 (16:9) | 1.7778 | 384.9 | 527.1 |
+| 672 (mid) | 1.5238 | 384.8 | 506.7 |
+| 768 (4:3) | 1.3333 | 384.7 | 491.3 |
 
-### Y mapping — why two formulas exist
-The same character placement is re-projected through different aspect ratios:
-- **home16** (16:9, viewH=576): derived from native 16:9 phone logs, center at (512, 288)
-- **full43** (4:3, viewH=768): derived from tablet landscape logs, center at (512, 384)
-
-Both converge at height=0 (`model.y ≈ 384.8`, the world center), but the per-height slope differs because the game scales differently across projections. The slopes come from empirical device logs, not from a geometric derivation — so they can't be computed purely from viewH, only interpolated between the two known data points.
-
-### Unified Y formula (interpolated)
-A single formula that works for any viewport height between 576 and 768:
+### MyPage Portrait (90° CCW) mapping
+From `1024×576`, `1024×672`, and `1024×768` portrait logs (`SetMvpMatrix` `tx` and screenshot proportions):
 
 ```
-t = clamp((viewH - 576) / 192, 0, 1)
-
-intercept = 287.10 + t × 96.25       // lerp between the two intercepts
-slope     = 1.778  - t × 0.64        // lerp between the two slopes
-
-yGame     = intercept + height × slope
-model.y   = ((768 - viewH) / 2) + (viewH - yGame)
+aspect         = 1024 / viewH
+portraitFactor = min(2.0, 1.3 * aspect)
+portraitScale  = (portraitFactor / 1.3) * 0.85
+model.x        = 512 - (height + 35) * portraitFactor * aspect
+model.y        = isDual ? (viewTop + (posIndex === 0 ? 0.75 * viewH : 0.25 * viewH)) : 384
 ```
-
-Constants:
-- 16:9 endpoint: viewH=576, intercept=287.10, slope=1.778
-- 4:3 endpoint: viewH=768, intercept=383.35, slope=1.138
-- `height` = the model's `params.height` value (per-character)
-
-At height=0, all viewH values produce `model.y ≈ 384.8` (world center — convergence point).
-
-| viewH | t | intercept | slope | model.y (height=0) | model.y (height=100) |
-|-------|---|-----------|-------|---------------------|----------------------|
-| 576 (16:9) | 0 | 287.10 | 1.778 | 384.9 | 207.1 |
-| 672 (mid) | 0.5 | 335.23 | 1.458 | 384.8 | 238.9 |
-| 768 (4:3) | 1 | 383.35 | 1.138 | 384.6 | 270.9 |
 
 ### Viewport parameters summary
 | Mode | viewW | viewH | viewTop | worldContainer.y |
 |------|-------|-------|---------|------------------|
 | home16 | 1024 | 576 | 96 | -96 |
+| dynamic | 1024 | 576..768 | (768 - viewH) / 2 | -viewTop |
 | full43 | 1024 | 768 | 0 | 0 |
 | portrait | 576 | 768 | 0 | 0 |
 

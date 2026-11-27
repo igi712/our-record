@@ -86,8 +86,23 @@ let profileTemplateCache = null;
 let cardSortTemplateCache = null;
 let cardArtRequestToken = 0;
 
+function syncPopupAreaBounds() {
+    if (!popupArea) return;
+    const camera = window.cameraContainer;
+    const vp = window.VIEWPORT;
+    if (!camera || !vp) return;
+    const scale = camera.scale?.x ?? 1;
+    popupArea.style.left = `${camera.x}px`;
+    popupArea.style.top = `${camera.y}px`;
+    popupArea.style.width = `${vp.viewW * scale}px`;
+    popupArea.style.height = `${vp.viewH * scale}px`;
+}
+
 function ensurePopupArea() {
-    if (popupArea) return popupArea;
+    if (popupArea) {
+        syncPopupAreaBounds();
+        return popupArea;
+    }
     popupArea = document.getElementById('popupArea');
     if (!popupArea) {
         popupArea = document.createElement('div');
@@ -99,6 +114,7 @@ function ensurePopupArea() {
         curtain.id = 'popupCurtain';
         popupArea.prepend(curtain);
     }
+    syncPopupAreaBounds();
     return popupArea;
 }
 
@@ -987,6 +1003,7 @@ function onHashChange() {
 }
 
 function onViewportChange() {
+    syncPopupAreaBounds();
     if (!activePopup?.el) return;
     const inner = activePopup.el.querySelector('.etcPopInner, .popupInner');
     applyPopupScale(inner);

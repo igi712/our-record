@@ -893,17 +893,11 @@ function beginTransition(ctx, performFadeOut) {
     }
 }
 
-// Phase 4: placement math (16:9 home / 4:3 / full / portrait profiles).
+// Phase 4: placement math (16:9 home / 4:3 / dynamic / full / portrait profiles).
 function applyModelPlacement(model, params, modelId, xOverride) {
     // Placement profiles.
     const HOME16_OFFSET_X = -132;
-    const HOME16_Y_INTERCEPT = 287.0999674453658;
-    const HOME16_Y_PER_HEIGHT = 1.7775731122833498;
-
-    // 4:3 (1200x900-derived) placement: yGame = a + b*height in a 1024x768 space.
     const VIEW43_OFFSET_X = -132;
-    const VIEW43_Y_INTERCEPT = 383.35314268220066;
-    const VIEW43_Y_PER_HEIGHT = 1.1379321886101403;
 
     const heightParam = Number(params.height ?? 0);
     let modelScaleParam = Number(params.modelScale ?? 1.3);
@@ -932,20 +926,20 @@ function applyModelPlacement(model, params, modelId, xOverride) {
     const isPortraitMode = viewMode === 'portrait' || viewMode === 'portrait-full';
     const viewH = vp.viewH || WORLD_H;
 
-    // Unified Y formula (exact at 576 & 768, linearly extrapolated for taller views like 960).
-    const t = (viewH - HOME16_H) / (WORLD_H - HOME16_H);
-    const yIntercept = HOME16_Y_INTERCEPT + t * (VIEW43_Y_INTERCEPT - HOME16_Y_INTERCEPT);
-    const ySlope = HOME16_Y_PER_HEIGHT + t * (VIEW43_Y_PER_HEIGHT - HOME16_Y_PER_HEIGHT);
-    const yGame = yIntercept + (heightParam * ySlope);
+    // Exact in-game landscape Y placement from CubismRenderer SetMvpMatrix logs:
+    //   ty = ((height - 0.5) / 512) * (1024 / viewH)^2
+    //   yGame = (viewH / 2) + (height - 0.5) * (1024 / viewH)
+    //   model.y = viewTop + (viewH - yGame) = (WORLD_H / 2) - (height - 0.5) * (1024 / viewH)
+    const yGame = (viewH / 2) + ((heightParam - 0.5) * (WORLD_W / viewH));
 
     let xGame;
     const scaleMult = 1.0;
 
     if (xOverride != null) {
         xGame = xOverride;
-    } else if (viewMode === 'home16') {
-        const home16OffsetX = (window.__QUOTES_CONFIG?.xOffset ?? HOME16_OFFSET_X);
-        xGame = (HOME16_W / 2) + home16OffsetX;
+    } else if (viewMode === 'home16' || viewMode === 'dynamic') {
+        const homeOffsetX = (window.__QUOTES_CONFIG?.xOffset ?? HOME16_OFFSET_X);
+        xGame = (WORLD_W / 2) + homeOffsetX;
     } else if (isPortraitMode) {
         xGame = WORLD_W / 2;
     } else {

@@ -10,6 +10,18 @@ let activeEffectTick = null;
 let effectLoadToken = 0;
 let effectAssetsPromise = null;
 
+function getActiveViewH() {
+    return window.VIEWPORT?.viewH || 576;
+}
+
+try {
+    window.addEventListener('mrv2:viewportChange', () => {
+        if (activeEffectArmature && !activeEffectArmature.destroyed) {
+            activeEffectArmature.y = getActiveViewH() / 2;
+        }
+    });
+} catch {}
+
 function loadTransformationEffectAssets() {
     if (!effectAssetsPromise) {
         effectAssetsPromise = loadCocosStudioAssets(TRANSFORM_VFX_URL).catch((err) => {
@@ -30,7 +42,7 @@ export async function playTransformVfx(x) {
         stopActiveArmature();
 
         effectArmature.x = x;
-        effectArmature.y = 288;
+        effectArmature.y = getActiveViewH() / 2;
         window.cameraContainer.addChild(effectArmature);
         effectArmature.play('action', false);
         activeEffectArmature = effectArmature;

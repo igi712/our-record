@@ -48,29 +48,21 @@ canvas {
     display: block;
 }
 
-/* Position relative to a centered 16:9 frame (landscape) */
+/* Position relative to the active game viewport (updated dynamically by updateUILayer) */
 #loading {
-    right: calc((100vw - min(100vw, calc(100vh * 16 / 9))) / 2 + env(safe-area-inset-right, 0px));
+    right: 0;
     bottom: 20px;
 }
 
 @media (max-width:520px) {
     #loading {
-        right: calc((100vw - min(100vw, calc(100vh * 16 / 9))) / 2 + env(safe-area-inset-right, 12px));
-        bottom: 14px;
         width: 260px;
         height: 44px;
         background-size: contain;
     }
 }
 
-@media (orientation: portrait) {
-    #loading {
-        right: calc((100vw - min(100vw, calc(100vh * 16 / 9))) / 2 + env(safe-area-inset-right, 0px));
-    }
-}
-
-/* UI layer for centering and scaling 1024x576 coordinates */
+/* UI layer for centering and scaling dynamic 1024x576..768 coordinates */
 #ui-layer {
     position: absolute;
     width: 1024px;
@@ -364,7 +356,7 @@ canvas {
     position: absolute;
     left: 232px;
     transform: translateX(-50%);
-    top: 460px;
+    top: calc(50% + 172px);
     width: 440px;
     color: #000;
     font-family: 'Open Sans', sans-serif;

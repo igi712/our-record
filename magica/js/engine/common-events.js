@@ -10,6 +10,10 @@ let initialized = false;
 let lastUILayerX = null;
 let lastUILayerY = null;
 let lastUILayerScale = null;
+let lastViewW = null;
+let lastViewH = null;
+let lastWinW = null;
+let lastWinH = null;
 let lastWebcamEl = null;
 
 let activeTapEffect = null;
@@ -38,12 +42,20 @@ export function updateUILayer() {
     const x = camera.x;
     const y = camera.y;
     const scale = camera.scale.x;
+    const viewW = window.VIEWPORT?.viewW || WORLD_W;
+    const viewH = window.VIEWPORT?.viewH || HOME16_H;
+    const winW = window.innerWidth || 0;
+    const winH = window.innerHeight || 0;
     const webcamEl = getBgWebcamVideo();
 
     if (
         x === lastUILayerX &&
         y === lastUILayerY &&
         scale === lastUILayerScale &&
+        viewW === lastViewW &&
+        viewH === lastViewH &&
+        winW === lastWinW &&
+        winH === lastWinH &&
         webcamEl === lastWebcamEl
     ) {
         return;
@@ -52,19 +64,34 @@ export function updateUILayer() {
     lastUILayerX = x;
     lastUILayerY = y;
     lastUILayerScale = scale;
+    lastViewW = viewW;
+    lastViewH = viewH;
+    lastWinW = winW;
+    lastWinH = winH;
     lastWebcamEl = webcamEl;
 
+    uiLayer.style.width = `${viewW}px`;
+    uiLayer.style.height = `${viewH}px`;
     uiLayer.style.left = `${x}px`;
     uiLayer.style.top = `${y}px`;
     uiLayer.style.transform = `scale(${scale})`;
 
+    const activeW = viewW * scale;
+    const activeH = viewH * scale;
+
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl) {
+        const rightPx = Math.max(0, winW - (x + activeW));
+        const bottomPx = Math.max(0, winH - (y + activeH)) + Math.round(20 * Math.min(1, scale));
+        loadingEl.style.right = `${rightPx}px`;
+        loadingEl.style.bottom = `${bottomPx}px`;
+    }
+
     if (webcamEl) {
-        const vw = (window.VIEWPORT?.viewW || WORLD_W) * scale;
-        const vh = (window.VIEWPORT?.viewH || HOME16_H) * scale;
         webcamEl.style.left = `${x}px`;
         webcamEl.style.top = `${y}px`;
-        webcamEl.style.width = `${vw}px`;
-        webcamEl.style.height = `${vh}px`;
+        webcamEl.style.width = `${activeW}px`;
+        webcamEl.style.height = `${activeH}px`;
     }
 }
 

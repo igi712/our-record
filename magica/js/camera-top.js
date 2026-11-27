@@ -756,18 +756,19 @@ async function captureCameraPhoto() {
     const cam = window.cameraContainer;
     if (!renderer || !extract || !cam) return false;
 
+    const captureH = Math.round(window.VIEWPORT?.viewH || HOME16_H);
     const outCanvas = document.createElement('canvas');
     outCanvas.width = WORLD_W;
-    outCanvas.height = HOME16_H;
+    outCanvas.height = captureH;
     const outCtx = outCanvas.getContext('2d');
 
     if (webcamVideoEl && webcamVideoEl.readyState >= 2) {
         const vw = webcamVideoEl.videoWidth || WORLD_W;
-        const vh = webcamVideoEl.videoHeight || HOME16_H;
-        const scale = Math.max(WORLD_W / vw, HOME16_H / vh);
+        const vh = webcamVideoEl.videoHeight || captureH;
+        const scale = Math.max(WORLD_W / vw, captureH / vh);
         const dw = vw * scale;
         const dh = vh * scale;
-        outCtx.drawImage(webcamVideoEl, (WORLD_W - dw) / 2, (HOME16_H - dh) / 2, dw, dh);
+        outCtx.drawImage(webcamVideoEl, (WORLD_W - dw) / 2, (captureH - dh) / 2, dw, dh);
     }
 
     const prevX = cam.x;
@@ -778,12 +779,12 @@ async function captureCameraPhoto() {
     cam.position.set(0, 0);
     cam.scale.set(1, 1);
 
-    const rt = PIXI.RenderTexture.create({ width: WORLD_W, height: HOME16_H, resolution: 1 });
+    const rt = PIXI.RenderTexture.create({ width: WORLD_W, height: captureH, resolution: 1 });
     let pixiCanvas = null;
     try {
         renderer.render(cam, { renderTexture: rt, clear: true });
         pixiCanvas = extract.canvas(rt);
-        outCtx.drawImage(pixiCanvas, 0, 0, WORLD_W, HOME16_H);
+        outCtx.drawImage(pixiCanvas, 0, 0, WORLD_W, captureH);
     } finally {
         rt.destroy(true);
         cam.position.set(prevX, prevY);

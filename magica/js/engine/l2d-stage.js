@@ -91,7 +91,7 @@ export function getStageContext() {
 
 export function setStageXOffset(xOffset) {
     const config = window.__QUOTES_CONFIG || (window.__QUOTES_CONFIG = {});
-    config.viewMode = 'home16';
+    config.viewMode = 'dynamic';
     config.xOffset = xOffset;
 }
 
@@ -212,9 +212,10 @@ export function applySubtitlePlacement({ isDual = state.dualMode, presetIndex } 
     }
     if (stageCtx.mode === 'home') {
         if (stageCtx.portrait) {
+            const viewH = window.VIEWPORT?.viewH || HOME16_H;
             sub.style.fontSize = '19px';
             sub.style.left = '710px';
-            sub.style.top = '288px';
+            sub.style.top = `${viewH / 2}px`;
             sub.style.transform = 'translate(-50%, -50%) rotate(270deg)';
             return;
         }
@@ -234,14 +235,20 @@ export function applyPortraitModelTransform(model, posIndex, isDual) {
     if (!model) return;
     const params = model.__mrPlacement?.params || {};
     const heightParam = Number(params.height ?? 0);
-    const portraitScale = WORLD_W / WORLD_H;
+    const viewH = window.VIEWPORT?.viewH || HOME16_H;
+    const viewTop = window.VIEWPORT?.viewTop ?? ((WORLD_H - viewH) / 2);
+    const aspect = WORLD_W / viewH;
+    const portraitFactor = Math.min(2.0, 1.3 * aspect);
+    const portraitScale = (portraitFactor / 1.3) * 0.85;
     if (!model.__mrBaseScale) {
         model.__mrBaseScale = model.scale.x;
     }
     model.rotation = -Math.PI / 2;
     model.scale.set(model.__mrBaseScale * portraitScale);
-    model.x = (WORLD_W / 2) + (-1.1379321886101403 * heightParam * portraitScale);
-    model.y = isDual ? (posIndex === 0 ? 528 : 240) : (WORLD_H / 2);
+    model.x = (WORLD_W / 2) - (heightParam + 35) * portraitFactor * aspect;
+    model.y = isDual
+        ? viewTop + (posIndex === 0 ? 0.75 * viewH : 0.25 * viewH)
+        : (WORLD_H / 2);
 }
 
 function modelFadeFilter(model) {

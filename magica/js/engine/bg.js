@@ -26,6 +26,33 @@ let cameraWebcamSprite = null;
 let cameraWebcamVideo = null;
 let imageNativeBasePromise = null;
 
+function getActiveViewH() {
+    return window.VIEWPORT?.viewH || HOME16_H;
+}
+
+function syncBgViewportPositions() {
+    const viewH = getActiveViewH();
+    if (bgArmature && !bgArmature.destroyed) {
+        bgArmature.x = WORLD_W / 2;
+        bgArmature.y = viewH / 2;
+    }
+    if (outgoingBgArmature && !outgoingBgArmature.destroyed) {
+        outgoingBgArmature.x = WORLD_W / 2;
+        outgoingBgArmature.y = viewH / 2;
+    }
+    if (cameraWebcamSprite && !cameraWebcamSprite.destroyed) {
+        cameraWebcamSprite.x = WORLD_W / 2;
+        cameraWebcamSprite.y = viewH / 2;
+        const vw = cameraWebcamVideo?.videoWidth || WORLD_W;
+        const vh = cameraWebcamVideo?.videoHeight || viewH;
+        cameraWebcamSprite.scale.set(Math.max(WORLD_W / vw, viewH / vh));
+    }
+}
+
+try {
+    window.addEventListener('mrv2:viewportChange', syncBgViewportPositions);
+} catch {}
+
 export function getImageNativeBase() {
     if (!imageNativeBasePromise) {
         imageNativeBasePromise = resolveMaReAssetsBase()
@@ -274,9 +301,9 @@ export async function changeBg(bgInput = 'bg/web/web_0015.ExportJson', { visible
     const keepBaseTextures = collectCocosBaseTextures(assets);
     const armature = new CocosStudioArmature(assets.json, assets.textures, assets.particles);
 
-    // Center the 1024x768 background inside the 1024x576 home16 camera mask.
+    // Center the 1024x768 background inside the active 1024xviewH camera mask.
     armature.x = WORLD_W / 2;
-    armature.y = WORLD_H / 2 - (WORLD_H - HOME16_H) / 2;
+    armature.y = getActiveViewH() / 2;
 
     const movData = assets.json?.animation_data?.[0]?.mov_data || [];
     const hasAction = movData.some((m) => m && m.name === 'action');
@@ -383,14 +410,15 @@ export function setBgWebcamVideo(videoEl) {
     }
     cameraWebcamVideo = videoEl || null;
     if (videoEl && window.cameraContainer) {
+        const viewH = getActiveViewH();
         const tex = PIXI.Texture.from(videoEl);
         const sprite = new PIXI.Sprite(tex);
         sprite.anchor.set(0.5, 0.5);
         sprite.x = WORLD_W / 2;
-        sprite.y = HOME16_H / 2;
+        sprite.y = viewH / 2;
         const vw = videoEl.videoWidth || WORLD_W;
-        const vh = videoEl.videoHeight || HOME16_H;
-        const scale = Math.max(WORLD_W / vw, HOME16_H / vh);
+        const vh = videoEl.videoHeight || viewH;
+        const scale = Math.max(WORLD_W / vw, viewH / vh);
         sprite.scale.set(scale);
         window.cameraContainer.addChildAt(sprite, 0);
         cameraWebcamSprite = sprite;
