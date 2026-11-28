@@ -1,0 +1,4442 @@
+[
+  {
+    "charaId": 1001,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "01",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "02",
+    "description": "School Uniform"
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "03",
+    "description": "Swimsuit"
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "04",
+    "description": "Pajamas"
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "50",
+    "description": "Christmas Outfit"
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "51",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "52",
+    "description": "Maid Uniform"
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "53",
+    "description": "New Year's Outfit"
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "54",
+    "description": "Loungewear"
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report 1)"
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "89",
+    "description": "Magical Girl (Magia Report 2)"
+  },
+  {
+    "charaId": 1001,
+    "live2dId": "90",
+    "description": "Magical Girl (Magia Report 3)"
+  },
+  {
+    "charaId": 1002,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1002,
+    "live2dId": "01",
+    "description": "Collared Dress"
+  },
+  {
+    "charaId": 1002,
+    "live2dId": "02",
+    "description": "Pajamas"
+  },
+  {
+    "charaId": 1002,
+    "live2dId": "04",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 1002,
+    "live2dId": "05",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1002,
+    "live2dId": "50",
+    "description": "New Year's Outfit"
+  },
+  {
+    "charaId": 1002,
+    "live2dId": "51",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 1002,
+    "live2dId": "52",
+    "description": "Loungewear"
+  },
+  {
+    "charaId": 1002,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report 1)"
+  },
+  {
+    "charaId": 1002,
+    "live2dId": "89",
+    "description": "Magical Girl (Magia Report 2)"
+  },
+  {
+    "charaId": 1003,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1003,
+    "live2dId": "01",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 1003,
+    "live2dId": "03",
+    "description": "Pajamas"
+  },
+  {
+    "charaId": 1003,
+    "live2dId": "50",
+    "description": "Christmas Outfit"
+  },
+  {
+    "charaId": 1003,
+    "live2dId": "51",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 1003,
+    "live2dId": "52",
+    "description": "New Year's Outfit"
+  },
+  {
+    "charaId": 1003,
+    "live2dId": "53",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1003,
+    "live2dId": "54",
+    "description": "Tanabata"
+  },
+  {
+    "charaId": 1003,
+    "live2dId": "55",
+    "description": "Loungewear"
+  },
+  {
+    "charaId": 1003,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report 1)"
+  },
+  {
+    "charaId": 1003,
+    "live2dId": "89",
+    "description": "Magical Girl (Magia Report 2)"
+  },
+  {
+    "charaId": 1004,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1004,
+    "live2dId": "01",
+    "description": "Mizuna Girls' Academy Uniform"
+  },
+  {
+    "charaId": 1004,
+    "live2dId": "02",
+    "description": "Pajamas"
+  },
+  {
+    "charaId": 1004,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1004,
+    "live2dId": "51",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 1004,
+    "live2dId": "52",
+    "description": "New Year's Outfit"
+  },
+  {
+    "charaId": 1004,
+    "live2dId": "53",
+    "description": "Loungewear"
+  },
+  {
+    "charaId": 1004,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report 1)"
+  },
+  {
+    "charaId": 1004,
+    "live2dId": "89",
+    "description": "Magical Girl (Magia Report 2)"
+  },
+  {
+    "charaId": 1005,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1005,
+    "live2dId": "01",
+    "description": "Chuo Academy Uniform"
+  },
+  {
+    "charaId": 1005,
+    "live2dId": "02",
+    "description": "Pajamas"
+  },
+  {
+    "charaId": 1005,
+    "live2dId": "03",
+    "description": "Halloween Theater Costume"
+  },
+  {
+    "charaId": 1005,
+    "live2dId": "50",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 1005,
+    "live2dId": "51",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1005,
+    "live2dId": "52",
+    "description": "New Year's Outfit"
+  },
+  {
+    "charaId": 1005,
+    "live2dId": "53",
+    "description": "Loungewear"
+  },
+  {
+    "charaId": 1005,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report 1)"
+  },
+  {
+    "charaId": 1005,
+    "live2dId": "89",
+    "description": "Magical Girl (Magia Report 2)"
+  },
+  {
+    "charaId": 1005,
+    "live2dId": "90",
+    "description": "Magical Girl (Magia Report 3)"
+  },
+  {
+    "charaId": 1006,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1006,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 1006,
+    "live2dId": "02",
+    "description": "Mizuna Girls' Academy Uniform"
+  },
+  {
+    "charaId": 1006,
+    "live2dId": "50",
+    "description": "Swimsuit (2019)"
+  },
+  {
+    "charaId": 1006,
+    "live2dId": "51",
+    "description": "Christmas Outfit (2020)"
+  },
+  {
+    "charaId": 1006,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1007,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1007,
+    "live2dId": "01",
+    "description": "Saint Liliana Academy Uniform"
+  },
+  {
+    "charaId": 1007,
+    "live2dId": "02",
+    "description": "Hospital Clothes"
+  },
+  {
+    "charaId": 1007,
+    "live2dId": "50",
+    "description": "Swimsuit (2019)"
+  },
+  {
+    "charaId": 1007,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1008,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1008,
+    "live2dId": "01",
+    "description": "Sakae Academy Uniform"
+  },
+  {
+    "charaId": 1008,
+    "live2dId": "02",
+    "description": "Hospital Gown"
+  },
+  {
+    "charaId": 1008,
+    "live2dId": "50",
+    "description": "Swimsuit (2019)"
+  },
+  {
+    "charaId": 1008,
+    "live2dId": "51",
+    "description": "Atelier Outfit"
+  },
+  {
+    "charaId": 1008,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report 1)"
+  },
+  {
+    "charaId": 1009,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1009,
+    "live2dId": "01",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 1009,
+    "live2dId": "50",
+    "description": "Christmas Outfit"
+  },
+  {
+    "charaId": 1009,
+    "live2dId": "51",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 1009,
+    "live2dId": "52",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1009,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1010,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1010,
+    "live2dId": "01",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 1010,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1010,
+    "live2dId": "51",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 1010,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1011,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1011,
+    "live2dId": "01",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 1011,
+    "live2dId": "50",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 1011,
+    "live2dId": "51",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1011,
+    "live2dId": "52",
+    "description": "Christmas Outfit (2020)"
+  },
+  {
+    "charaId": 1011,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1012,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1012,
+    "live2dId": "01",
+    "description": "Sakae Academy Uniform"
+  },
+  {
+    "charaId": 1012,
+    "live2dId": "02",
+    "description": "Hospital Gown"
+  },
+  {
+    "charaId": 1012,
+    "live2dId": "50",
+    "description": "Swimsuit (2019)"
+  },
+  {
+    "charaId": 1012,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1013,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1013,
+    "live2dId": "01",
+    "description": "Mizuna Girls' Academy Uniform"
+  },
+  {
+    "charaId": 1013,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1013,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1014,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1014,
+    "live2dId": "01",
+    "description": "Sankyoin Academy Uniform"
+  },
+  {
+    "charaId": 1014,
+    "live2dId": "02",
+    "description": "Hospital Clothes"
+  },
+  {
+    "charaId": 1014,
+    "live2dId": "50",
+    "description": "Swimsuit (2019)"
+  },
+  {
+    "charaId": 1014,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1015,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1015,
+    "live2dId": "01",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 1015,
+    "live2dId": "50",
+    "description": "Swimsuit (2019)"
+  },
+  {
+    "charaId": 1015,
+    "live2dId": "51",
+    "description": "New Year's Outfit"
+  },
+  {
+    "charaId": 1015,
+    "live2dId": "52",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1015,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1016,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1016,
+    "live2dId": "01",
+    "description": "Daito Academy Uniform"
+  },
+  {
+    "charaId": 1016,
+    "live2dId": "02",
+    "description": "Maid Uniform"
+  },
+  {
+    "charaId": 1016,
+    "live2dId": "03",
+    "description": "Pajamas"
+  },
+  {
+    "charaId": 1016,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1016,
+    "live2dId": "51",
+    "description": "Swimsuit (2019)"
+  },
+  {
+    "charaId": 1016,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1017,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1017,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 1017,
+    "live2dId": "02",
+    "description": "Daito Academy Uniform"
+  },
+  {
+    "charaId": 1017,
+    "live2dId": "50",
+    "description": "Swimsuit (2019)"
+  },
+  {
+    "charaId": 1017,
+    "live2dId": "51",
+    "description": "Santa Beard"
+  },
+  {
+    "charaId": 1017,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1018,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1018,
+    "live2dId": "01",
+    "description": "Mizuna Girls' Academy Uniform"
+  },
+  {
+    "charaId": 1018,
+    "live2dId": "50",
+    "description": "Christmas Outfit (2018)"
+  },
+  {
+    "charaId": 1018,
+    "live2dId": "51",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1018,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1019,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1019,
+    "live2dId": "01",
+    "description": "Kosho Academy Uniform"
+  },
+  {
+    "charaId": 1019,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1019,
+    "live2dId": "51",
+    "description": "Christmas Outfit (2018)"
+  },
+  {
+    "charaId": 1019,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1020,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1020,
+    "live2dId": "01",
+    "description": "East Konohana Academy Uniform"
+  },
+  {
+    "charaId": 1020,
+    "live2dId": "03",
+    "description": "Pajamas"
+  },
+  {
+    "charaId": 1020,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1021,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1021,
+    "live2dId": "01",
+    "description": "Torayamachi Academy Uniform"
+  },
+  {
+    "charaId": 1021,
+    "live2dId": "05",
+    "description": "Casual Clothes (Adult)"
+  },
+  {
+    "charaId": 1021,
+    "live2dId": "06",
+    "description": "Magical Girl (Adult)"
+  },
+  {
+    "charaId": 1021,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1021,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1022,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1022,
+    "live2dId": "01",
+    "description": "Torayamachi Academy Uniform"
+  },
+  {
+    "charaId": 1022,
+    "live2dId": "02",
+    "description": "Casual Clothes (Adult)"
+  },
+  {
+    "charaId": 1022,
+    "live2dId": "03",
+    "description": "Magical Girl (Adult)"
+  },
+  {
+    "charaId": 1022,
+    "live2dId": "50",
+    "description": "Swimsuit (2020)"
+  },
+  {
+    "charaId": 1022,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1023,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1023,
+    "live2dId": "01",
+    "description": "Janomiya Secondary School Uniform"
+  },
+  {
+    "charaId": 1023,
+    "live2dId": "03",
+    "description": "Casual Clothes (Elementary Schooler)"
+  },
+  {
+    "charaId": 1023,
+    "live2dId": "50",
+    "description": "Swimsuit (2020)"
+  },
+  {
+    "charaId": 1023,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1024,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1024,
+    "live2dId": "01",
+    "description": "Ryugasaki Academy Uniform"
+  },
+  {
+    "charaId": 1024,
+    "live2dId": "02",
+    "description": "Casual Clothes (Adult)"
+  },
+  {
+    "charaId": 1024,
+    "live2dId": "03",
+    "description": "Magical Girl (Adult)"
+  },
+  {
+    "charaId": 1024,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1024,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1025,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1025,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 1025,
+    "live2dId": "02",
+    "description": "Tiger"
+  },
+  {
+    "charaId": 1025,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1025,
+    "live2dId": "51",
+    "description": "Swimsuit (2021)"
+  },
+  {
+    "charaId": 1025,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1026,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1026,
+    "live2dId": "01",
+    "description": "Matsumiya Municipal First Middle School Uniform"
+  },
+  {
+    "charaId": 1026,
+    "live2dId": "02",
+    "description": "Bird"
+  },
+  {
+    "charaId": 1026,
+    "live2dId": "50",
+    "description": "Swimsuit (2021)"
+  },
+  {
+    "charaId": 1026,
+    "live2dId": "51",
+    "description": "New Year's Outfit"
+  },
+  {
+    "charaId": 1026,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1027,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1027,
+    "live2dId": "01",
+    "description": "Kirimine Middle School Uniform"
+  },
+  {
+    "charaId": 1027,
+    "live2dId": "02",
+    "description": "Turtle"
+  },
+  {
+    "charaId": 1027,
+    "live2dId": "50",
+    "description": "Swimsuit (2021)"
+  },
+  {
+    "charaId": 1027,
+    "live2dId": "51",
+    "description": "New Year's Outfit"
+  },
+  {
+    "charaId": 1027,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1028,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1028,
+    "live2dId": "01",
+    "description": "Kamihama Future Academy Uniform"
+  },
+  {
+    "charaId": 1028,
+    "live2dId": "50",
+    "description": "Swimsuit (2023)"
+  },
+  {
+    "charaId": 1028,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1029,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1029,
+    "live2dId": "01",
+    "description": "Kosho Academy Uniform"
+  },
+  {
+    "charaId": 1029,
+    "live2dId": "50",
+    "description": "Swimsuit (2022)"
+  },
+  {
+    "charaId": 1029,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1030,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1030,
+    "live2dId": "01",
+    "description": "Daito Academy Uniform"
+  },
+  {
+    "charaId": 1030,
+    "live2dId": "50",
+    "description": "Swimsuit (2022)"
+  },
+  {
+    "charaId": 1030,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1031,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1031,
+    "live2dId": "01",
+    "description": "Takarazaki Municipal Hikarizuka Middle School Uniform"
+  },
+  {
+    "charaId": 1031,
+    "live2dId": "50",
+    "description": "Swimsuit (2023)"
+  },
+  {
+    "charaId": 1031,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1032,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1032,
+    "live2dId": "01",
+    "description": "Takarazaki Municipal Hikarizuka Middle School Uniform"
+  },
+  {
+    "charaId": 1032,
+    "live2dId": "50",
+    "description": "Swimsuit (2023)"
+  },
+  {
+    "charaId": 1032,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1033,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1033,
+    "live2dId": "01",
+    "description": "Yukuni Municipal Iwakiriyama High School Uniform"
+  },
+  {
+    "charaId": 1033,
+    "live2dId": "02",
+    "description": "Apron"
+  },
+  {
+    "charaId": 1033,
+    "live2dId": "50",
+    "description": "Halloween Costume (2023)"
+  },
+  {
+    "charaId": 1033,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1034,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1034,
+    "live2dId": "01",
+    "description": "Yukuni Municipal Academy Uniform"
+  },
+  {
+    "charaId": 1034,
+    "live2dId": "50",
+    "description": "Halloween Costume (2023)"
+  },
+  {
+    "charaId": 1034,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1035,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1035,
+    "live2dId": "01",
+    "description": "Yunohana International Secondary School Uniform"
+  },
+  {
+    "charaId": 1035,
+    "live2dId": "50",
+    "description": "Swimsuit (2023)"
+  },
+  {
+    "charaId": 1035,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1036,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1036,
+    "live2dId": "01",
+    "description": "Yukuni Aonami Academy Uniform"
+  },
+  {
+    "charaId": 1036,
+    "live2dId": "50",
+    "description": "Halloween Costume (2023)"
+  },
+  {
+    "charaId": 1036,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1037,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1037,
+    "live2dId": "01",
+    "description": "Takarazaki Junshin Academy Uniform"
+  },
+  {
+    "charaId": 1037,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1038,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1038,
+    "live2dId": "01",
+    "description": "Daito Academy Uniform"
+  },
+  {
+    "charaId": 1038,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 1038,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1039,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1039,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 1039,
+    "live2dId": "02",
+    "description": "Magical Girl (Speaking)"
+  },
+  {
+    "charaId": 1039,
+    "live2dId": "03",
+    "description": "Casual Clothes (Speaking)"
+  },
+  {
+    "charaId": 1039,
+    "live2dId": "50",
+    "description": "Christmas Outfit (2021)"
+  },
+  {
+    "charaId": 1039,
+    "live2dId": "51",
+    "description": "Christmas Outfit (Speaking)"
+  },
+  {
+    "charaId": 1039,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1040,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1040,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 1040,
+    "live2dId": "50",
+    "description": "Swimsuit (2020)"
+  },
+  {
+    "charaId": 1040,
+    "live2dId": "51",
+    "description": "Christmas Outfit (2021)"
+  },
+  {
+    "charaId": 1040,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1041,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1041,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 1041,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1042,
+    "live2dId": "00",
+    "description": "Magical Girl (Iroha)"
+  },
+  {
+    "charaId": 1042,
+    "live2dId": "01",
+    "description": "Magical Girl (Yachiyo)"
+  },
+  {
+    "charaId": 1042,
+    "live2dId": "02",
+    "description": "Magical Girl (Tsuruno)"
+  },
+  {
+    "charaId": 1042,
+    "live2dId": "03",
+    "description": "Magical Girl (Felicia)"
+  },
+  {
+    "charaId": 1042,
+    "live2dId": "04",
+    "description": "Magical Girl (Sana)"
+  },
+  {
+    "charaId": 1042,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1043,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1043,
+    "live2dId": "01",
+    "description": "School Uniform"
+  },
+  {
+    "charaId": 1043,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1044,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1044,
+    "live2dId": "01",
+    "description": "Daito Academy Uniform"
+  },
+  {
+    "charaId": 1044,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1045,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1045,
+    "live2dId": "01",
+    "description": "Kimono"
+  },
+  {
+    "charaId": 1045,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1046,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1046,
+    "live2dId": "01",
+    "description": "Shinobu Outfit"
+  },
+  {
+    "charaId": 1046,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1047,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1047,
+    "live2dId": "01",
+    "description": "Takarazaki Municipal First Middle School Uniform"
+  },
+  {
+    "charaId": 1047,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1048,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1048,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 1048,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1049,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1049,
+    "live2dId": "01",
+    "description": "Warrior Band Outfit"
+  },
+  {
+    "charaId": 1049,
+    "live2dId": "02",
+    "description": "Village Outfit"
+  },
+  {
+    "charaId": 1049,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1050,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1050,
+    "live2dId": "01",
+    "description": "Warrior Band Outfit"
+  },
+  {
+    "charaId": 1050,
+    "live2dId": "02",
+    "description": "Village Outfit"
+  },
+  {
+    "charaId": 1050,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1051,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1051,
+    "live2dId": "01",
+    "description": "Nunnery Uniform"
+  },
+  {
+    "charaId": 1051,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1052,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1052,
+    "live2dId": "01",
+    "description": "Shrine Maiden Outfit"
+  },
+  {
+    "charaId": 1052,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1053,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1053,
+    "live2dId": "01",
+    "description": "Servant Uniform"
+  },
+  {
+    "charaId": 1053,
+    "live2dId": "02",
+    "description": "Junia's Toga"
+  },
+  {
+    "charaId": 1053,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1101,
+    "live2dId": "00",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 1101,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1102,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1102,
+    "live2dId": "01",
+    "description": "Magical Girl (Yachiyo)"
+  },
+  {
+    "charaId": 1102,
+    "live2dId": "02",
+    "description": "Magical Girl (Mifuyu)"
+  },
+  {
+    "charaId": 1102,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1103,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1103,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1104,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1104,
+    "live2dId": "01",
+    "description": "Ai"
+  },
+  {
+    "charaId": 1104,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1105,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1106,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1106,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1107,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1107,
+    "live2dId": "01",
+    "description": "Magical Girl (Touka)"
+  },
+  {
+    "charaId": 1107,
+    "live2dId": "02",
+    "description": "Magical Girl (Nemu)"
+  },
+  {
+    "charaId": 1107,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1108,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1108,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1109,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1109,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1110,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1110,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1112,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1112,
+    "live2dId": "01",
+    "description": "Magical Girl (Karin)"
+  },
+  {
+    "charaId": 1112,
+    "live2dId": "02",
+    "description": "Magical Girl (Alina)"
+  },
+  {
+    "charaId": 1112,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1113,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1113,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1116,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1116,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1117,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1117,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1118,
+    "live2dId": "00",
+    "description": "Magical Girl (Amane Sisters)"
+  },
+  {
+    "charaId": 1118,
+    "live2dId": "01",
+    "description": "Magical Girl (Tsukuyo)"
+  },
+  {
+    "charaId": 1118,
+    "live2dId": "02",
+    "description": "Magical Girl (Tsukasa)"
+  },
+  {
+    "charaId": 1118,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1120,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1120,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1121,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1121,
+    "live2dId": "01",
+    "description": "Magical Girl (Yuna)"
+  },
+  {
+    "charaId": 1121,
+    "live2dId": "02",
+    "description": "Magical Girl (Juri)"
+  },
+  {
+    "charaId": 1121,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1125,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1125,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1133,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1133,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1137,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1137,
+    "live2dId": "01",
+    "description": "Magical Girl (Nayuta)"
+  },
+  {
+    "charaId": 1137,
+    "live2dId": "02",
+    "description": "Magical Girl (Mikage)"
+  },
+  {
+    "charaId": 1137,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1139,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1139,
+    "live2dId": "02",
+    "description": "Magical Girl (Speaking)"
+  },
+  {
+    "charaId": 1139,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1143,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1143,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1144,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1144,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1201,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1201,
+    "live2dId": "50",
+    "description": "Idol"
+  },
+  {
+    "charaId": 1201,
+    "live2dId": "51",
+    "description": "Mana Degarashi"
+  },
+  {
+    "charaId": 1201,
+    "live2dId": "52",
+    "description": "Unfinished Iroha"
+  },
+  {
+    "charaId": 1201,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1202,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1202,
+    "live2dId": "02",
+    "description": "Tanabata"
+  },
+  {
+    "charaId": 1202,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1203,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1203,
+    "live2dId": "01",
+    "description": "Magical Girl (Tsuruno)"
+  },
+  {
+    "charaId": 1203,
+    "live2dId": "02",
+    "description": "Magical Girl (Felicia)"
+  },
+  {
+    "charaId": 1203,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1209,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1209,
+    "live2dId": "01",
+    "description": "Magical Girl (Rena)"
+  },
+  {
+    "charaId": 1209,
+    "live2dId": "02",
+    "description": "Magical Girl (Kaede)"
+  },
+  {
+    "charaId": 1209,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1210,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1210,
+    "live2dId": "03",
+    "description": "Magical Girl (Mitama)"
+  },
+  {
+    "charaId": 1210,
+    "live2dId": "04",
+    "description": "Magical Girl (Momoko)"
+  },
+  {
+    "charaId": 1210,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1216,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1216,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1217,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1217,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1301,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1301,
+    "live2dId": "01",
+    "description": "Magical Girl (Iroha)"
+  },
+  {
+    "charaId": 1301,
+    "live2dId": "02",
+    "description": "Magical Girl (Yachiyo)"
+  },
+  {
+    "charaId": 1301,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1302,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1302,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1302,
+    "live2dId": "89",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1303,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1303,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1309,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1309,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1401,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1401,
+    "live2dId": "01",
+    "description": "Magical Girl (Iroha)"
+  },
+  {
+    "charaId": 1401,
+    "live2dId": "02",
+    "description": "Magical Girl (Ui)"
+  },
+  {
+    "charaId": 1401,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1402,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1402,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1501,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1501,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1502,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1502,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1601,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1601,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1701,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1701,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 1801,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 1801,
+    "live2dId": "01",
+    "description": "Magical Girl (Iroha)"
+  },
+  {
+    "charaId": 1801,
+    "live2dId": "02",
+    "description": "Magical Girl (Kuroe)"
+  },
+  {
+    "charaId": 1801,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2001,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2001,
+    "live2dId": "01",
+    "description": "Mitakihara Middle School Uniform"
+  },
+  {
+    "charaId": 2001,
+    "live2dId": "02",
+    "description": "Mitakihara Middle School Uniform 2"
+  },
+  {
+    "charaId": 2001,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 2001,
+    "live2dId": "51",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 2001,
+    "live2dId": "52",
+    "description": "Pajamas"
+  },
+  {
+    "charaId": 2001,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report 1)"
+  },
+  {
+    "charaId": 2001,
+    "live2dId": "89",
+    "description": "Magical Girl (Magia Report 2)"
+  },
+  {
+    "charaId": 2001,
+    "live2dId": "90",
+    "description": "Magical Girl (Magia Report 3)"
+  },
+  {
+    "charaId": 2001,
+    "live2dId": "91",
+    "description": "Magical Girl (Magia Report 4)"
+  },
+  {
+    "charaId": 2002,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2002,
+    "live2dId": "01",
+    "description": "Mitakihara Middle School Uniform"
+  },
+  {
+    "charaId": 2002,
+    "live2dId": "53",
+    "description": "Black Dress"
+  },
+  {
+    "charaId": 2002,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2003,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2003,
+    "live2dId": "01",
+    "description": "Mitakihara Middle School Uniform"
+  },
+  {
+    "charaId": 2003,
+    "live2dId": "50",
+    "description": "New Year's Outfit"
+  },
+  {
+    "charaId": 2003,
+    "live2dId": "51",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 2003,
+    "live2dId": "52",
+    "description": "Pajamas"
+  },
+  {
+    "charaId": 2003,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report 1)"
+  },
+  {
+    "charaId": 2003,
+    "live2dId": "89",
+    "description": "Magical Girl (Magia Report 2)"
+  },
+  {
+    "charaId": 2004,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2004,
+    "live2dId": "01",
+    "description": "Mitakihara Middle School Uniform"
+  },
+  {
+    "charaId": 2004,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 2004,
+    "live2dId": "51",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 2004,
+    "live2dId": "52",
+    "description": "Pajamas"
+  },
+  {
+    "charaId": 2004,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report 1)"
+  },
+  {
+    "charaId": 2004,
+    "live2dId": "89",
+    "description": "Magical Girl (Magia Report 2)"
+  },
+  {
+    "charaId": 2004,
+    "live2dId": "90",
+    "description": "Magical Girl (Magia Report 3)"
+  },
+  {
+    "charaId": 2005,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2005,
+    "live2dId": "01",
+    "description": "Mitakihara Middle School Uniform"
+  },
+  {
+    "charaId": 2005,
+    "live2dId": "50",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 2005,
+    "live2dId": "51",
+    "description": "Pajamas"
+  },
+  {
+    "charaId": 2005,
+    "live2dId": "52",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 2005,
+    "live2dId": "53",
+    "description": "New Year's Outfit"
+  },
+  {
+    "charaId": 2005,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report 1)"
+  },
+  {
+    "charaId": 2005,
+    "live2dId": "89",
+    "description": "Magical Girl (Magia Report 2)"
+  },
+  {
+    "charaId": 2006,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2006,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 2006,
+    "live2dId": "02",
+    "description": "Halloween Theater Costume"
+  },
+  {
+    "charaId": 2006,
+    "live2dId": "04",
+    "description": "Mitakihara Middle School Uniform"
+  },
+  {
+    "charaId": 2006,
+    "live2dId": "50",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 2006,
+    "live2dId": "51",
+    "description": "Pajamas"
+  },
+  {
+    "charaId": 2006,
+    "live2dId": "52",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 2006,
+    "live2dId": "53",
+    "description": "New Year's Outfit"
+  },
+  {
+    "charaId": 2006,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report 1)"
+  },
+  {
+    "charaId": 2006,
+    "live2dId": "89",
+    "description": "Magical Girl (Magia Report 2)"
+  },
+  {
+    "charaId": 2006,
+    "live2dId": "90",
+    "description": "Magical Girl (Magia Report 3)"
+  },
+  {
+    "charaId": 2007,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2007,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 2007,
+    "live2dId": "50",
+    "description": "Swimsuit (2020)"
+  },
+  {
+    "charaId": 2007,
+    "live2dId": "51",
+    "description": "New Year's Outfit"
+  },
+  {
+    "charaId": 2007,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report 1)"
+  },
+  {
+    "charaId": 2007,
+    "live2dId": "89",
+    "description": "Magical Girl (Magia Report 2)"
+  },
+  {
+    "charaId": 2009,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2009,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 2009,
+    "live2dId": "02",
+    "description": "Mitakihara Middle School Uniform 2"
+  },
+  {
+    "charaId": 2009,
+    "live2dId": "04",
+    "description": "Recompense Uniform"
+  },
+  {
+    "charaId": 2009,
+    "live2dId": "05",
+    "description": "White Coat"
+  },
+  {
+    "charaId": 2009,
+    "live2dId": "06",
+    "description": "Mitakihara Middle School Uniform"
+  },
+  {
+    "charaId": 2009,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2100,
+    "live2dId": "00",
+    "description": "New Year's Outfit"
+  },
+  {
+    "charaId": 2100,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2101,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2101,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2102,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2102,
+    "live2dId": "50",
+    "description": "Producer"
+  },
+  {
+    "charaId": 2102,
+    "live2dId": "51",
+    "description": "Idol Costume"
+  },
+  {
+    "charaId": 2102,
+    "live2dId": "52",
+    "description": "Aloha Kaname"
+  },
+  {
+    "charaId": 2103,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2103,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2104,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2104,
+    "live2dId": "01",
+    "description": "Magical Girl (Madoka)"
+  },
+  {
+    "charaId": 2104,
+    "live2dId": "02",
+    "description": "Magical Girl (Iroha)"
+  },
+  {
+    "charaId": 2104,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2105,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2105,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 2105,
+    "live2dId": "02",
+    "description": "Recompense Uniform"
+  },
+  {
+    "charaId": 2105,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2106,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2106,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2107,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2107,
+    "live2dId": "01",
+    "description": "Magical Girl (Madoka-senpai)"
+  },
+  {
+    "charaId": 2107,
+    "live2dId": "02",
+    "description": "Magical Girl (Iroha-chan)"
+  },
+  {
+    "charaId": 2107,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2201,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2201,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2202,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2202,
+    "live2dId": "01",
+    "description": "Mitakihara Middle School Uniform"
+  },
+  {
+    "charaId": 2202,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2203,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2203,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 2203,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2300,
+    "live2dId": "00",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 2300,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2301,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2301,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 2301,
+    "live2dId": "02",
+    "description": "Recompense Uniform"
+  },
+  {
+    "charaId": 2301,
+    "live2dId": "03",
+    "description": "Hospital Clothes"
+  },
+  {
+    "charaId": 2301,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2400,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2400,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2401,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2401,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2402,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2402,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 2402,
+    "live2dId": "02",
+    "description": "Recompense Uniform"
+  },
+  {
+    "charaId": 2402,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2500,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2500,
+    "live2dId": "01",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2500,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2501,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2501,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2502,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2502,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2503,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2503,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 2503,
+    "live2dId": "02",
+    "description": "Recompense Uniform"
+  },
+  {
+    "charaId": 2503,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2600,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2600,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2601,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2601,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 2601,
+    "live2dId": "02",
+    "description": "Recompense Uniform"
+  },
+  {
+    "charaId": 2601,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2602,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2602,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2700,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2700,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 2701,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 2701,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3001,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3001,
+    "live2dId": "01",
+    "description": "Mizuna Girls' Academy Uniform"
+  },
+  {
+    "charaId": 3001,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3001,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3002,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3002,
+    "live2dId": "01",
+    "description": "Sankyoin Academy Uniform"
+  },
+  {
+    "charaId": 3002,
+    "live2dId": "50",
+    "description": "Halloween Costume"
+  },
+  {
+    "charaId": 3002,
+    "live2dId": "51",
+    "description": "Halloween Costume (2022)"
+  },
+  {
+    "charaId": 3002,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3003,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3003,
+    "live2dId": "01",
+    "description": "Minaminagi Liberty Academy Uniform"
+  },
+  {
+    "charaId": 3003,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3003,
+    "live2dId": "51",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 3003,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3004,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3004,
+    "live2dId": "01",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 3004,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3004,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3005,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3005,
+    "live2dId": "01",
+    "description": "Sankyoin Academy Uniform"
+  },
+  {
+    "charaId": 3005,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3005,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3006,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3006,
+    "live2dId": "01",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 3006,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3006,
+    "live2dId": "51",
+    "description": "Christmas Outfit (2019)"
+  },
+  {
+    "charaId": 3006,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3007,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3007,
+    "live2dId": "01",
+    "description": "Sankyoin Academy Uniform"
+  },
+  {
+    "charaId": 3007,
+    "live2dId": "50",
+    "description": "Halloween Costume"
+  },
+  {
+    "charaId": 3007,
+    "live2dId": "51",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3007,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3008,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3008,
+    "live2dId": "01",
+    "description": "Sankyoin Academy Uniform"
+  },
+  {
+    "charaId": 3008,
+    "live2dId": "50",
+    "description": "Christmas Outfit (2019)"
+  },
+  {
+    "charaId": 3008,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3009,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3009,
+    "live2dId": "01",
+    "description": "Mizuna Girls' Academy Uniform"
+  },
+  {
+    "charaId": 3009,
+    "live2dId": "02",
+    "description": "Chef Uniform"
+  },
+  {
+    "charaId": 3009,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3010,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3010,
+    "live2dId": "01",
+    "description": "Mizuna Girls' Academy Uniform"
+  },
+  {
+    "charaId": 3010,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3010,
+    "live2dId": "51",
+    "description": "Swimsuit (2022)"
+  },
+  {
+    "charaId": 3010,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3011,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3011,
+    "live2dId": "01",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 3011,
+    "live2dId": "50",
+    "description": "Halloween Costume"
+  },
+  {
+    "charaId": 3011,
+    "live2dId": "51",
+    "description": "Swimsuit (2021)"
+  },
+  {
+    "charaId": 3011,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3012,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3012,
+    "live2dId": "01",
+    "description": "Chuo Academy Uniform"
+  },
+  {
+    "charaId": 3012,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3012,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3013,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3013,
+    "live2dId": "01",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 3013,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3013,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3014,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3014,
+    "live2dId": "01",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 3014,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3015,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3015,
+    "live2dId": "01",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 3015,
+    "live2dId": "50",
+    "description": "Halloween Costume (2022)"
+  },
+  {
+    "charaId": 3015,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3016,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3016,
+    "live2dId": "01",
+    "description": "Chuo Academy Uniform"
+  },
+  {
+    "charaId": 3016,
+    "live2dId": "02",
+    "description": "Outdoor Wear"
+  },
+  {
+    "charaId": 3016,
+    "live2dId": "50",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 3016,
+    "live2dId": "51",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3016,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3017,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3017,
+    "live2dId": "01",
+    "description": "Mizuna Girls' Academy Uniform"
+  },
+  {
+    "charaId": 3017,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3018,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3018,
+    "live2dId": "01",
+    "description": "Mizuna Girls' Academy Uniform"
+  },
+  {
+    "charaId": 3018,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3019,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3019,
+    "live2dId": "01",
+    "description": "Chuo Academy Uniform"
+  },
+  {
+    "charaId": 3019,
+    "live2dId": "50",
+    "description": "Halloween Costume"
+  },
+  {
+    "charaId": 3019,
+    "live2dId": "51",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3019,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3020,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3020,
+    "live2dId": "01",
+    "description": "Daito Academy Uniform"
+  },
+  {
+    "charaId": 3020,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3021,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3021,
+    "live2dId": "01",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 3021,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3022,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3022,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 3022,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3023,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3023,
+    "live2dId": "01",
+    "description": "Chuo Academy Uniform"
+  },
+  {
+    "charaId": 3023,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3023,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3024,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3024,
+    "live2dId": "01",
+    "description": "Mizuna Girls' Academy Uniform"
+  },
+  {
+    "charaId": 3024,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3025,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3025,
+    "live2dId": "01",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 3025,
+    "live2dId": "02",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 3025,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3025,
+    "live2dId": "51",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 3025,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3026,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3026,
+    "live2dId": "01",
+    "description": "Sankyoin Academy Uniform"
+  },
+  {
+    "charaId": 3026,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3027,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3027,
+    "live2dId": "01",
+    "description": "Sankyoin Academy Uniform"
+  },
+  {
+    "charaId": 3027,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3028,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3028,
+    "live2dId": "01",
+    "description": "Sankyoin Academy Uniform"
+  },
+  {
+    "charaId": 3028,
+    "live2dId": "50",
+    "description": "Swimsuit (2021)"
+  },
+  {
+    "charaId": 3028,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3029,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3029,
+    "live2dId": "01",
+    "description": "Chuo Academy Uniform"
+  },
+  {
+    "charaId": 3029,
+    "live2dId": "02",
+    "description": "Outdoor Wear"
+  },
+  {
+    "charaId": 3029,
+    "live2dId": "50",
+    "description": "Swimsuit (2018)"
+  },
+  {
+    "charaId": 3029,
+    "live2dId": "51",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3029,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3030,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3030,
+    "live2dId": "01",
+    "description": "Kamihama University Affiliated School Uniform"
+  },
+  {
+    "charaId": 3030,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3030,
+    "live2dId": "51",
+    "description": "Christmas Outfit (2022)"
+  },
+  {
+    "charaId": 3030,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3031,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3031,
+    "live2dId": "01",
+    "description": "Chuo Academy Uniform"
+  },
+  {
+    "charaId": 3031,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3031,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3032,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3032,
+    "live2dId": "01",
+    "description": "Mizuna Girls' Academy Uniform"
+  },
+  {
+    "charaId": 3032,
+    "live2dId": "50",
+    "description": "Swimsuit (2022)"
+  },
+  {
+    "charaId": 3032,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3033,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3033,
+    "live2dId": "01",
+    "description": "Mizuna Girls' Academy Uniform"
+  },
+  {
+    "charaId": 3033,
+    "live2dId": "50",
+    "description": "Swimsuit (2020)"
+  },
+  {
+    "charaId": 3033,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3034,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3034,
+    "live2dId": "01",
+    "description": "Sakae Academy Uniform"
+  },
+  {
+    "charaId": 3034,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3034,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3035,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3035,
+    "live2dId": "01",
+    "description": "Kosho Academy Uniform"
+  },
+  {
+    "charaId": 3035,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3035,
+    "live2dId": "51",
+    "description": "Swimsuit (2022)"
+  },
+  {
+    "charaId": 3035,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3036,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3036,
+    "live2dId": "01",
+    "description": "Minaminagi Liberty Academy Uniform"
+  },
+  {
+    "charaId": 3036,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3037,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3037,
+    "live2dId": "01",
+    "description": "Daito Academy Uniform"
+  },
+  {
+    "charaId": 3037,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3037,
+    "live2dId": "51",
+    "description": "Halloween Costume (2020)"
+  },
+  {
+    "charaId": 3037,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3038,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3038,
+    "live2dId": "01",
+    "description": "Kosho Academy Uniform"
+  },
+  {
+    "charaId": 3038,
+    "live2dId": "02",
+    "description": "Cinema Costume"
+  },
+  {
+    "charaId": 3038,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3039,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3039,
+    "live2dId": "01",
+    "description": "Kosho Academy Uniform"
+  },
+  {
+    "charaId": 3039,
+    "live2dId": "02",
+    "description": "Cinema Costume"
+  },
+  {
+    "charaId": 3039,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3040,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3040,
+    "live2dId": "01",
+    "description": "Kosho Academy Uniform"
+  },
+  {
+    "charaId": 3040,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3040,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3041,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3041,
+    "live2dId": "01",
+    "description": "Saint Liliana Academy Uniform"
+  },
+  {
+    "charaId": 3041,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3042,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3042,
+    "live2dId": "01",
+    "description": "Minaminagi Liberty Academy Uniform"
+  },
+  {
+    "charaId": 3042,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3043,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3043,
+    "live2dId": "01",
+    "description": "Minaminagi Liberty Academy Uniform"
+  },
+  {
+    "charaId": 3043,
+    "live2dId": "02",
+    "description": "Uwasa"
+  },
+  {
+    "charaId": 3043,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3044,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3044,
+    "live2dId": "01",
+    "description": "Sakae Academy Uniform"
+  },
+  {
+    "charaId": 3044,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3044,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3045,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3045,
+    "live2dId": "01",
+    "description": "Saint Liliana Academy Uniform"
+  },
+  {
+    "charaId": 3045,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3046,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3046,
+    "live2dId": "01",
+    "description": "Minaminagi Liberty Academy Uniform"
+  },
+  {
+    "charaId": 3046,
+    "live2dId": "50",
+    "description": "Swimsuit (2020)"
+  },
+  {
+    "charaId": 3046,
+    "live2dId": "51",
+    "description": "Halloween Costume (2020)"
+  },
+  {
+    "charaId": 3046,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report 1)"
+  },
+  {
+    "charaId": 3046,
+    "live2dId": "89",
+    "description": "Magical Girl (Magia Report 2)"
+  },
+  {
+    "charaId": 3047,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3047,
+    "live2dId": "01",
+    "description": "Saint Liliana Academy Uniform"
+  },
+  {
+    "charaId": 3047,
+    "live2dId": "50",
+    "description": "Swimsuit (2022)"
+  },
+  {
+    "charaId": 3047,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3048,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3048,
+    "live2dId": "01",
+    "description": "Sakae Academy Uniform"
+  },
+  {
+    "charaId": 3048,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3048,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3049,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3049,
+    "live2dId": "01",
+    "description": "Sakae Academy Uniform"
+  },
+  {
+    "charaId": 3049,
+    "live2dId": "50",
+    "description": "Halloween Costume (2020)"
+  },
+  {
+    "charaId": 3049,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3050,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3050,
+    "live2dId": "01",
+    "description": "Saint Liliana Academy Uniform"
+  },
+  {
+    "charaId": 3050,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3050,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3051,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3051,
+    "live2dId": "01",
+    "description": "Daito Academy Uniform"
+  },
+  {
+    "charaId": 3051,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3052,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3052,
+    "live2dId": "01",
+    "description": "Kosho Academy Uniform"
+  },
+  {
+    "charaId": 3052,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3052,
+    "live2dId": "51",
+    "description": "Swimsuit (2022)"
+  },
+  {
+    "charaId": 3052,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3053,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3053,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 3053,
+    "live2dId": "02",
+    "description": "Maid Uniform"
+  },
+  {
+    "charaId": 3053,
+    "live2dId": "50",
+    "description": "Swimsuit (2020)"
+  },
+  {
+    "charaId": 3053,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3054,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3054,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 3054,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3055,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3055,
+    "live2dId": "01",
+    "description": "Minaminagi Liberty Academy Uniform"
+  },
+  {
+    "charaId": 3055,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3056,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3056,
+    "live2dId": "01",
+    "description": "Kosho Academy Uniform"
+  },
+  {
+    "charaId": 3056,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3057,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3057,
+    "live2dId": "01",
+    "description": "Sakae Academy Uniform"
+  },
+  {
+    "charaId": 3057,
+    "live2dId": "50",
+    "description": "Winter Clothes"
+  },
+  {
+    "charaId": 3057,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3058,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3058,
+    "live2dId": "01",
+    "description": "Minaminagi Liberty Academy Uniform"
+  },
+  {
+    "charaId": 3058,
+    "live2dId": "50",
+    "description": "Swimsuit (2022)"
+  },
+  {
+    "charaId": 3058,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3059,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3059,
+    "live2dId": "01",
+    "description": "Saint Liliana Academy Uniform"
+  },
+  {
+    "charaId": 3059,
+    "live2dId": "50",
+    "description": "Christmas Outfit (2022)"
+  },
+  {
+    "charaId": 3059,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3501,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3501,
+    "live2dId": "01",
+    "description": "Magical Girl (Rika)"
+  },
+  {
+    "charaId": 3501,
+    "live2dId": "02",
+    "description": "Magical Girl (Ren)"
+  },
+  {
+    "charaId": 3501,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3502,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3502,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3503,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3503,
+    "live2dId": "01",
+    "description": "Magical Girl (Konoha)"
+  },
+  {
+    "charaId": 3503,
+    "live2dId": "02",
+    "description": "Magical Girl (Hazuki)"
+  },
+  {
+    "charaId": 3503,
+    "live2dId": "03",
+    "description": "Magical Girl (Ayame)"
+  },
+  {
+    "charaId": 3503,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3504,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3504,
+    "live2dId": "01",
+    "description": "Magical Girl (Masara)"
+  },
+  {
+    "charaId": 3504,
+    "live2dId": "02",
+    "description": "Magical Girl (Kokoro)"
+  },
+  {
+    "charaId": 3504,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3505,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3505,
+    "live2dId": "01",
+    "description": "Magical Girl (Leila)"
+  },
+  {
+    "charaId": 3505,
+    "live2dId": "02",
+    "description": "Magical Girl (Seika)"
+  },
+  {
+    "charaId": 3505,
+    "live2dId": "03",
+    "description": "Magical Girl (Mito)"
+  },
+  {
+    "charaId": 3505,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3900,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3900,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3901,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3901,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 3901,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 3902,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 3902,
+    "live2dId": "01",
+    "description": "School Uniform"
+  },
+  {
+    "charaId": 3902,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4001,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4001,
+    "live2dId": "01",
+    "description": "Shiraha Girls' Academy Uniform"
+  },
+  {
+    "charaId": 4001,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4002,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4002,
+    "live2dId": "01",
+    "description": "Shirt & Tie with Pink Skirt"
+  },
+  {
+    "charaId": 4002,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4003,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4003,
+    "live2dId": "01",
+    "description": "Classical Dress"
+  },
+  {
+    "charaId": 4003,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4004,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4004,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4011,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4011,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 4011,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4012,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4012,
+    "live2dId": "01",
+    "description": "School Uniform"
+  },
+  {
+    "charaId": 4012,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4013,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4013,
+    "live2dId": "01",
+    "description": "School Uniform"
+  },
+  {
+    "charaId": 4013,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4014,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4014,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 4014,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4021,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4021,
+    "live2dId": "01",
+    "description": "Journeying Outfit"
+  },
+  {
+    "charaId": 4021,
+    "live2dId": "50",
+    "description": "Holy Maiden Academy Uniform"
+  },
+  {
+    "charaId": 4021,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4022,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4022,
+    "live2dId": "01",
+    "description": "Journeying Outfit"
+  },
+  {
+    "charaId": 4022,
+    "live2dId": "50",
+    "description": "Holy Maiden Academy Uniform"
+  },
+  {
+    "charaId": 4022,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4023,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4023,
+    "live2dId": "01",
+    "description": "Apron Dress"
+  },
+  {
+    "charaId": 4023,
+    "live2dId": "50",
+    "description": "Holy Maiden Academy Uniform"
+  },
+  {
+    "charaId": 4023,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4024,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4024,
+    "live2dId": "01",
+    "description": "Magical Girl (Without Mask)"
+  },
+  {
+    "charaId": 4024,
+    "live2dId": "50",
+    "description": "Holy Maiden Academy Uniform"
+  },
+  {
+    "charaId": 4024,
+    "live2dId": "51",
+    "description": "Holy Maiden Academy Uniform (Without Mask)"
+  },
+  {
+    "charaId": 4024,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4025,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4025,
+    "live2dId": "01",
+    "description": "Magical Girl (Without Mask)"
+  },
+  {
+    "charaId": 4025,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4026,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4026,
+    "live2dId": "01",
+    "description": "Order of the Dragon Journeying Outfit"
+  },
+  {
+    "charaId": 4026,
+    "live2dId": "50",
+    "description": "Holy Maiden Academy Uniform"
+  },
+  {
+    "charaId": 4026,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4027,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4027,
+    "live2dId": "01",
+    "description": "Magical Girl (Without Mask)"
+  },
+  {
+    "charaId": 4027,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4028,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4028,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4029,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4029,
+    "live2dId": "01",
+    "description": "Journeying Outfit"
+  },
+  {
+    "charaId": 4029,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4031,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4031,
+    "live2dId": "01",
+    "description": "Akanegazaki School Uniform"
+  },
+  {
+    "charaId": 4031,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4032,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4032,
+    "live2dId": "01",
+    "description": "Akanegazaki School Uniform"
+  },
+  {
+    "charaId": 4032,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4033,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4033,
+    "live2dId": "01",
+    "description": "Akanegazaki School Uniform"
+  },
+  {
+    "charaId": 4033,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4034,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4034,
+    "live2dId": "01",
+    "description": "Akanegazaki School Uniform"
+  },
+  {
+    "charaId": 4034,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4035,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4035,
+    "live2dId": "01",
+    "description": "Akanegazaki School Uniform"
+  },
+  {
+    "charaId": 4035,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4036,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4036,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 4036,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4041,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4041,
+    "live2dId": "01",
+    "description": "Naoetsu Private High School Uniform"
+  },
+  {
+    "charaId": 4042,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4042,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 4043,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4043,
+    "live2dId": "01",
+    "description": "Naoetsu Private High School Uniform"
+  },
+  {
+    "charaId": 4044,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4044,
+    "live2dId": "01",
+    "description": "Nanahyakuichi Public Middle School Uniform"
+  },
+  {
+    "charaId": 4045,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4045,
+    "live2dId": "01",
+    "description": "Naoetsu Private High School Uniform"
+  },
+  {
+    "charaId": 4046,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4046,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 4051,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4051,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 4052,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4052,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 4053,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4053,
+    "live2dId": "01",
+    "description": "Casual Clothes"
+  },
+  {
+    "charaId": 4061,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4061,
+    "live2dId": "01",
+    "description": "School Uniform"
+  },
+  {
+    "charaId": 4062,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4062,
+    "live2dId": "01",
+    "description": "School Uniform"
+  },
+  {
+    "charaId": 4121,
+    "live2dId": "00",
+    "description": "Dress"
+  },
+  {
+    "charaId": 4121,
+    "live2dId": "03",
+    "description": "Dress (Teenager)"
+  },
+  {
+    "charaId": 4121,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  },
+  {
+    "charaId": 4122,
+    "live2dId": "00",
+    "description": "Magical Girl"
+  },
+  {
+    "charaId": 4122,
+    "live2dId": "01",
+    "description": "Dress"
+  },
+  {
+    "charaId": 4122,
+    "live2dId": "88",
+    "description": "Magical Girl (Magia Report)"
+  }
+]

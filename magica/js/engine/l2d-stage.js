@@ -119,8 +119,8 @@ export function ensureMetadataLoaded() {
     metadataPromise = (async () => {
         try {
             const [charaResponse, live2dResponse] = await Promise.all([
-                fetch('https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/charaList.json'),
-                fetch('https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/live2dList.json')
+                fetch(repoUrl('assets/charaList.json')),
+                fetch(repoUrl('assets/live2dList.json'))
             ]);
 
             const [registeredChars, registeredLive2d] = await Promise.all([

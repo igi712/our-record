@@ -1,6 +1,6 @@
 // js/mypage.js — MyPage homescreen controller (#/MyPage)
 
-import { state, resolveMaReAssetsBase } from './viewer/model.js';
+import { state } from './viewer/model.js';
 import { preloadModelToRam, setAssetPreloadConnecting, ramFolderCache } from './viewer/model-assets.js';
 import { preloadScenarioVoices, scenarioCache } from './viewer/quotes-sequence.js';
 import { fetchScenarioJson } from './viewer/model-scenario.js';
@@ -709,15 +709,11 @@ async function initFavoriteCharaIcon() {
     img.removeAttribute('src');
     img.style.display = 'none';
 
-    const base = await resolveMaReAssetsBase().catch(() => '');
-    if (!base) return;
-
-    const root = String(base).replace(/\/$/, '').replace(/\/live2d_v4\/?$/, '');
     let url = null;
     for (const suffix of ['5', '4', '1']) {
-        const candidate = `${root}/card/image/card_${charaId}${suffix}_f.png`;
+        const candidate = magicaUrl(`resource/image_native/card/image/card_${charaId}${suffix}_f.png`);
         try {
-            const resp = await fetch(candidate);
+            const resp = await fetch(candidate, { method: 'HEAD' });
             if (resp.ok) {
                 url = candidate;
                 break;

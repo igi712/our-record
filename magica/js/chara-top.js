@@ -1,7 +1,7 @@
 // js/chara-top.js — Magical Girls (#/CharaListTop / #CharaTop) controller
 
 import { openFavoriteChangedPopup, openCharaFilterPopup } from './popups.js';
-import { repoUrl } from './paths.js';
+import { repoUrl, magicaUrl } from './paths.js';
 import { resolveSavedHomeBackground, DEFAULT_HOME_BGM_FILE } from './home-bg.js';
 import { getCommittedHomeBg, setCommittedHomeBg } from './background-set.js';
 import { changeBg, preloadBg, getImageNativeBase, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
@@ -212,14 +212,14 @@ function compareCards(a, b, sortKey, ascDesc) {
     return b.charaId - a.charaId;
 }
 
-function loadCardIconAssets(li, nativeRoot) {
+function loadCardIconAssets(li) {
     if (li.dataset.loaded === 'true') return;
     li.dataset.loaded = 'true';
     li.querySelectorAll('[data-bg-rel]').forEach((span) => {
-        span.style.backgroundImage = `url("${nativeRoot}/${span.dataset.bgRel}")`;
+        span.style.backgroundImage = `url("${magicaUrl(`resource/image_native/${span.dataset.bgRel}`)}")`;
     });
     const img = li.querySelector('img[data-img-rel]');
-    if (img) img.src = `${nativeRoot}/${img.dataset.imgRel}`;
+    if (img) img.src = magicaUrl(`resource/image_native/${img.dataset.imgRel}`);
 }
 
 function createCharaIconElement(card) {
@@ -299,7 +299,7 @@ function updateScrollIndicator() {
     scrollFadeTimer = setTimeout(() => inner.classList.remove('onScroll'), 650);
 }
 
-function applySortAndFilter(cards, nativeRoot, { hydrateIcons = true } = {}) {
+function applySortAndFilter(cards, { hydrateIcons = true } = {}) {
     const listEl = document.getElementById('charaListElms');
     const cautionEl = document.querySelector('#CharaTop .charaListCaution');
     if (!listEl) return;
@@ -327,7 +327,7 @@ function applySortAndFilter(cards, nativeRoot, { hydrateIcons = true } = {}) {
         for (const card of sorted) {
             const li = iconElementsByCharaId.get(card.charaId);
             if (li && !li.classList.contains('hide')) {
-                loadCardIconAssets(li, nativeRoot);
+                loadCardIconAssets(li);
                 if (++hydrated >= 20) break;
             }
         }
@@ -335,12 +335,12 @@ function applySortAndFilter(cards, nativeRoot, { hydrateIcons = true } = {}) {
     updateScrollIndicator();
 }
 
-function hydrateVisibleIcons(listEl, scrollWrap, nativeRoot, signal) {
+function hydrateVisibleIcons(listEl, scrollWrap, signal) {
     if (!listEl || !scrollWrap || signal?.aborted) return;
 
     let hydrated = 0;
     for (const li of listEl.querySelectorAll('li.userCharaIcon:not(.hide)')) {
-        loadCardIconAssets(li, nativeRoot);
+        loadCardIconAssets(li);
         if (++hydrated >= 20) break;
     }
 
@@ -351,7 +351,7 @@ function hydrateVisibleIcons(listEl, scrollWrap, nativeRoot, signal) {
     iconObserver = new IntersectionObserver((entries) => {
         for (const entry of entries) {
             if (!entry.isIntersecting) continue;
-            loadCardIconAssets(entry.target, nativeRoot);
+            loadCardIconAssets(entry.target);
             iconObserver?.unobserve(entry.target);
         }
     }, { root: scrollWrap, rootMargin: '240px' });
@@ -511,7 +511,7 @@ async function selectChara(charaId, cardsById, nativeRoot) {
 
     iconElementsByCharaId.forEach((li, id) => {
         li.classList.toggle('select', id === card.charaId);
-        if (id === card.charaId) loadCardIconAssets(li, nativeRoot);
+        if (id === card.charaId) loadCardIconAssets(li);
     });
 
     renderCharaDataCard(card);
@@ -631,7 +631,7 @@ function setupCharaTopView({ cards, nativeRoot, initialCharaId }) {
     }
     listEl.appendChild(frag);
 
-    applySortAndFilter(cards, nativeRoot, { hydrateIcons: false });
+    applySortAndFilter(cards, { hydrateIcons: false });
 
     const requested = Number(initialCharaId);
     const startId = cardsById.has(requested) ? requested : pickFallbackCharaId(listEl, cards);
@@ -686,13 +686,13 @@ function setupCharaTopView({ cards, nativeRoot, initialCharaId }) {
         const nextMeta = SORT_ITEMS[(curMeta.index + 1) % SORT_ITEMS.length];
         currentSortPrm[0] = nextMeta.key;
         saveSortMemory(currentSortPrm);
-        applySortAndFilter(cards, nativeRoot);
+        applySortAndFilter(cards);
     }, { signal });
 
     rootEl.querySelector('.orderBtn')?.addEventListener('click', () => {
         currentSortPrm[1] = currentSortPrm[1] === 'asc' ? 'desc' : 'asc';
         saveSortMemory(currentSortPrm);
-        applySortAndFilter(cards, nativeRoot);
+        applySortAndFilter(cards);
     }, { signal });
 
     document.getElementById('sortPopup')?.addEventListener('click', () => {
@@ -704,7 +704,7 @@ function setupCharaTopView({ cards, nativeRoot, initialCharaId }) {
             currentSortPrm[5] = filters[3] || null;
             currentSortPrm[6] = filters[4] || null;
             saveSortMemory(currentSortPrm);
-            applySortAndFilter(cards, nativeRoot);
+            applySortAndFilter(cards);
             const selectedLi = iconElementsByCharaId.get(selectedCharaId);
             if (!selectedLi || selectedLi.classList.contains('hide')) {
                 const nextId = pickFallbackCharaId(listEl, cards);
@@ -825,11 +825,11 @@ export async function enterCharaTop({ initialCharaId, onBeforeReveal, hadLive2d 
     await new Promise((r) => requestAnimationFrame(r));
     if (token !== charaTopRequestToken || signal.aborted) return;
 
-    hydrateVisibleIcons(listEl, scrollWrap, nativeRoot, signal);
+    hydrateVisibleIcons(listEl, scrollWrap, signal);
     if (!initialCard) return;
 
     const selectedLi = iconElementsByCharaId.get(initialCard.charaId);
-    if (selectedLi) loadCardIconAssets(selectedLi, nativeRoot);
+    if (selectedLi) loadCardIconAssets(selectedLi);
 
     const selToken = ++charaSelectToken;
     await loadLargeCardImage(initialCard, nativeRoot, selToken);

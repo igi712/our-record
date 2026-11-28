@@ -1,7 +1,6 @@
 // magica/js/story-collection.js — Archive -> Stories (#/StoryCollection) controller
 
 import { repoUrl, magicaUrl } from './paths.js';
-import { resolveMaReAssetsBase } from './viewer/model.js';
 import { changeBg, preloadBg, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
 import { startBgm } from './engine/audio.js';
 import {
@@ -42,7 +41,6 @@ const MOVIE_PATHS = {
 };
 
 let catalogCache = null;
-let imageNativeRootCache = '';
 let activeController = null;
 let storyCollectionToken = 0;
 let activeTab = 'main';
@@ -55,17 +53,6 @@ async function loadStoryCatalog() {
     if (!resp.ok) throw new Error(`Failed to fetch ${CATALOG_URL}: ${resp.status}`);
     catalogCache = await resp.json();
     return catalogCache;
-}
-
-async function resolveImageNativeRoot() {
-    if (imageNativeRootCache) return imageNativeRootCache;
-    try {
-        const base = await resolveMaReAssetsBase();
-        imageNativeRootCache = String(base).replace(/\/$/, '').replace(/\/live2d_v4\/?$/, '');
-    } catch {
-        imageNativeRootCache = '';
-    }
-    return imageNativeRootCache;
 }
 
 function splitStoryIds(raw) {
@@ -173,7 +160,7 @@ function createStaticPrologueWrap() {
     return wrap;
 }
 
-function createStandardChapterWrap(chapter, tabKey, catalog, imageNativeRoot) {
+function createStandardChapterWrap(chapter, tabKey, catalog) {
     const wrap = createEl('div', 'wrap');
     const chapterKey = String(chapter.chapterId);
 
@@ -187,9 +174,7 @@ function createStandardChapterWrap(chapter, tabKey, catalog, imageNativeRoot) {
         const img = document.createElement('img');
         img.loading = 'lazy';
         img.alt = '';
-        if (imageNativeRoot) {
-            img.src = `${imageNativeRoot}/card/image/card_${chapter.displayCardId}_f.png`;
-        }
+        img.src = magicaUrl(`resource/image_native/card/image/card_${chapter.displayCardId}_f.png`);
         img.addEventListener('error', () => {
             img.style.visibility = 'hidden';
         }, { once: true });
@@ -409,7 +394,7 @@ function createBranchOrWitchWrap(item, chapterKey) {
     return wrap;
 }
 
-function renderTabContent(tabKey, catalog, imageNativeRoot) {
+function renderTabContent(tabKey, catalog) {
     if (renderedTabs.has(tabKey)) return;
     renderedTabs.add(tabKey);
 
@@ -436,7 +421,7 @@ function renderTabContent(tabKey, catalog, imageNativeRoot) {
             frag.appendChild(createEl('p', 'storyCautionText ts_white', 'There is no story available here.'));
         } else {
             for (const ch of list) {
-                frag.appendChild(createStandardChapterWrap(ch, tabKey, catalog, imageNativeRoot));
+                frag.appendChild(createStandardChapterWrap(ch, tabKey, catalog));
             }
         }
     } else if (tabKey === 'puellaHistoria') {
@@ -511,7 +496,7 @@ function attachDragScroll(scrollEl, signal) {
 
 // --- View Setup ---
 
-function setupStoryCollectionView(catalog, imageNativeRoot) {
+function setupStoryCollectionView(catalog) {
     resetStoryCollection();
     activeController = new AbortController();
     const { signal } = activeController;
@@ -546,7 +531,7 @@ function setupStoryCollectionView(catalog, imageNativeRoot) {
         btn.classList.toggle('current', btn.dataset.wrap === 'main');
     });
 
-    renderTabContent('main', catalog, imageNativeRoot);
+    renderTabContent('main', catalog);
 
     // Drag-to-scroll on tab sidebar and each tab's list container
     attachDragScroll(document.getElementById('storyTabScroll'), signal);
@@ -615,7 +600,7 @@ function setupStoryCollectionView(catalog, imageNativeRoot) {
         if (listTitle && label) listTitle.textContent = label;
 
         activeTab = nextWrap;
-        renderTabContent(activeTab, catalog, imageNativeRoot);
+        renderTabContent(activeTab, catalog);
 
         const hiddenWrap = document.getElementById(`${activeTab}HiddenWrap`);
         if (hiddenWrap) hiddenWrap.scrollTop = 0;
@@ -665,8 +650,7 @@ export async function enterStoryCollection({ onBeforeReveal, hadLive2d = false, 
         const preloadTask = Promise.all([
             preloadBg(COLLECTION_BG).catch((e) => console.warn('[story-collection] BG preload error:', e)),
             startBgm(COLLECTION_BGM, { autoplay: true }).catch((e) => console.warn('[story-collection] BGM error:', e)),
-            loadStoryCatalog(),
-            resolveImageNativeRoot()
+            loadStoryCatalog()
         ]);
 
         // Let CollectionTop right-side buttons fade/hide first.
@@ -676,7 +660,7 @@ export async function enterStoryCollection({ onBeforeReveal, hadLive2d = false, 
         document.body.classList.add('connecting');
         const connectStart = performance.now();
 
-        const [, , catalog, imageNativeRoot] = await preloadTask;
+        const [, , catalog] = await preloadTask;
         if (token !== storyCollectionToken) return;
 
         const elapsed = performance.now() - connectStart;
@@ -706,14 +690,13 @@ export async function enterStoryCollection({ onBeforeReveal, hadLive2d = false, 
         await new Promise((r) => setTimeout(r, 60));
         if (token !== storyCollectionToken) return;
 
-        setupStoryCollectionView(catalog, imageNativeRoot);
+        setupStoryCollectionView(catalog);
     } else {
         const step1Start = performance.now();
-        const [, , catalog, imageNativeRoot] = await Promise.all([
+        const [, , catalog] = await Promise.all([
             preloadBg(COLLECTION_BG).catch((e) => console.warn('[story-collection] BG preload error:', e)),
             startBgm(COLLECTION_BGM, { autoplay: true }).catch((e) => console.warn('[story-collection] BGM error:', e)),
-            loadStoryCatalog(),
-            resolveImageNativeRoot()
+            loadStoryCatalog()
         ]);
         if (token !== storyCollectionToken) return;
 
@@ -736,7 +719,7 @@ export async function enterStoryCollection({ onBeforeReveal, hadLive2d = false, 
         if (token !== storyCollectionToken) return;
 
         document.body.classList.remove('connecting');
-        setupStoryCollectionView(catalog, imageNativeRoot);
+        setupStoryCollectionView(catalog);
     }
 
     setStageContext({ mode: 'detail' });

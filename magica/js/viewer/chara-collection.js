@@ -1,7 +1,7 @@
 // chara-collection.js — Character Collection grid selector view for quotes.html
 
 import { state } from './model.js';
-import { repoUrl } from '../paths.js';
+import { repoUrl, magicaUrl } from '../paths.js';
 import { changeBg, preloadBg, setBgPortrait, setBgWebcamVideo } from '../engine/bg.js';
 import { startBgm } from '../engine/audio.js';
 import {
@@ -52,8 +52,8 @@ const KNOWN_CHARA_NAMES = {
 export async function fetchCharacterCatalog() {
     try {
         const [charaResponse, live2dResponse] = await Promise.all([
-            fetch('https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/charaList.json').catch(() => null),
-            fetch('https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/live2dList.json').catch(() => null)
+            fetch(repoUrl('assets/charaList.json')).catch(() => null),
+            fetch(repoUrl('assets/live2dList.json')).catch(() => null)
         ]);
 
         let registeredChars = [];
@@ -108,11 +108,11 @@ export async function fetchCharacterCatalog() {
 }
 
 function resolveCardIconUrl(cardId) {
-    return `https://raw.githubusercontent.com/igi712/ma-re-data/main/resource/image_native/card/image/card_${cardId}_f.png`;
+    return magicaUrl(`resource/image_native/card/image/card_${cardId}_f.png`);
 }
 
 function resolveFrameAssetUrl(filename) {
-    return `https://raw.githubusercontent.com/igi712/ma-re-data/main/resource/image_native/card/frame/${filename}`;
+    return magicaUrl(`resource/image_native/card/frame/${filename}`);
 }
 
 let cardIntersectionObserver = null;

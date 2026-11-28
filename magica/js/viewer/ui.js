@@ -26,6 +26,7 @@ import {
 } from './model.js';
 import { getDualUnitConfig } from './model-scenario.js';
 import { isBackgroundModalOpen, setupBackgroundSelector } from './viewer-bg.js';
+import { repoUrl } from '../paths.js';
 
 function populateCharacterDropdown() {
     const characterSelect = document.getElementById('characterSelect');
@@ -76,8 +77,8 @@ export async function initializeApp() {
     try {
         // Load character and outfit data
         const [charaResponse, live2dResponse] = await Promise.all([
-            fetch('https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/charaList.json'),
-            fetch('https://raw.githubusercontent.com/Puella-Care/en-data/refs/heads/main/live2dList.json')
+            fetch(repoUrl('assets/charaList.json')),
+            fetch(repoUrl('assets/live2dList.json'))
         ]);
 
         const [registeredChars, registeredLive2d] = await Promise.all([
@@ -89,8 +90,8 @@ export async function initializeApp() {
         let missingLive2d = [];
         try {
             const [missingCharsResponse, missingLive2dResponse] = await Promise.all([
-                fetch('assets/missingCharaList.json'),
-                fetch('assets/missingLive2dList.json')
+                fetch(repoUrl('assets/missingCharaList.json')),
+                fetch(repoUrl('assets/missingLive2dList.json'))
             ]);
             if (missingCharsResponse.ok) missingChars = await missingCharsResponse.json();
             if (missingLive2dResponse.ok) missingLive2d = await missingLive2dResponse.json();

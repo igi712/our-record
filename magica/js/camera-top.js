@@ -4,10 +4,10 @@ import { state, buildModelId } from './viewer/model.js';
 import { preloadModelToRam, setAssetPreloadConnecting } from './viewer/model-assets.js';
 import { getFavoriteCharaId } from './chara-top.js';
 import { openCharaFilterPopup, openCameraSavedPopup, openCameraHelpPopup } from './popups.js';
-import { repoUrl } from './paths.js';
+import { repoUrl, magicaUrl } from './paths.js';
 import { resolveSavedHomeBackground, DEFAULT_HOME_BG_FILE, DEFAULT_HOME_BGM_FILE } from './home-bg.js';
 import { getCommittedHomeBg, setCommittedHomeBg } from './background-set.js';
-import { changeBg, preloadBg, getImageNativeBase, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
+import { changeBg, preloadBg, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
 import { startBgm, startSe } from './engine/audio.js';
 import { updateUILayer, markDragScroll } from './engine/common-events.js';
 import {
@@ -206,14 +206,14 @@ function compareCards(a, b, sortKey, ascDesc) {
     return b.charaId - a.charaId;
 }
 
-function loadCardIconAssets(li, nativeRoot) {
+function loadCardIconAssets(li) {
     if (li.dataset.loaded === 'true') return;
     li.dataset.loaded = 'true';
     li.querySelectorAll('[data-bg-rel]').forEach((span) => {
-        span.style.backgroundImage = `url("${nativeRoot}/${span.dataset.bgRel}")`;
+        span.style.backgroundImage = `url("${magicaUrl(`resource/image_native/${span.dataset.bgRel}`)}")`;
     });
     const img = li.querySelector('img[data-img-rel]');
-    if (img) img.src = `${nativeRoot}/${img.dataset.imgRel}`;
+    if (img) img.src = magicaUrl(`resource/image_native/${img.dataset.imgRel}`);
 }
 
 function createCharaIconElement(card) {
@@ -295,7 +295,7 @@ function updateScrollIndicator() {
     scrollFadeTimer = setTimeout(() => inner.classList.remove('onScroll'), 650);
 }
 
-function applySortAndFilter(cards, nativeRoot) {
+function applySortAndFilter(cards) {
     const wrap = document.getElementById('cameraCharaListWrap');
     const listEl = wrap?.querySelector('.charaListElms');
     const cautionEl = wrap?.querySelector('.charaListCaution');
@@ -323,18 +323,18 @@ function applySortAndFilter(cards, nativeRoot) {
     for (const card of sorted) {
         const li = iconElementsByCharaId.get(card.charaId);
         if (li && !li.classList.contains('hide')) {
-            loadCardIconAssets(li, nativeRoot);
+            loadCardIconAssets(li);
             if (++hydrated >= 20) break;
         }
     }
     updateScrollIndicator();
 }
 
-function updateCharaListSelection(charaId, nativeRoot) {
+function updateCharaListSelection(charaId) {
     iconElementsByCharaId.forEach((li, id) => {
         const selected = id === Number(charaId);
         li.classList.toggle('select', selected);
-        if (selected && nativeRoot) loadCardIconAssets(li, nativeRoot);
+        if (selected) loadCardIconAssets(li);
     });
 }
 
@@ -512,7 +512,7 @@ async function ensureCharaListBuilt(signal) {
     const listEl = wrap?.querySelector('.charaListElms');
     if (!wrap || !scrollWrap || !listEl) return;
 
-    const [cards, nativeRoot] = await Promise.all([loadCharaCards(), getImageNativeBase()]);
+    const cards = await loadCharaCards();
     if (signal.aborted) return;
 
     currentSortPrm = loadSortMemory();
@@ -522,7 +522,7 @@ async function ensureCharaListBuilt(signal) {
     iconObserver = new IntersectionObserver((entries) => {
         for (const entry of entries) {
             if (!entry.isIntersecting) continue;
-            loadCardIconAssets(entry.target, nativeRoot);
+            loadCardIconAssets(entry.target);
             iconObserver?.unobserve(entry.target);
         }
     }, { root: scrollWrap, rootMargin: '240px' });
@@ -536,8 +536,8 @@ async function ensureCharaListBuilt(signal) {
     }
     listEl.appendChild(frag);
 
-    applySortAndFilter(cards, nativeRoot);
-    updateCharaListSelection(currentCharaId, nativeRoot);
+    applySortAndFilter(cards);
+    updateCharaListSelection(currentCharaId);
     scrollSelectedIntoView(currentCharaId);
 
     listEl.addEventListener('click', async (e) => {
@@ -550,7 +550,7 @@ async function ensureCharaListBuilt(signal) {
         currentLive2dId = '00';
         toggleFlg = 0;
         l2dTouchCnt = 0;
-        updateCharaListSelection(id, nativeRoot);
+        updateCharaListSelection(id);
         startPosCooldown();
         await spawnCurrentModel({ wearMode: false });
     }, { signal });
@@ -560,13 +560,13 @@ async function ensureCharaListBuilt(signal) {
         const nextMeta = SORT_ITEMS[(curMeta.index + 1) % SORT_ITEMS.length];
         currentSortPrm[0] = nextMeta.key;
         saveSortMemory(currentSortPrm);
-        applySortAndFilter(cards, nativeRoot);
+        applySortAndFilter(cards);
     }, { signal });
 
     wrap.querySelector('.orderBtn')?.addEventListener('click', () => {
         currentSortPrm[1] = currentSortPrm[1] === 'asc' ? 'desc' : 'asc';
         saveSortMemory(currentSortPrm);
-        applySortAndFilter(cards, nativeRoot);
+        applySortAndFilter(cards);
     }, { signal });
 
     wrap.querySelector('.sortPopup')?.addEventListener('click', () => {
@@ -578,7 +578,7 @@ async function ensureCharaListBuilt(signal) {
             currentSortPrm[5] = filters[3] || null;
             currentSortPrm[6] = filters[4] || null;
             saveSortMemory(currentSortPrm);
-            applySortAndFilter(cards, nativeRoot);
+            applySortAndFilter(cards);
         });
     }, { signal });
 
@@ -643,8 +643,7 @@ async function handleCharaDrawerToggle(signal) {
     charaDrawerOpen = root.classList.toggle('changing');
     if (charaDrawerOpen) {
         await ensureCharaListBuilt(signal);
-        const nativeRoot = await getImageNativeBase().catch(() => '');
-        updateCharaListSelection(currentCharaId, nativeRoot);
+        updateCharaListSelection(currentCharaId);
         scrollSelectedIntoView(currentCharaId);
     }
 }

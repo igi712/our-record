@@ -283,8 +283,9 @@ function buildStoryCatalog() {
     }
     for (const c of charaCards) {
         const cid = Number(c.charaId);
-        if (!defaultCardByCharaId.has(cid) && c.defaultCardId) {
-            defaultCardByCharaId.set(cid, Number(c.defaultCardId));
+        const cardId = Number(c.displayCardId || c.defaultCardId);
+        if (!defaultCardByCharaId.has(cid) && cardId) {
+            defaultCardByCharaId.set(cid, cardId);
         }
     }
 
