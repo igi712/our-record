@@ -8,6 +8,7 @@
 import { HOME_STATUS_DEMO } from './home-menu.js';
 import { resolveMaReAssetsBase } from './viewer/model.js';
 import { magicaUrl } from './paths.js';
+import { markDragScroll, isDragScrollActive } from './engine/common-events.js';
 
 const ETC_TEMPLATE = magicaUrl('template/etc/EtcPopup.html');
 const PROFILE_TEMPLATE = magicaUrl('template/user/MyProfilePopup.html');
@@ -74,7 +75,12 @@ const TOUCH_SELECTOR = [
     '#popupArea #sortFilterPop .filterEnhance',
     '#popupArea #sortFilterPop .filterInitial',
     '#popupArea #sortFilterPop #filterNameClear',
-    '#popupArea #sortFilterPop #cardSortBtnsArea .sort'
+    '#popupArea #sortFilterPop #cardSortBtnsArea .sort',
+    '#popupArea .storyOutlinePop .popupCloseBtn',
+    '#popupArea #stillListPopup .popupCloseBtn',
+    '#popupArea #stillListPopup .arrow',
+    '#popupArea #stillListPopup .imageWrap[data-index]',
+    '#popupArea #storyNoticePop .popupCloseBtn'
 ].join(', ');
 
 let popupArea = null;
@@ -146,7 +152,13 @@ async function fetchTemplate(url, kind) {
     return html;
 }
 
+function closeStillDetail() {
+    const detail = document.getElementById('stillDetail');
+    if (detail) detail.remove();
+}
+
 function closeActivePopup({ immediate = false } = {}) {
+    closeStillDetail();
     if (!activePopup) return;
     const closing = activePopup;
     activePopup = null;
@@ -194,6 +206,318 @@ export async function openEtcPopup() {
 
 export function closeEtcPopup() {
     if (activePopup?.kind === 'etc') closeActivePopup();
+}
+
+export function closeStoryPopup() {
+    if (
+        activePopup?.kind === 'storyOutline' ||
+        activePopup?.kind === 'storyGallery' ||
+        activePopup?.kind === 'storyNotice'
+    ) {
+        closeActivePopup({ immediate: true });
+    } else {
+        closeStillDetail();
+    }
+}
+
+export function openStoryNoticePopup({ title = 'Story Confirmation', message = '', buttonLabel = 'OK' } = {}) {
+    if (activePopup) closeActivePopup({ immediate: true });
+    const area = ensurePopupArea();
+
+    const el = document.createElement('div');
+    el.id = 'storyNoticePop';
+    el.className = 'popupContent open typeC';
+
+    const inner = document.createElement('div');
+    inner.className = 'popupInner';
+
+    const closeX = document.createElement('span');
+    closeX.className = 'popupCloseBtn closeDefault se_cancel TE';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'popupTitle';
+    titleEl.textContent = title;
+
+    const textArea = document.createElement('div');
+    textArea.className = 'popupTextArea';
+    textArea.textContent = message;
+
+    const btnTable = document.createElement('table');
+    btnTable.className = 'popupBtnArea';
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    const btn = document.createElement('span');
+    btn.className = 'popupCloseBtn btn b_white TE se_decide';
+    const screen = document.createElement('span');
+    screen.className = 'b_screen';
+    btn.appendChild(screen);
+    btn.appendChild(document.createTextNode(buttonLabel));
+    td.appendChild(btn);
+    tr.appendChild(td);
+    btnTable.appendChild(tr);
+
+    inner.appendChild(closeX);
+    inner.appendChild(titleEl);
+    inner.appendChild(textArea);
+    inner.appendChild(btnTable);
+    el.appendChild(inner);
+    area.appendChild(el);
+
+    applyPopupScale(inner);
+
+    const curtain = area.querySelector('#popupCurtain');
+    if (curtain) curtain.classList.add('show');
+    activePopup = {
+        kind: 'storyNotice',
+        el,
+        canClose: true
+    };
+    bindEvents();
+}
+
+async function loadOutlineCardArt(imgEl, cardId) {
+    if (!imgEl || !cardId) return;
+    const token = ++cardArtRequestToken;
+    imgEl.classList.remove('loaded');
+
+    const base = await resolveMaReAssetsBase().catch(() => '');
+    if (!base || token !== cardArtRequestToken || !imgEl.isConnected) return;
+
+    const root = String(base).replace(/\/$/, '').replace(/\/live2d_v4\/?$/, '');
+    const url = `${root}/card/image/card_${cardId}_l.png`;
+    imgEl.onerror = () => {
+        imgEl.removeAttribute('src');
+        imgEl.classList.remove('loaded');
+    };
+    imgEl.onload = () => {
+        if (token === cardArtRequestToken && imgEl.isConnected) {
+            imgEl.classList.add('loaded');
+        }
+    };
+    imgEl.src = url;
+}
+
+export function openStoryOutlinePopup({ title = '', outline = '', defaultCardId = 10011 } = {}) {
+    if (activePopup) closeActivePopup({ immediate: true });
+    const area = ensurePopupArea();
+
+    const el = document.createElement('div');
+    el.className = 'popupContent open typeA storyOutlinePop';
+
+    const inner = document.createElement('div');
+    inner.className = 'popupInner';
+
+    const outlineRoot = document.createElement('div');
+    outlineRoot.id = 'outline';
+
+    const closeX = document.createElement('span');
+    closeX.className = 'closeDefault se_cancel popupCloseBtn TE';
+    outlineRoot.appendChild(closeX);
+
+    const outlineWrap = document.createElement('div');
+    outlineWrap.className = 'outlineWrap commonFrame3';
+
+    const titleEl = document.createElement('p');
+    titleEl.className = 'popupTitle common_title';
+    titleEl.textContent = title;
+    outlineWrap.appendChild(titleEl);
+
+    const outlineEl = document.createElement('p');
+    outlineEl.className = 'outline';
+    const lines = String(outline || '').replace(/＠/g, '\n').split('\n');
+    lines.forEach((line, idx) => {
+        if (idx > 0) outlineEl.appendChild(document.createElement('br'));
+        outlineEl.appendChild(document.createTextNode(line));
+    });
+    outlineWrap.appendChild(outlineEl);
+    outlineRoot.appendChild(outlineWrap);
+
+    let imgEl = null;
+    if (defaultCardId) {
+        const charaImg = document.createElement('div');
+        charaImg.className = 'charaImg';
+        imgEl = document.createElement('img');
+        imgEl.alt = '';
+        charaImg.appendChild(imgEl);
+        outlineRoot.appendChild(charaImg);
+    }
+
+    inner.appendChild(outlineRoot);
+    el.appendChild(inner);
+    area.appendChild(el);
+
+    applyPopupScale(inner);
+
+    const curtain = area.querySelector('#popupCurtain');
+    if (curtain) curtain.classList.add('show');
+    activePopup = {
+        kind: 'storyOutline',
+        el,
+        canClose: true
+    };
+    bindEvents();
+
+    if (imgEl && defaultCardId) {
+        loadOutlineCardArt(imgEl, defaultCardId);
+    }
+}
+
+async function openStillDetail(imgRelPath) {
+    if (!imgRelPath) return;
+    closeStillDetail();
+
+    const detail = document.createElement('div');
+    detail.id = 'stillDetail';
+    detail.className = 'se_cancel';
+
+    const img = document.createElement('img');
+    img.alt = '';
+    detail.appendChild(img);
+    detail.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeStillDetail();
+    });
+    document.body.appendChild(detail);
+
+    const base = await resolveMaReAssetsBase().catch(() => '');
+    if (!base || !detail.isConnected) return;
+    const resourceRoot = String(base).replace(/\/$/, '').replace(/\/image_native\/live2d_v4\/?$/, '');
+    img.src = `${resourceRoot}/scenario/img/${imgRelPath}`;
+}
+
+export function openStoryGalleryPopup({ galleries = [], initialChapterId } = {}) {
+    if (!Array.isArray(galleries) || galleries.length === 0) {
+        openStoryNoticePopup({
+            title: 'Gallery',
+            message: 'There are no images available to display.'
+        });
+        return;
+    }
+
+    const foundIdx = galleries.findIndex((g) => Number(g.chapterId) === Number(initialChapterId));
+    let currentIndex = foundIdx >= 0 ? foundIdx : 0;
+
+    if (activePopup) closeActivePopup({ immediate: true });
+    const area = ensurePopupArea();
+
+    const el = document.createElement('div');
+    el.id = 'stillListPopup';
+    el.className = 'popupContent open typeB';
+
+    const inner = document.createElement('div');
+    inner.className = 'popupInner';
+
+    const closeX = document.createElement('span');
+    closeX.className = 'closeDefault popupCloseBtn se_cancel TE';
+
+    const titleEl = document.createElement('p');
+    titleEl.id = 'popupInfoDetailTitle';
+    titleEl.className = 'popupTitle common_title';
+
+    const textArea = document.createElement('div');
+    textArea.className = 'popupTextArea';
+
+    const listWrap = document.createElement('div');
+    listWrap.id = 'stillListWrap';
+    listWrap.className = 'imageList';
+    const scrollInner = document.createElement('div');
+    scrollInner.className = 'scrollInner';
+    listWrap.appendChild(scrollInner);
+    textArea.appendChild(listWrap);
+
+    inner.appendChild(closeX);
+    inner.appendChild(titleEl);
+    inner.appendChild(textArea);
+
+    if (galleries.length > 1) {
+        const leftArrow = document.createElement('div');
+        leftArrow.className = 'arrowLeft arrow se_tabs TE';
+        const rightArrow = document.createElement('div');
+        rightArrow.className = 'arrowRight arrow se_tabs TE';
+        inner.appendChild(leftArrow);
+        inner.appendChild(rightArrow);
+    }
+
+    // Enable drag-to-scroll on thumbnail list without triggering tile clicks.
+    let dragActive = false;
+    let dragStartY = 0;
+    let dragStartScroll = 0;
+    listWrap.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return;
+        dragActive = true;
+        dragStartY = e.clientY;
+        dragStartScroll = listWrap.scrollTop;
+    });
+    window.addEventListener('pointermove', (e) => {
+        if (!dragActive || !listWrap.isConnected) {
+            dragActive = false;
+            return;
+        }
+        const dy = e.clientY - dragStartY;
+        if (Math.abs(dy) > 6) {
+            markDragScroll(140);
+            listWrap.scrollTop = dragStartScroll - dy;
+        }
+    });
+    const endDrag = () => { dragActive = false; };
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
+
+    const renderGalleryPage = () => {
+        const gallery = galleries[currentIndex];
+        if (!gallery) return;
+        titleEl.textContent = gallery.title || 'Gallery';
+        scrollInner.innerHTML = '';
+        listWrap.scrollTop = 0;
+
+        const list = Array.isArray(gallery.stillList) ? gallery.stillList : [];
+        let cnt = 0;
+        for (let i = 0; i < list.length; i++) {
+            const imgPath = list[i];
+            const cell = document.createElement('div');
+            cell.className = 'imageWrap';
+            if (imgPath) {
+                cell.dataset.index = String(i);
+                const thumbImg = document.createElement('img');
+                thumbImg.className = 'thumbnail';
+                thumbImg.loading = 'lazy';
+                thumbImg.alt = '';
+                thumbImg.src = magicaUrl(`resource/image_web/thumbnail/${imgPath.replace(/\.jpg$/i, '.png')}`);
+                cell.appendChild(thumbImg);
+            }
+            scrollInner.appendChild(cell);
+            cnt++;
+        }
+
+        const noImageCnt = cnt < 24 ? 24 - cnt : (cnt % 6 === 0 ? 0 : 6 - (cnt % 6));
+        for (let i = 0; i < noImageCnt; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'noImage';
+            scrollInner.appendChild(emptyCell);
+        }
+    };
+
+    renderGalleryPage();
+
+    el.appendChild(inner);
+    area.appendChild(el);
+    applyPopupScale(inner);
+
+    const curtain = area.querySelector('#popupCurtain');
+    if (curtain) curtain.classList.add('show');
+    activePopup = {
+        kind: 'storyGallery',
+        el,
+        canClose: true,
+        getIndex: () => currentIndex,
+        setIndex: (next) => {
+            currentIndex = (next + galleries.length) % galleries.length;
+            renderGalleryPage();
+        },
+        getCurrentGallery: () => galleries[currentIndex]
+    };
+    bindEvents();
 }
 
 async function loadProfileCardArt(imgEl, charaId) {
@@ -814,6 +1138,11 @@ function submitActiveNameChange() {
 }
 
 function onKeyDown(e) {
+    if (e.key === 'Escape' && document.getElementById('stillDetail')) {
+        e.preventDefault();
+        closeStillDetail();
+        return;
+    }
     if (!activePopup) return;
     if (e.key === 'Enter') {
         if (activePopup.kind === 'nameChange' && e.target?.id === 'changeName') {
@@ -927,6 +1256,28 @@ function onPopupClick(e) {
                 const anyActive = Array.from(buttons).some((b) => b !== allBtn && b.classList.contains('current'));
                 if (!anyActive && allBtn) allBtn.classList.add('current');
             }
+            return;
+        }
+    }
+
+    if (activePopup.kind === 'storyGallery') {
+        const arrow = e.target.closest('#stillListPopup .arrow');
+        if (arrow) {
+            e.preventDefault();
+            e.stopPropagation();
+            const delta = arrow.classList.contains('arrowRight') ? 1 : -1;
+            activePopup.setIndex(activePopup.getIndex() + delta);
+            return;
+        }
+        const tile = e.target.closest('#stillListPopup .imageWrap[data-index]');
+        if (tile) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (isDragScrollActive()) return;
+            const idx = Number(tile.dataset.index);
+            const gallery = activePopup.getCurrentGallery();
+            const imgPath = gallery?.stillList?.[idx];
+            if (imgPath) openStillDetail(imgPath);
             return;
         }
     }

@@ -14,6 +14,7 @@ import { enterCharaTop, leaveCharaTop } from './chara-top.js';
 import { enterCameraTop, leaveCameraTop } from './camera-top.js';
 import { enterConfigTop, leaveConfigTop } from './config-top.js';
 import { enterCollectionTop, leaveCollectionTop } from './collection-top.js';
+import { enterStoryCollection, leaveStoryCollection } from './story-collection.js';
 import { enterCharaCollection, leaveCharaCollection } from './viewer/chara-collection.js';
 import { enterCharaCollectionDetail, leaveCharaCollectionDetail } from './chara-collection-detail.js';
 
@@ -34,6 +35,7 @@ const OPENED_FROM_ROOT_INDEX = (() => {
 let routeGeneration = 0;
 let activeRouteKey = null;
 let collectionEntrySource = OPENED_FROM_ROOT_INDEX ? 'index' : 'direct';
+let storyEntrySource = 'direct';
 
 function resolveRouteKey(hash) {
     if (hash.startsWith('#/BackgroundSet')) return 'BackgroundSet';
@@ -41,6 +43,7 @@ function resolveRouteKey(hash) {
     if (hash.startsWith('#/CameraTop')) return 'CameraTop';
     if (hash.startsWith('#/ConfigTop')) return 'ConfigTop';
     if (hash.startsWith('#/CollectionTop')) return 'CollectionTop';
+    if (hash.startsWith('#/StoryCollection')) return 'StoryCollection';
     if (hash.startsWith('#/CharaCollectionDetail')) return 'CharaCollectionDetail';
     if (hash.startsWith('#/CharaCollection')) return 'CharaCollection';
     return 'MyPage';
@@ -81,6 +84,12 @@ function setupBackBtn() {
             } else {
                 window.location.hash = '#/MyPage';
             }
+        } else if (currentHash.startsWith('#/StoryCollection')) {
+            if (storyEntrySource === 'archive') {
+                window.location.hash = '#/CollectionTop';
+            } else {
+                window.location.hash = '#/MyPage';
+            }
         } else if (currentHash.startsWith('#/CollectionTop')) {
             window.location.hash = '#/MyPage';
         } else if (currentHash.startsWith('#/ConfigTop')) {
@@ -102,7 +111,7 @@ function setupBackBtn() {
 }
 
 function hideAllViews() {
-    const ids = ['CharaCollection', 'CollectionTop', 'ConfigTop', 'cardDetail', 'MyPage', 'BackgroundSet', 'CharaTop', 'CameraTop'];
+    const ids = ['CharaCollection', 'StoryCollection', 'CollectionTop', 'ConfigTop', 'cardDetail', 'MyPage', 'BackgroundSet', 'CharaTop', 'CameraTop'];
     for (const id of ids) {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
@@ -128,6 +137,9 @@ function leaveActiveRoute(nextRouteKey) {
             break;
         case 'CollectionTop':
             leaveCollectionTop({ keepStage: true });
+            break;
+        case 'StoryCollection':
+            leaveStoryCollection();
             break;
         case 'CharaCollection':
             leaveCharaCollection();
@@ -162,9 +174,13 @@ export async function handleRoute() {
             collectionEntrySource = 'direct';
         }
     }
+    if (nextRouteKey === 'StoryCollection') {
+        storyEntrySource = prevRouteKey === 'CollectionTop' ? 'archive' : 'direct';
+    }
     const hadLive2d = hasActiveStageModels();
     const isArchiveToHome = prevRouteKey === 'CollectionTop' && nextRouteKey === 'MyPage';
     const isArchiveToCharaCollection = prevRouteKey === 'CollectionTop' && nextRouteKey === 'CharaCollection';
+    const isArchiveToStoryCollection = prevRouteKey === 'CollectionTop' && nextRouteKey === 'StoryCollection';
     const isCharaCollectionDetailNav =
         (prevRouteKey === 'CharaCollection' && nextRouteKey === 'CharaCollectionDetail')
         || (prevRouteKey === 'CharaCollectionDetail' && nextRouteKey === 'CharaCollection');
@@ -179,7 +195,7 @@ export async function handleRoute() {
 
     if (isCharaCollectionDetailNav) {
         document.body.classList.remove('connecting');
-    } else if (!isArchiveToHome && !isArchiveToCharaCollection) {
+    } else if (!isArchiveToHome && !isArchiveToCharaCollection && !isArchiveToStoryCollection) {
         document.body.classList.add('connecting');
     }
     uiLayer.classList.add('route-transitioning');
@@ -328,6 +344,31 @@ export async function handleRoute() {
                     if (homeMenuEl) homeMenuEl.style.display = 'block';
                     initGlobalMenuForPage({ showHelp: false });
                     if (collectionTopEl) collectionTopEl.style.display = 'block';
+                    if (globalBackBtn) globalBackBtn.style.display = 'block';
+                    setupBackBtn();
+                    uiLayer.classList.remove('route-transitioning');
+                }
+            });
+        } else if (nextRouteKey === 'StoryCollection') {
+            if (!document.getElementById('globalMenu')) {
+                if (!await loadRouteTemplate('template/base/GlobalMenu.html', generation, 'globalMenu', 'sideMenu')) return;
+            }
+            if (!document.getElementById('StoryCollection')) {
+                if (!await loadRouteTemplate('template/collection/StoryCollection.html', generation, 'StoryCollection')) return;
+            }
+
+            await enterStoryCollection({
+                hadLive2d,
+                fromCollectionTop: isArchiveToStoryCollection,
+                onBeforeReveal: () => {
+                    if (generation !== routeGeneration) return;
+                    document.body.classList.remove('connecting');
+                    const storyCollectionEl = document.getElementById('StoryCollection');
+                    const homeMenuEl = document.getElementById('globalMenu');
+                    const globalBackBtn = document.getElementById('globalBackBtn');
+                    if (homeMenuEl) homeMenuEl.style.display = 'block';
+                    initGlobalMenuForPage({ showHelp: false });
+                    if (storyCollectionEl) storyCollectionEl.style.display = 'block';
                     if (globalBackBtn) globalBackBtn.style.display = 'block';
                     setupBackBtn();
                     uiLayer.classList.remove('route-transitioning');

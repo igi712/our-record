@@ -19,7 +19,7 @@
 }
 
 #stillListPopup #stillListWrap .imageWrap, #stillListPopup #stillListWrap .noImage {
-  background: url("assets/magica/resource/image_web/page/collection/storyCollection/thum_frame.png") left top no-repeat;
+  background: url("../../resource/image_web/page/collection/storyCollection/thum_frame.png") left top no-repeat;
   position: relative;
   width: 122px;
   height: 90px;
@@ -35,7 +35,7 @@
 }
 
 #stillListPopup #stillListWrap .noImage {
-  background: url("assets/magica/resource/image_web/page/collection/storyCollection/thum_none.png") left top no-repeat;
+  background: url("../../resource/image_web/page/collection/storyCollection/thum_none.png") left top no-repeat;
 }
 
 #stillListPopup .arrowRight, #stillListPopup .arrowLeft {
@@ -50,13 +50,13 @@
 }
 
 #stillListPopup .arrowRight {
-  background: url("assets/magica/resource/image_web/page/collection/storyCollection/arrow_r.png") left top no-repeat;
+  background: url("../../resource/image_web/page/collection/storyCollection/arrow_r.png") left top no-repeat;
   background-size: 62px 76px;
   right: -12px;
 }
 
 #stillListPopup .arrowLeft {
-  background: url("assets/magica/resource/image_web/page/collection/storyCollection/arrow_l.png") left top no-repeat;
+  background: url("../../resource/image_web/page/collection/storyCollection/arrow_l.png") left top no-repeat;
   background-size: 62px 76px;
   left: -12px;
 }
@@ -116,7 +116,7 @@
   color: #ffffff;
   font-size: 16px;
   line-height: 24px;
-  content: "所持E;
+  content: "Owned";
   z-index: 2;
 }
 
@@ -188,7 +188,7 @@
 }
 
 #StoryCollection #middlePlayBtn {
-  background: url("assets/magica/resource/image_web/page/collection/btn_restart_off.png") left top no-repeat;
+  background: url("../../resource/image_web/page/collection/btn_restart_off.png") left top no-repeat;
   position: absolute;
   left: 706px;
   top: 12px;
@@ -197,11 +197,11 @@
 }
 
 #StoryCollection #middlePlayBtn.on {
-  background: url("assets/magica/resource/image_web/page/collection/btn_restart_on.png") left top no-repeat;
+  background: url("../../resource/image_web/page/collection/btn_restart_on.png") left top no-repeat;
 }
 
 #StoryCollection #continuousPlayBtn {
-  background: url("assets/magica/resource/image_web/page/collection/btn_continue_off.png") left top no-repeat;
+  background: url("../../resource/image_web/page/collection/btn_continue_off.png") left top no-repeat;
   position: absolute;
   left: 800px;
   top: 12px;
@@ -210,7 +210,7 @@
 }
 
 #StoryCollection #continuousPlayBtn.on {
-  background: url("assets/magica/resource/image_web/page/collection/btn_continue_on.png") left top no-repeat;
+  background: url("../../resource/image_web/page/collection/btn_continue_on.png") left top no-repeat;
 }
 
 #StoryCollection #tabBtn {
@@ -234,7 +234,7 @@
 }
 
 #StoryCollection #tabBtn .btn.magirepo {
-  background: url("assets/magica/resource/image_web/page/collection/magirepo/common/tab_magirepo.png") left top no-repeat;
+  background: url("../../resource/image_web/page/collection/magirepo/common/tab_magirepo.png") left top no-repeat;
 }
 
 #StoryCollection #tabBtn .btn.magirepo:before {
@@ -316,7 +316,7 @@
   left: 0;
   color: #ffffff;
   line-height: 24px;
-  content: "所持E;
+  content: "Owned";
   z-index: 5;
 }
 
@@ -366,7 +366,9 @@
 #StoryCollection #listWrap #special .hiddenWrap,
 #StoryCollection #listWrap #accomplish .hiddenWrap {
   height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
 }
 
 #StoryCollection #listWrap #main .hiddenWrap .scrollInner,
@@ -464,7 +466,7 @@
 #StoryCollection #listWrap .wrap.lock:after {
   content: "";
   position: absolute;
-  background: url("assets/magica/resource/image_web/page/collection/storyCollection/icon_story_lock_f.png") left top no-repeat;
+  background: url("../../resource/image_web/page/collection/storyCollection/icon_story_lock_f.png") left top no-repeat;
   width: 26px;
   height: 31px;
   background-size: 26px 31px;
@@ -501,7 +503,7 @@
 #StoryCollection #listWrap .wrap .chapterTitleWrap .chapterNumber {
   height: 20px;
   position: absolute;
-  top: 20px;
+  top: 19px;
   left: 15px;
   font-size: 20px;
 }
@@ -518,7 +520,7 @@
 #StoryCollection #listWrap .wrap .chapterTitleWrap .panArrow {
   width: 40px;
   height: 40px;
-  background-image: url("assets/magica/resource/image_web/page/collection/pan_down.png");
+  background-image: url("../../resource/image_web/page/collection/pan_down.png");
   background-size: 100% 100%;
   position: absolute;
   right: 10px;
@@ -526,7 +528,7 @@
 }
 
 #StoryCollection #listWrap .wrap .chapterTitleWrap .panArrow.on {
-  background-image: url("assets/magica/resource/image_web/page/collection/pan_up.png");
+  background-image: url("../../resource/image_web/page/collection/pan_up.png");
   background-size: 100% 100%;
 }
 
@@ -665,7 +667,7 @@
   position: absolute;
   left: -3px;
   top: -11px;
-  background: url("assets/magica/resource/image_web/page/collection/storyCollection/icon_story_lock_f.png") left top no-repeat;
+  background: url("../../resource/image_web/page/collection/storyCollection/icon_story_lock_f.png") left top no-repeat;
   width: 21px;
   height: 27px;
   background-size: 21px 27px;
@@ -787,7 +789,7 @@
 #StoryCollection #listWrap #event .wrap.WITCH .sectionListWrap .storyWrap .btnWrap.lock .sb_gold_01,
 #StoryCollection #listWrap #special .wrap.BRANCH .sectionListWrap .storyWrap .btnWrap.lock .sb_gold_01,
 #StoryCollection #listWrap #special .wrap.WITCH .sectionListWrap .storyWrap .btnWrap.lock .sb_gold_01 {
-  background: url("assets/magica/resource/image_web/page/collection/storyCollection/btn_s_gray_01_c.png") center top no-repeat;
+  background: url("../../resource/image_web/page/collection/storyCollection/btn_s_gray_01_c.png") center top no-repeat;
   color: #535353;
 }
 
@@ -797,7 +799,7 @@
 #StoryCollection #listWrap #event .wrap.WITCH .sectionListWrap .storyWrap .btnWrap.lock .sb_gold_01:before,
 #StoryCollection #listWrap #special .wrap.BRANCH .sectionListWrap .storyWrap .btnWrap.lock .sb_gold_01:before,
 #StoryCollection #listWrap #special .wrap.WITCH .sectionListWrap .storyWrap .btnWrap.lock .sb_gold_01:before {
-  background: url("assets/magica/resource/image_web/page/collection/storyCollection/btn_s_gray_01_l.png") left top no-repeat;
+  background: url("../../resource/image_web/page/collection/storyCollection/btn_s_gray_01_l.png") left top no-repeat;
 }
 
 #StoryCollection #listWrap #puellaHistoria .wrap.BRANCH .sectionListWrap .storyWrap .btnWrap.lock .sb_gold_01:after,
@@ -806,7 +808,7 @@
 #StoryCollection #listWrap #event .wrap.WITCH .sectionListWrap .storyWrap .btnWrap.lock .sb_gold_01:after,
 #StoryCollection #listWrap #special .wrap.BRANCH .sectionListWrap .storyWrap .btnWrap.lock .sb_gold_01:after,
 #StoryCollection #listWrap #special .wrap.WITCH .sectionListWrap .storyWrap .btnWrap.lock .sb_gold_01:after {
-  background: url("assets/magica/resource/image_web/page/collection/storyCollection/btn_s_gray_01_r.png") left top no-repeat;
+  background: url("../../resource/image_web/page/collection/storyCollection/btn_s_gray_01_r.png") left top no-repeat;
 }
 
 #StoryCollection #listWrap #puellaHistoria .wrap.BRANCH .sectionListWrap .storyWrap .btnWrap.lock:after,
@@ -819,7 +821,7 @@
   position: absolute;
   left: -8px;
   top: -11px;
-  background: url("assets/magica/resource/image_web/page/collection/storyCollection/icon_story_lock_f.png") left top no-repeat;
+  background: url("../../resource/image_web/page/collection/storyCollection/icon_story_lock_f.png") left top no-repeat;
   width: 21px;
   height: 27px;
   background-size: 21px 27px;
@@ -827,7 +829,7 @@
 }
 
 #StoryCollection #listWrap #accomplish .chapterTitleWrap {
-  background: url("assets/magica/resource/image_web/page/collection/storyCollection/bg_accomplish_title.png") left top no-repeat;
+  background: url("../../resource/image_web/page/collection/storyCollection/bg_accomplish_title.png") left top no-repeat;
 }
 
 #StoryCollection #listWrap #accomplish .chapterTitleWrap .faceImg img {
@@ -838,4 +840,388 @@
 #StoryCollection #listWrap #accomplish .chapterTitleWrap .chapterTitle {
   top: 12px;
   left: 132px;
+}
+
+/* ===== SPA Integration, Missing common.css Primitives & Popups ===== */
+#StoryCollection {
+  opacity: 0;
+  pointer-events: auto;
+  user-select: none;
+  box-sizing: border-box;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+  color: #5b5b5b;
+}
+
+#StoryCollection.fadein {
+  -webkit-animation: readyFadeIn .25s ease-in forwards;
+  animation: readyFadeIn .25s ease-in forwards;
+}
+
+#StoryCollection *,
+#outline *,
+#stillListPopup * {
+  box-sizing: border-box;
+  font-family: 'Open Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  font-weight: 600;
+}
+
+#StoryCollection h2,
+#StoryCollection h3,
+#StoryCollection p {
+  margin: 0;
+  font-weight: 600;
+}
+
+#StoryCollection ul,
+#StoryCollection li {
+  list-style: none;
+}
+
+#StoryCollection #middlePlayBtn,
+#StoryCollection #continuousPlayBtn,
+#StoryCollection #tabBtn .btn,
+#StoryCollection #listWrap .wrap .chapterTitleWrap,
+#StoryCollection #listWrap .wrap .popupGalleryBtn,
+#StoryCollection .sb_gold_01,
+#StoryCollection .mb_white,
+#stillListPopup .imageWrap[data-index],
+#stillListPopup .arrow {
+  cursor: pointer;
+}
+
+#StoryCollection .TE.touch,
+#stillListPopup .TE.touch {
+  -webkit-filter: brightness(90%);
+  filter: brightness(90%);
+  -webkit-transform: scale(0.97);
+  transform: scale(0.97);
+}
+
+#StoryCollection #tabBtn #storyTabScroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+#StoryCollection #tabBtn #storyTabScroll::-webkit-scrollbar,
+#StoryCollection #listWrap .hiddenWrap::-webkit-scrollbar,
+#stillListPopup #stillListWrap::-webkit-scrollbar,
+#outline .outlineWrap .outline::-webkit-scrollbar {
+  display: none;
+}
+
+#StoryCollection #tabBtn .btn.magirepo {
+  height: 60px;
+}
+
+#StoryCollection #listWrap {
+  padding: 30px 0 0;
+}
+
+#StoryCollection #listWrap #unlockItems {
+  width: 210px;
+}
+
+#StoryCollection #listWrap #unlockItems:before {
+  left: 28px;
+  width: 64px;
+  font-size: 14px;
+  text-align: left;
+  content: "Owned";
+}
+
+#StoryCollection #listWrap #unlockItems .pointFrame {
+  width: 208px;
+}
+
+/* common.css primitives not in shared.css */
+#StoryCollection .c_gold {
+  color: #a47122;
+}
+
+#StoryCollection .ts_white {
+  text-shadow: -1px -1px 1px #ffffff, 1px -1px 1px #ffffff, -1px 1px 1px #ffffff, 1px 1px 1px #ffffff, -1px -1px #ffffff, 1px -1px #ffffff, -1px 1px #ffffff, 1px 1px #ffffff, -1px -1px 2px #ffffff, 1px -1px 2px #ffffff, -1px 1px 2px #ffffff, 1px 1px 2px #ffffff, -1px -1px 3px #ffffff, 1px -1px 3px #ffffff, -1px 1px 3px #ffffff, 1px 1px 3px #ffffff;
+}
+
+#StoryCollection .mb_white {
+  display: inline-block;
+  position: relative;
+  text-align: center;
+  border-width: 12px;
+  border-style: solid;
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #a47122;
+  border-radius: 12px;
+  border-image: url("../../resource/image_web/common/btn/btn_m_white.png") 12 fill stretch;
+  line-height: 29px;
+  padding: 0 10px;
+}
+
+#StoryCollection .mb_white .b_screen {
+  width: calc(100% + 22px);
+  height: calc(100% + 22px);
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  pointer-events: none;
+}
+
+#StoryCollection .pointFrame {
+  min-height: 24px;
+  padding: 0 12px;
+  background: url("../../resource/image_web/common/frame/point_frame_bg.png") center top no-repeat;
+  background-size: calc(100% - 20px) 100%;
+  display: inline-block;
+  position: relative;
+  color: #ffffff;
+  font-size: 16px;
+  line-height: 24px;
+  text-align: center;
+}
+
+#StoryCollection .pointFrame:before,
+#StoryCollection .pointFrame:after {
+  width: 12px;
+  height: 24px;
+  display: block;
+  position: absolute;
+  top: 0;
+  content: "";
+}
+
+#StoryCollection .pointFrame:before {
+  background: url("../../resource/image_web/common/frame/point_frame_l.png") left top no-repeat;
+  left: 0;
+}
+
+#StoryCollection .pointFrame:after {
+  background: url("../../resource/image_web/common/frame/point_frame_r.png") left top no-repeat;
+  right: 0;
+}
+
+#StoryCollection .commonFrame3 h2 {
+  width: 458px;
+  padding: 0 10px;
+  background-size: 458px 24px;
+  top: 0;
+  left: 0;
+  font-size: 16px;
+  line-height: 24px;
+  border-radius: 6px 0 0 0;
+}
+
+#StoryCollection .commonFrame4 h3 {
+  padding: 0 0 0 20px;
+  position: relative;
+  color: #ff4f9e;
+  font-size: 14px;
+  line-height: 14px;
+}
+
+#StoryCollection .commonFrame4 h3:before {
+  width: 14px;
+  height: 14px;
+  background: url("../../resource/image_web/common/frame/title_icon.png") left top no-repeat;
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "";
+}
+
+#StoryCollection #listWrap .wrap .chapterTitleWrap .chapterTitle {
+  width: 390px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#StoryCollection #listWrap #puellaHistoria .chapterTitle,
+#StoryCollection #listWrap #event .chapterTitle,
+#StoryCollection #listWrap #special .chapterTitle {
+  width: 557px;
+  height: 57px;
+}
+
+#StoryCollection #listWrap .chapterTitle .titleWrapper {
+  display: block;
+  width: 557px;
+  height: 57px;
+  object-fit: cover;
+}
+
+#StoryCollection #listWrap .chapterTitle .bannerFallback {
+  display: block;
+  padding: 14px 56px 0 18px;
+  font-size: 19px;
+  color: #5b3072;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#StoryCollection #listWrap .wrap .sectionListWrap .sectionWrap .sectionTitle {
+  max-width: 215px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#StoryCollection #listWrap #chara .wrap .sectionListWrap .sectionWrap .sectionTitle,
+#StoryCollection #listWrap #arena .wrap .sectionListWrap .sectionWrap .sectionTitle,
+#StoryCollection #listWrap #accomplish .wrap .sectionListWrap .sectionWrap .sectionTitle {
+  max-width: 360px;
+}
+
+#StoryCollection #listWrap .wrap .sectionListWrap .sectionWrap .outline {
+  min-width: 94px;
+  padding: 0 16px;
+  line-height: 34px;
+}
+
+#StoryCollection #listWrap .wrap .sectionListWrap .sectionWrap .storyStart {
+  margin: 0;
+  padding: 5px 12px 0;
+  font-size: 12px;
+  line-height: 11px;
+}
+
+#StoryCollection #listWrap .wrap .sectionListWrap .sectionWrap.mirrorBattle .storyStart {
+  padding-top: 1px;
+  line-height: 32px;
+  font-size: 14px;
+}
+
+#StoryCollection #listWrap #puellaHistoria .wrap.BRANCH .sectionListWrap .storyWrap .charaTxt,
+#StoryCollection #listWrap #puellaHistoria .wrap.WITCH .sectionListWrap .storyWrap .charaTxt,
+#StoryCollection #listWrap #event .wrap.BRANCH .sectionListWrap .storyWrap .charaTxt,
+#StoryCollection #listWrap #event .wrap.WITCH .sectionListWrap .storyWrap .charaTxt {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#StoryCollection #listWrap #puellaHistoria .wrap.BRANCH .sectionListWrap .storyWrap .branchStoryTitle,
+#StoryCollection #listWrap #event .wrap.BRANCH .sectionListWrap .storyWrap .branchStoryTitle {
+  max-width: 215px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#StoryCollection #listWrap #puellaHistoria .wrap.BRANCH .sectionListWrap .storyWrap .btnWrap .sb_gold_01,
+#StoryCollection #listWrap #puellaHistoria .wrap.WITCH .sectionListWrap .storyWrap .btnWrap .sb_gold_01,
+#StoryCollection #listWrap #event .wrap.BRANCH .sectionListWrap .storyWrap .btnWrap .sb_gold_01,
+#StoryCollection #listWrap #event .wrap.WITCH .sectionListWrap .storyWrap .btnWrap .sb_gold_01 {
+  margin: 0;
+  padding: 0 12px;
+  line-height: 34px;
+}
+
+/* ===== Outline Popup ("The Story So Far") ===== */
+.popupContent.storyOutlinePop .popupInner {
+  overflow: visible;
+}
+
+#outline {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+#outline .charaImg {
+  position: absolute;
+  top: calc(50% - 350px);
+  left: -310px;
+  z-index: 1;
+  pointer-events: none;
+  -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, from(black), color-stop(98%, black), to(rgba(0, 0, 0, 0)));
+  mask-image: linear-gradient(to bottom, black 0%, black 98%, transparent 100%);
+}
+
+#outline .charaImg img {
+  height: 660px;
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.25s ease-out, transform 0.28s ease-out;
+}
+
+#outline .charaImg img.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#outline .popupTitle {
+  width: 460px;
+  margin: 14px auto 15px;
+}
+
+#outline .outlineWrap {
+  width: 572px;
+  height: 408px;
+  background-color: rgba(255, 255, 255, 0.85);
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 10;
+}
+
+#outline .outlineWrap .outline {
+  height: 326px;
+  margin: 0;
+  padding: 0 46px 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  color: #5b5b5b;
+  font-size: 18px;
+  line-height: 27px;
+  text-align: justify;
+  user-select: text;
+}
+
+/* ===== Gallery Popup (#stillListPopup) & Fullscreen CG (#stillDetail) ===== */
+#stillListPopup .popupTitle {
+  width: 862px;
+}
+
+#stillListPopup .popupInner .popupTextArea {
+  display: block;
+  width: auto;
+  height: auto;
+  padding: 0;
+  overflow: visible;
+}
+
+#stillListPopup #stillListWrap {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+#stillListPopup #stillListWrap .scrollInner {
+  box-sizing: border-box;
+}
+
+#stillDetail {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000005;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+#stillDetail img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  user-select: none;
 }

@@ -75,6 +75,12 @@ function setupCollectionTopView() {
             window.location.hash = '#/CharaCollection';
             return;
         }
+        const storyBtn = e.target.closest('#CollectionTop .storyBtn');
+        if (storyBtn) {
+            e.preventDefault();
+            window.location.hash = '#/StoryCollection';
+            return;
+        }
         const otherBtn = e.target.closest('#CollectionTop .collectionBtn');
         if (otherBtn) {
             e.preventDefault();

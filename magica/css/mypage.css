@@ -901,6 +901,7 @@
   width: 85px;
   height: 85px;
   background-image: url("../resource/image_web/common/popup/popup_close.png");
+  background-repeat: no-repeat;
   background-position: 29px 6px;
   background-size: 52px 51px;
   display: inline-block;
@@ -908,6 +909,7 @@
   top: -40px;
   right: -40px;
   z-index: 20;
+  cursor: pointer;
 }
 
 .popupContent .popupInner .popupTitle {
