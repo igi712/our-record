@@ -2,7 +2,8 @@
 
 import { repoUrl, magicaUrl } from './paths.js';
 import { changeBg, preloadBg, setBgPortrait, setBgWebcamVideo } from './engine/bg.js';
-import { startBgm } from './engine/audio.js';
+import { startBgm, stopBgm } from './engine/audio.js';
+import { playUsmMovie, stopUsmMovie, isUsmMoviePlaying } from './engine/usm-player.js';
 import {
     setStageContext,
     setStageXOffset,
@@ -82,13 +83,42 @@ export function handleStoryPlayback(storyIds, meta = {}) {
     });
 }
 
-export function handleMoviePlayback(movieId) {
+export async function handleMoviePlayback(movieId) {
+    if (isUsmMoviePlaying()) return;
     const moviePath = MOVIE_PATHS[movieId] || '';
     console.info('[story-collection] playMovie:', { movieId, moviePath });
-    openStoryNoticePopup({
-        title: 'Movie Playback',
-        message: 'The movie player is not implemented yet.'
-    });
+    if (!moviePath) {
+        openStoryNoticePopup({
+            title: 'Movie Playback',
+            message: 'The selected movie is not available.'
+        });
+        return;
+    }
+
+    const token = storyCollectionToken;
+    // Start playUsmMovie synchronously within the click gesture so AudioContext unlocks cleanly.
+    const playPromise = playUsmMovie(moviePath);
+    stopBgm({ fadeMs: 220 }).catch((e) => console.warn('[story-collection] stopBgm error:', e));
+
+    try {
+        await playPromise;
+        if (token === storyCollectionToken) {
+            startBgm(COLLECTION_BGM, { autoplay: true }).catch((e) =>
+                console.warn('[story-collection] BGM resume error:', e)
+            );
+        }
+    } catch (err) {
+        console.warn('[story-collection] Movie playback failed:', movieId, err);
+        if (token === storyCollectionToken) {
+            startBgm(COLLECTION_BGM, { autoplay: true }).catch((e) =>
+                console.warn('[story-collection] BGM resume error:', e)
+            );
+            openStoryNoticePopup({
+                title: 'Movie Playback',
+                message: err?.message || 'Failed to play the movie.'
+            });
+        }
+    }
 }
 
 export function handleMagiRepoClick() {
@@ -742,6 +772,7 @@ export async function enterStoryCollection({ onBeforeReveal, hadLive2d = false, 
 
 export function leaveStoryCollection() {
     storyCollectionToken++;
+    stopUsmMovie({ fadeMs: 0 });
     closeStoryPopup();
     document.getElementById('StoryCollection')?.classList.remove('fadein');
     resetStoryCollection();

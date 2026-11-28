@@ -41,6 +41,7 @@ const FILES = [
   'magica/js/engine/mini-chara.js',
   'magica/js/engine/l2d-stage.js',
   'magica/js/engine/common-events.js',
+  'magica/js/engine/usm-player.js',
   'lib/cocos-to-pixi.js',
 ];
 
