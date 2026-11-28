@@ -586,3 +586,72 @@ canvas {
     top: 8px;
     left: 10px;
 }
+
+#cardDetail .fullScreenEnd {
+    display: none;
+}
+
+#cardDetail.showLive2dFullscreen #detailCardName,
+#cardDetail.showLive2dFullscreen #detailTab,
+#cardDetail.showLive2dFullscreen #cardDetailWrap,
+#cardDetail.showLive2dFullscreen .collectionBack {
+    display: none;
+}
+
+#cardDetail.showLive2dFullscreen .fullScreenBack {
+    display: block;
+    width: 92px;
+    height: 43px;
+    background-image: url("../resource/image_web/common/global/global_back.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+    position: absolute;
+    top: 9px;
+    left: 7px;
+    z-index: 101;
+    cursor: pointer;
+    pointer-events: auto !important;
+}
+
+#cardDetail.showLive2dFullscreen .fullScreenBack span {
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: auto !important;
+}
+
+#cardDetail.showLive2dFullscreen .drawerBtn {
+    display: block;
+    width: 128px;
+    height: 54px;
+    padding: 0;
+    background: url("../resource/image_web/common/chara/bg_detail_name.png") left top no-repeat;
+    position: absolute;
+    top: 0;
+    right: 0;
+    line-height: 54px;
+    z-index: 101;
+    cursor: pointer;
+    pointer-events: auto !important;
+}
+
+#cardDetail.showLive2dFullscreen .drawerBtn .soundIcon {
+    width: 38px;
+    height: 38px;
+    background: url("../resource/image_web/page/collection/voice_sound_icon.png") left top no-repeat;
+    position: absolute;
+    top: 8px;
+    left: 32px;
+    pointer-events: auto !important;
+}
+
+#cardDetail.showLive2dFullscreen .drawerBtn .drawerIcon {
+    width: 40px;
+    height: 40px;
+    background-image: url("../resource/image_web/page/collection/pan_up.png");
+    background-size: 100% 100%;
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    pointer-events: auto !important;
+}

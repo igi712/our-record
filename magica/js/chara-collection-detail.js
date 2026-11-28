@@ -20,6 +20,10 @@ import {
     bumpOutfitChangeToken,
     getOutfitChangeToken,
     getScenarioPlayer,
+    getActiveModelEntries,
+    setModelFadeAlpha,
+    fadeModelTo,
+    cancelModelFades,
     stopVoice,
     clearStageModels
 } from './engine/l2d-stage.js';
@@ -33,6 +37,30 @@ let detailVoicePrefix = '00';
 let detailScenarioUrl = '';
 let detailActive = false;
 let detailRequestToken = 0;
+let voiceFullScreen = false;
+let detailFullscreenActive = false;
+
+function fadeInActiveModels(ms = 200) {
+    cancelModelFades();
+    getActiveModelEntries().forEach((m) => {
+        if (!m || m.destroyed) return;
+        m.visible = true;
+        setModelFadeAlpha(m, 0);
+        fadeModelTo(m, ms, 1);
+    });
+}
+
+function setFullscreenUi(active) {
+    detailFullscreenActive = Boolean(active);
+    const cardDetail = document.getElementById('cardDetail');
+    cardDetail?.classList.toggle('showLive2dFullscreen', detailFullscreenActive);
+    if (detailActive) {
+        const globalBackBtn = document.getElementById('globalBackBtn');
+        if (globalBackBtn) {
+            globalBackBtn.style.display = detailFullscreenActive ? 'none' : 'block';
+        }
+    }
+}
 
 function updateHeaderName(nameEl, charaName, charaTitle) {
     if (!nameEl || !charaName) return;
@@ -196,15 +224,49 @@ function setupVoiceDisplaySwitch() {
 
     displaySwitch.addEventListener('click', (e) => {
         e.preventDefault();
+        voiceFullScreen = !voiceFullScreen;
         const checkIcon = displaySwitch.querySelector('.voiceCheck');
         if (checkIcon) {
-            checkIcon.classList.toggle('on');
-            const isFullScreen = checkIcon.classList.contains('on');
-            const cardDetail = document.getElementById('cardDetail');
-            if (cardDetail) {
-                cardDetail.classList.toggle('showLive2dFullscreen', isFullScreen);
-            }
+            checkIcon.classList.toggle('on', voiceFullScreen);
         }
+    });
+}
+
+async function finishFullScreen() {
+    if (!detailFullscreenActive) return;
+
+    const reqToken = detailRequestToken;
+    const token = bumpOutfitChangeToken();
+
+    stopVoice();
+    cancelModelFades();
+    setFullscreenUi(false);
+    setStageContext({ mode: 'detail', detailFullscreen: false });
+    setStageXOffset(DETAIL_X_OFFSET);
+    applySubtitlePlacement({ isDual: state.dualMode });
+
+    const charaId = state.currentCharacterId || DEFAULT_CHARA_ID;
+    const live2dId = String(state.currentLive2dId || '00').padStart(2, '0');
+    const loadedOk = await loadOutfitModels(charaId, live2dId, token, null, null, null, {
+        startHidden: true,
+        showConnecting: false
+    });
+    if (!loadedOk || reqToken !== detailRequestToken || token !== getOutfitChangeToken() || !detailActive) return;
+    fadeInActiveModels(200);
+}
+
+function setupFullScreenEndButtons() {
+    const btns = document.querySelectorAll('#cardDetail .fullScreenEnd');
+    btns.forEach((btn) => {
+        if (btn.getAttribute('data-has-listener')) return;
+        btn.setAttribute('data-has-listener', 'true');
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            finishFullScreen().catch((err) => {
+                console.error('[detail] Failed to exit fullscreen voice mode:', err);
+            });
+        });
     });
 }
 
@@ -217,12 +279,42 @@ function setupVoiceButtons() {
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
 
-            document.querySelectorAll('.voiceBtn.current').forEach((b) => b.classList.remove('current'));
-            btn.classList.add('current');
-
             const voiceId = btn.getAttribute('data-voice');
             const charaId = state.currentCharacterId || DEFAULT_CHARA_ID;
+            const live2dId = String(state.currentLive2dId || '00').padStart(2, '0');
             const voiceKey = `vo_char_${charaId}_${detailVoicePrefix}_${voiceId}`;
+
+            if (voiceFullScreen) {
+                const reqToken = detailRequestToken;
+                const token = bumpOutfitChangeToken();
+
+                stopVoice();
+                cancelModelFades();
+                document.querySelectorAll('.voiceBtn.current').forEach((b) => b.classList.remove('current'));
+
+                setFullscreenUi(true);
+                setStageContext({ mode: 'detail', detailFullscreen: true });
+                setStageXOffset(0);
+                applySubtitlePlacement({ isDual: state.dualMode });
+
+                try {
+                    const loadedOk = await loadOutfitModels(charaId, live2dId, token, null, null, null, {
+                        startHidden: true,
+                        showConnecting: false
+                    });
+                    if (!loadedOk || reqToken !== detailRequestToken || token !== getOutfitChangeToken() || !detailActive) return;
+
+                    seqPlayer.controller = state.currentController;
+                    fadeInActiveModels(200);
+                    await seqPlayer.loadAndPlayVoice(detailScenarioUrl, voiceKey, charaId);
+                } catch (err) {
+                    console.error('[detail] Error playing fullscreen voice button:', err);
+                }
+                return;
+            }
+
+            document.querySelectorAll('.voiceBtn.current').forEach((b) => b.classList.remove('current'));
+            btn.classList.add('current');
 
             try {
                 seqPlayer.controller = state.currentController;
@@ -235,6 +327,10 @@ function setupVoiceButtons() {
 }
 
 function resetDetailViewState() {
+    voiceFullScreen = false;
+    detailFullscreenActive = false;
+    setStageContext({ detailFullscreen: false });
+
     const detailTab = document.getElementById('detailTab');
     if (detailTab) {
         detailTab.querySelectorAll('li').forEach((tab) => {
@@ -261,6 +357,8 @@ function resetDetailViewState() {
 
     const cardDetail = document.getElementById('cardDetail');
     if (cardDetail) {
+        cardDetail.classList.remove('showLive2dFullscreen');
+        cardDetail.querySelector('.voiceDisplaySwitch .voiceCheck')?.classList.remove('on');
         cardDetail.querySelectorAll('*').forEach((child) => {
             if (child.scrollTop > 0) child.scrollTop = 0;
         });
@@ -312,7 +410,7 @@ export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID, o
 
     const token = bumpOutfitChangeToken();
 
-    setStageContext({ mode: 'detail' });
+    setStageContext({ mode: 'detail', detailFullscreen: false });
     setStageXOffset(DETAIL_X_OFFSET);
     if (typeof window.updateViewerViewport === 'function') {
         window.updateViewerViewport();
@@ -412,6 +510,7 @@ export async function enterCharaCollectionDetail({ charaId = DEFAULT_CHARA_ID, o
         applyScenarioResult(charaId, res);
         setupTabs();
         setupVoiceDisplaySwitch();
+        setupFullScreenEndButtons();
     } catch (e) {
         console.error('[detail] Model load failed:', e);
     }

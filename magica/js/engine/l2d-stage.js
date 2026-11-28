@@ -51,6 +51,7 @@ const stageCtx = {
     mode: 'detail', // 'home' | 'bgSet' | 'camera' | 'detail'
     menuClosed: false,
     portrait: false,
+    detailFullscreen: false,
     cameraPresetIndex: 0,
     cameraWearOpen: false
 };
@@ -195,6 +196,9 @@ export function resolveActivePlacement(isDual) {
         }
         return isDual ? { dualX: [244, 480] } : { singleX: 380 };
     }
+    if (stageCtx.mode === 'detail' && stageCtx.detailFullscreen) {
+        return isDual ? { dualX: [396, 632] } : { singleX: 512 };
+    }
     return isDual ? { dualX: [104, 320] } : { singleX: 250 };
 }
 
@@ -223,6 +227,13 @@ export function applySubtitlePlacement({ isDual = state.dualMode, presetIndex } 
         sub.style.top = '';
         sub.style.transform = '';
         sub.style.left = stageCtx.menuClosed ? '507px' : (isDual ? '362px' : '377px');
+        return;
+    }
+    if (stageCtx.mode === 'detail' && stageCtx.detailFullscreen) {
+        sub.style.fontSize = '';
+        sub.style.top = '';
+        sub.style.transform = '';
+        sub.style.left = '507px';
         return;
     }
     sub.style.fontSize = '';
